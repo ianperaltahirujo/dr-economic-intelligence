@@ -1,0 +1,52 @@
+name: DR Economic Intelligence Pipeline
+
+on:
+  schedule:
+    # Every Monday at 13:00 UTC (9:00 AM Santo Domingo time)
+    - cron: '0 13 * * 1'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions tab
+    inputs:
+      skip_download:
+        description: 'Skip BCRD file download (use cached)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          FRED_API_KEY:   ${{ secrets.FRED_API_KEY }}
+          SB_API_KEY:     ${{ secrets.SB_API_KEY }}
+          BCRD_API_KEY:   ${{ secrets.BCRD_API_KEY }}
+        run: |
+          if [ "${{ github.event.inputs.skip_download }}" = "true" ]; then
+            python run_pipeline.py --skip-download
+          else
+            python run_pipeline.py
+          fi
+
+      - name: Upload Excel workbook as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-report-${{ github.run_id }}
+          path: data/output/vulnerability_report.xlsx
+          retention-days: 90
