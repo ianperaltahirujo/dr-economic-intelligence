@@ -370,10 +370,16 @@ def load_sb_all(
         periodo_final = pd.Timestamp.now().strftime("%Y-%m")
 
     loaders = {
-        "principales":    lambda: load_principales_indicadores(periodo_inicial, periodo_final),
-        "morosidad_est":  lambda: load_morosidad_estresada(periodo_inicial, periodo_final),
-        "fin_indicators": lambda: load_indicadores_financieros(periodo_inicial, periodo_final),
-    }
+    "principales":    lambda: load_principales_indicadores(
+        (pd.Timestamp.now() - pd.DateOffset(months=36)).strftime("%Y-%m"),
+        periodo_final
+    ),
+    "morosidad_est":  lambda: load_morosidad_estresada(periodo_inicial, periodo_final),
+    "fin_indicators": lambda: load_indicadores_financieros(
+        (pd.Timestamp.now() - pd.DateOffset(months=36)).strftime("%Y-%m"),
+        periodo_final
+    ),
+               }
 
     frames = {}
     for key, loader in loaders.items():
