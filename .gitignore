@@ -1,0 +1,10 @@
+venv/
+.env
+data/raw/
+data/processed/
+__pycache__/
+*.pyc
+.DS_Store
+*.xlsx
+*.xls
+!data/output/
