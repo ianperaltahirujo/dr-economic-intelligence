@@ -49,6 +49,9 @@ REQUEST_DELAY_SECONDS = 0.5
 
 # ── Core HTTP helper ──────────────────────────────────────────────────────────
 
+# Maximum number of retries on 500 errors before giving up on an endpoint.
+MAX_RETRIES = 3
+
 def _fetch_paginated(endpoint: str, params: dict) -> pd.DataFrame:
     """
     Fetch all pages from a SB API endpoint and return a single merged DataFrame.
@@ -56,6 +59,10 @@ def _fetch_paginated(endpoint: str, params: dict) -> pd.DataFrame:
     The SB API v2 uses page-based pagination. Each response includes an
     x-pagination header (JSON string) with HasNext (bool) and TotalPages (int).
     We start at page 1 and keep incrementing until HasNext is False.
+
+    500 errors are retried up to MAX_RETRIES times with exponential backoff
+    (2s, 4s, 8s). The SB API intermittently returns 500 on valid requests
+    due to server load — retrying resolves this in practice.
 
     Args:
         endpoint: Path after BASE_URL, e.g. 'indicadores/principales'
@@ -81,40 +88,67 @@ def _fetch_paginated(endpoint: str, params: dict) -> pd.DataFrame:
 
     while has_next:
         full_url = url + "?" + urlencode(params)
+        attempt = 0
+
+        while attempt <= MAX_RETRIES:
+            try:
+                response = requests.get(full_url, headers=HEADERS, timeout=30)
+                response.raise_for_status()
+                break  # success — exit retry loop
+
+            except requests.HTTPError as e:
+                if response.status_code == 500 and attempt < MAX_RETRIES:
+                    wait = 2 ** (attempt + 1)  # 2s, 4s, 8s
+                    print(f"  500 error on {endpoint} "
+                          f"(attempt {attempt + 1}/{MAX_RETRIES}), "
+                          f"retrying in {wait}s...")
+                    time.sleep(wait)
+                    attempt += 1
+                    continue
+                # Non-500 error or retries exhausted — give up on this endpoint
+                print(f"  HTTP error fetching {endpoint}: {e}")
+                raise
+
+            except requests.Timeout:
+                if attempt < MAX_RETRIES:
+                    wait = 2 ** (attempt + 1)
+                    print(f"  Timeout on {endpoint} "
+                          f"(attempt {attempt + 1}/{MAX_RETRIES}), "
+                          f"retrying in {wait}s...")
+                    time.sleep(wait)
+                    attempt += 1
+                    continue
+                print(f"  Timeout fetching {endpoint} after {MAX_RETRIES} retries.")
+                raise
+
+            except Exception as e:
+                print(f"  Unexpected error for {endpoint}: {e}")
+                raise
 
         try:
-            response = requests.get(full_url, headers=HEADERS, timeout=30)
-            response.raise_for_status()
-
             data = response.json()
-            if not data:
-                # 204 No Content or empty list — no more records.
-                break
-
-            pages.append(pd.DataFrame(data))
-
-            # Parse pagination metadata from response header.
-            # The header value is a JSON string, not a dict.
-            pagination_raw = response.headers.get("x-pagination", "{}")
-            pagination = json.loads(pagination_raw)
-            has_next = pagination.get("HasNext", False)
-            total_pages = pagination.get("TotalPages", 1)
-
-            print(f"  [{endpoint}] Page {params['paginas']}/{total_pages} "
-                  f"({len(data)} records)")
-
-            params["paginas"] += 1
-            time.sleep(REQUEST_DELAY_SECONDS)
-
-        except requests.HTTPError as e:
-            print(f"  HTTP error fetching {endpoint}: {e}")
-            raise
         except json.JSONDecodeError as e:
             print(f"  JSON decode error for {endpoint}: {e}")
             raise
-        except Exception as e:
-            print(f"  Unexpected error for {endpoint}: {e}")
-            raise
+
+        if not data:
+            # 204 No Content or empty list — no more records.
+            break
+
+        pages.append(pd.DataFrame(data))
+
+        # Parse pagination metadata from response header.
+        # The header value is a JSON string, not a dict.
+        pagination_raw = response.headers.get("x-pagination", "{}")
+        pagination = json.loads(pagination_raw)
+        has_next = pagination.get("HasNext", False)
+        total_pages = pagination.get("TotalPages", 1)
+
+        print(f"  [{endpoint}] Page {params['paginas']}/{total_pages} "
+              f"({len(data)} records)")
+
+        params["paginas"] += 1
+        time.sleep(REQUEST_DELAY_SECONDS)
 
     if not pages:
         return pd.DataFrame()
@@ -370,16 +404,10 @@ def load_sb_all(
         periodo_final = pd.Timestamp.now().strftime("%Y-%m")
 
     loaders = {
-    "principales":    lambda: load_principales_indicadores(
-        (pd.Timestamp.now() - pd.DateOffset(months=36)).strftime("%Y-%m"),
-        periodo_final
-    ),
-    "morosidad_est":  lambda: load_morosidad_estresada(periodo_inicial, periodo_final),
-    "fin_indicators": lambda: load_indicadores_financieros(
-        (pd.Timestamp.now() - pd.DateOffset(months=36)).strftime("%Y-%m"),
-        periodo_final
-    ),
-               }
+        "principales":    lambda: load_principales_indicadores(periodo_inicial, periodo_final),
+        "morosidad_est":  lambda: load_morosidad_estresada(periodo_inicial, periodo_final),
+        "fin_indicators": lambda: load_indicadores_financieros(periodo_inicial, periodo_final),
+    }
 
     frames = {}
     for key, loader in loaders.items():
