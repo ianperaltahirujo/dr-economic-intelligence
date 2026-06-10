@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -36,6 +36,7 @@ jobs:
           FRED_API_KEY:   ${{ secrets.FRED_API_KEY }}
           SB_API_KEY:     ${{ secrets.SB_API_KEY }}
           BCRD_API_KEY:   ${{ secrets.BCRD_API_KEY }}
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           if [ "${{ github.event.inputs.skip_download }}" = "true" ]; then
             python run_pipeline.py --skip-download
@@ -45,7 +46,7 @@ jobs:
 
       - name: Upload Excel workbook as artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: vulnerability-report-${{ github.run_id }}
           path: data/output/vulnerability_report.xlsx
