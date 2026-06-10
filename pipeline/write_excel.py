@@ -424,7 +424,7 @@ def _build_metadata(wb: Workbook, results: dict) -> None:
     meta_rows = [
         ("Report Generated",    datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Pipeline run timestamp"),
         ("Score Date",          results.get("score_date", pd.NaT),            "Most recent scored month"),
-        ("Vulnerability Score", results.get("current_score", "N/A"),          "0=no stress, 100=max stress"),
+        ("Vulnerability Score", round(results.get("current_score", 0), 1) if results.get("current_score") else "N/A", "0=no stress, 100=max stress"),
         ("Z-Score Window",      "36 months",                                   "Rolling baseline for z-scores"),
         ("Alert Threshold",     "|z| > 1.5",                                   "Standard deviations from mean"),
         ("High Stress Threshold","65 / 100",                                   "Score above this = HIGH STRESS"),
@@ -522,7 +522,7 @@ def write_workbook(
 # ── CLI ────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    from .build_vulnerability import run_vulnerability_pipeline
+    from pipeline.build_vulnerability import run_vulnerability_pipeline
 
     print("Running vulnerability pipeline...\n")
     results = run_vulnerability_pipeline()
