@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DR Economic Intelligence — La Sociedad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <style>
+        /* ── Reset & base ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue:       #002D62;
+            --red:        #CE1126;
+            --black:      #0A0A0A;
+            --white:      #FFFFFF;
+            --gray-50:    #F9F9F9;
+            --gray-100:   #F0F0F0;
+            --gray-200:   #E0E0E0;
+            --gray-400:   #999999;
+            --gray-600:   #555555;
+            --blue-tint:  #EEF2F8;
+            --red-tint:   #FDF0F2;
+            --font-sans:  'IBM Plex Sans', system-ui, sans-serif;
+            --font-mono:  'IBM Plex Mono', monospace;
+        }
+
+        html { font-size: 16px; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Scroll Animations ── */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, visibility;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* ── Accordion / Dropdown Components ── */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.4s ease, opacity 0.4s ease;
+        }
+        .accordion-content.open {
+            opacity: 1;
+        }
+        .dropdown-arrow {
+            font-size: 10px;
+            color: var(--gray-400);
+            transition: transform 0.3s ease;
+            user-select: none;
+        }
+        .interactive-card, .interactive-legend {
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .interactive-card:hover, .interactive-legend:hover {
+            background: var(--gray-50);
+        }
+        .interactive-card.active .dropdown-arrow, .interactive-legend.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* ── Top stripe ── */
+        .top-stripe {
+            height: 4px;
+            background: linear-gradient(90deg, var(--blue) 0%, var(--blue) 50%, var(--red) 50%, var(--red) 100%);
+        }
+
+        /* ── Header ── */
+        .site-header {
+            border-bottom: 1px solid var(--gray-200);
+            padding: 24px 0;
+        }
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .header-brand {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--blue);
+        }
+        .header-meta {
+            font-size: 12px;
+            color: var(--gray-400);
+            font-family: var(--font-mono);
+        }
+
+        /* ── Layout ── */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        section { padding: 64px 0; border-bottom: 1px solid var(--gray-200); }
+        section:last-child { border-bottom: none; }
+
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--gray-400);
+            margin-bottom: 32px;
+        }
+
+        /* ── Page title ── */
+        .page-title {
+            font-size: 42px;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+            color: var(--black);
+            line-height: 1.15;
+            margin-bottom: 48px;
+        }
+        .page-title strong {
+            font-weight: 600;
+            color: var(--blue);
+        }
+
+        /* ── Score hero ── */
+        .score-hero {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 56px;
+            align-items: start;
+        }
+        .score-number-block {
+            border-left: 4px solid #002D62;
+            padding-left: 28px;
+        }
+        .score-number {
+            font-family: var(--font-mono);
+            font-size: 96px;
+            font-weight: 600;
+            line-height: 1;
+            color: #002D62;
+            letter-spacing: -2px;
+        }
+        .score-denom {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            color: var(--gray-400);
+        }
+        .score-date {
+            font-size: 14px;
+            color: var(--gray-400);
+            margin-top: 10px;
+            font-family: var(--font-mono);
+        }
+        .score-status { margin-top: 0; }
+        .status-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #002D62;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+        .status-desc {
+            font-size: 17px;
+            color: var(--gray-600);
+            max-width: 520px;
+            line-height: 1.7;
+        }
+        .alert-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 8px 16px;
+            background: var(--red-tint);
+            border: 1px solid var(--red);
+            font-size: 14px;
+            color: var(--red);
+            font-family: var(--font-mono);
+        }
+
+        /* ── Briefing ── */
+        .briefing-text {
+            font-size: 17px;
+            line-height: 1.85;
+            color: var(--black);
+            max-width: 780px;
+        }
+        .briefing-text p {
+            margin-bottom: 20px;
+        }
+        .briefing-text p:last-child {
+            margin-bottom: 0;
+            color: var(--gray-600);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* ── Alerts ── */
+        .alerts-list { display: flex; flex-direction: column; gap: 16px; }
+        .alert-item {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 20px;
+            align-items: start;
+            padding: 20px 24px;
+            border: 1px solid var(--gray-200);
+        }
+        .alert-stress { border-left: 3px solid var(--red); background: var(--red-tint); }
+        .alert-watch  { border-left: 3px solid var(--blue); background: var(--blue-tint); }
+        .alert-tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            padding-top: 2px;
+        }
+        .alert-stress .alert-tag { color: var(--red); }
+        .alert-watch  .alert-tag { color: var(--blue); }
+        .alert-content { display: flex; flex-direction: column; gap: 6px; }
+        .alert-content strong { font-size: 16px; font-weight: 600; }
+        .alert-text { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+        .no-alerts {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 24px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            font-size: 15px;
+            color: var(--gray-600);
+        }
+        .no-alerts-icon { font-size: 20px; color: #2E7D32; }
+
+        /* ── Indicator cards ── */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .indicator-card {
+            padding: 28px;
+            border: 1px solid var(--gray-200);
+            background: var(--white);
+        }
+        .card-stress { border-color: var(--red); background: var(--red-tint); }
+        .card-stress:hover { background: #fae8eb; }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .card-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--black);
+            line-height: 1.3;
+        }
+        .status-badge {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            padding: 4px 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .status-stress { background: var(--red);  color: var(--white); }
+        .status-watch  { background: var(--blue); color: var(--white); }
+        .status-normal { background: var(--gray-100); color: var(--gray-600); }
+        .card-value {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .value-number {
+            font-family: var(--font-mono);
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--black);
+        }
+        .value-arrow { font-size: 18px; }
+        .arrow-bad  { color: var(--red); }
+        .arrow-good { color: #2E7D32; }
+        .zscore-bar-container {
+            height: 4px;
+            background: var(--gray-200);
+            margin-bottom: 8px;
+        }
+        .zscore-bar { height: 100%; transition: width 0.3s; }
+        .zscore-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-bottom: 14px;
+        }
+        .card-desc {
+            font-size: 13px;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* ── Legend ── */
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .legend-item {
+            padding: 20px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+        }
+        .legend-title {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .legend-desc { font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-top: 12px; }
+
+        /* ── Chart ── */
+        .chart-container { position: relative; height: 360px; }
+        .chart-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .chart-btn {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            padding: 6px 14px;
+            border: 1px solid var(--gray-200);
+            background: var(--white);
+            color: var(--black);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .chart-btn:hover { background: var(--gray-100); }
+        .chart-btn.active { background: var(--blue); color: var(--white); border-color: var(--blue); }
+        .chart-hint {
+            font-size: 12px;
+            color: var(--gray-400);
+            font-family: var(--font-mono);
+            margin-top: 10px;
+        }
+
+        /* ── Footer ── */
+        .site-footer {
+            padding: 40px 0;
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+        }
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .footer-sources {
+            font-size: 13px;
+            color: var(--black);
+            line-height: 1.7;
+        }
+        .footer-sources strong { color: var(--black); font-weight: 600; }
+        .footer-run { font-family: var(--font-mono); font-size: 11px; color: var(--black); }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .score-hero { grid-template-columns: 1fr; gap: 32px; }
+            .score-number { font-size: 72px; }
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+            .legend-grid { grid-template-columns: repeat(2, 1fr); }
+            .page-title { font-size: 32px; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 0 20px; }
+            .header-inner { padding: 0 20px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .legend-grid { grid-template-columns: 1fr; }
+            .score-number { font-size: 56px; }
+            .alert-item { grid-template-columns: 1fr; }
+            .page-title { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-stripe"></div>
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-brand">La Sociedad — DR Economic Intelligence</div>
+        <div class="header-meta">Actualizado: 11/06/2026 a las 10:50</div>
+    </div>
+</header>
+
+<main>
+
+    <section>
+        <div class="container">
+            <div class="section-label">Índice de Vulnerabilidad Económica</div>
+            <div class="page-title">DR <strong>Economic Intelligence</strong><br>Monitor Semanal</div>
+            <div class="score-hero">
+                <div class="score-number-block">
+                    <div class="score-number">54<span class="score-denom">/100</span></div>
+                    <div class="score-date">Mayo de 2026</div>
+                </div>
+                <div class="score-status">
+                    <div class="status-title">ESTRÉS MODERADO</div>
+                    <div class="status-desc">Condiciones por encima del promedio histórico. Se recomienda seguimiento cercano.</div>
+                    <div class="alert-count">
+                        ⚠ 1 indicador en zona de alerta
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="section-label">Análisis semanal</div>
+            <div class="briefing-text">
+                <p>El Índice de Vulnerabilidad Económica de la República Dominicana se situó en <strong>54.4 puntos</strong> en mayo de 2026, indicando condiciones de estrés moderado. Varios indicadores se encuentran por encima de sus promedios históricos recientes, aunque sin alcanzar niveles de alarma.</p><p>Los principales factores que explican este resultado son: la confianza del consumidor estadounidense cayó a <strong>49.8 puntos</strong>, anticipando posible reducción en el turismo hacia la región.</p><p>Entre los factores de estabilidad destacan que la morosidad bancaria permanece contenida en 1.89%.</p><p>Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad a partir de fuentes oficiales: Banco Central de la República Dominicana (BCRD), Superintendencia de Bancos (SB) y la Reserva Federal de EE.UU. (FRED).</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="section-label">Indicadores en seguimiento</div>
+            <div class="alerts-list">
+                
+        <div class="alert-item alert-watch">
+            <div class="alert-tag">VIGILANCIA</div>
+            <div class="alert-content">
+                <strong>Solvencia bancaria</strong>
+                <span class="alert-text">
+                    1.8 desviaciones estándar por encima de su promedio histórico
+                    (valor actual: 18.75)
+                </span>
+            </div>
+        </div>
+
+        <div class="alert-item alert-stress">
+            <div class="alert-tag">ALERTA</div>
+            <div class="alert-content">
+                <strong>Confianza del consumidor en EE.UU.</strong>
+                <span class="alert-text">
+                    1.6 desviaciones estándar por debajo de su promedio histórico
+                    (valor actual: 49.80)
+                </span>
+            </div>
+        </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="section-label">Panel de indicadores</div>
+
+            <div class="legend-grid">
+                <div class="legend-item interactive-legend" onclick="toggleAccordion(this)">
+                    <div class="legend-title">
+                        <div class="legend-dot" style="background:var(--red)"></div>
+                        ALERTA <span class="dropdown-arrow" style="margin-left: auto;">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="legend-desc">El indicador supera 1.5 desviaciones estándar de su promedio histórico en dirección de estrés.</div>
+                    </div>
+                </div>
+                <div class="legend-item interactive-legend" onclick="toggleAccordion(this)">
+                    <div class="legend-title">
+                        <div class="legend-dot" style="background:var(--blue)"></div>
+                        VIGILANCIA <span class="dropdown-arrow" style="margin-left: auto;">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="legend-desc">El indicador muestra desviación notable pero sin superar el umbral de alerta. Requiere seguimiento.</div>
+                    </div>
+                </div>
+                <div class="legend-item interactive-legend" onclick="toggleAccordion(this)">
+                    <div class="legend-title">
+                        <div class="legend-dot" style="background:var(--gray-400)"></div>
+                        NORMAL <span class="dropdown-arrow" style="margin-left: auto;">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="legend-desc">El indicador se encuentra dentro de sus rangos históricos habituales. No representa riesgo inmediato.</div>
+                    </div>
+                </div>
+                <div class="legend-item interactive-legend" onclick="toggleAccordion(this)">
+                    <div class="legend-title">Z-score <span class="dropdown-arrow" style="margin-left: auto;">▼</span></div>
+                    <div class="accordion-content">
+                        <div class="legend-desc">Mide cuántas desviaciones estándar se aleja el valor actual de su promedio histórico. Valores extremos (+3 o -3) indican condiciones inusuales.</div>
+                    </div>
+                </div>
+                <div class="legend-item interactive-legend" onclick="toggleAccordion(this)">
+                    <div class="legend-title">Peso <span class="dropdown-arrow" style="margin-left: auto;">▼</span></div>
+                    <div class="accordion-content">
+                        <div class="legend-desc">Contribución porcentual de cada indicador al índice total. Indicadores más relevantes para la economía dominicana reciben mayor peso.</div>
+                    </div>
+                </div>
+                <div class="legend-item interactive-legend" onclick="toggleAccordion(this)">
+                    <div class="legend-title">↑ ↓ Tendencia <span class="dropdown-arrow" style="margin-left: auto;">▼</span></div>
+                    <div class="accordion-content">
+                        <div class="legend-desc">Dirección del cambio respecto al mes anterior. En rojo si el movimiento es desfavorable; en verde si es favorable.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cards-grid">
+                
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Remesas familiares</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-watch">VIGILANCIA</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">USD 1,060M</span>
+                <span class="value-arrow arrow-bad">↓</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:74.4%; background:#002D62;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: +1.46 &nbsp;|&nbsp; Peso: 20%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Transferencias de dinero enviadas desde el exterior hacia la República Dominicana. Una caída sostenida indica menor ingreso de divisas y presión sobre el consumo interno.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Inflación interanual</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-normal">NORMAL</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">5.35%</span>
+                <span class="value-arrow arrow-bad">↑</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:48.7%; background:#666;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: -0.08 &nbsp;|&nbsp; Peso: 10%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Variación porcentual del nivel de precios respecto al mismo mes del año anterior. Valores por encima del 6% indican presión inflacionaria significativa.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Tasa de cambio DOP/USD</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-normal">NORMAL</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">59.46</span>
+                <span class="value-arrow arrow-good">↓</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:56.7%; background:#666;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: +0.40 &nbsp;|&nbsp; Peso: 15%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Pesos dominicanos por cada dólar estadounidense. Una depreciación acelerada del peso encarece las importaciones y presiona la inflación.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Reservas internacionales</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-watch">VIGILANCIA</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">USD 16,431M</span>
+                <span class="value-arrow arrow-bad">↓</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:70.2%; background:#002D62;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: +1.21 &nbsp;|&nbsp; Peso: 10%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Activos en moneda extranjera del Banco Central. Constituyen el colchón de seguridad ante choques externos. Valores bajos reducen la capacidad de respuesta.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Actividad económica (IMAE)</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-normal">NORMAL</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">127.49</span>
+                <span class="value-arrow arrow-bad">↓</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:59.0%; background:#666;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: +0.54 &nbsp;|&nbsp; Peso: 5%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Índice Mensual de Actividad Económica. Mide el pulso de la economía dominicana incluyendo turismo, manufactura y servicios. Una caída sostenida anticipa contracción económica.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Morosidad bancaria</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-watch">VIGILANCIA</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">1.89%</span>
+                <span class="value-arrow arrow-bad">↑</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:65.7%; background:#002D62;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: +0.94 &nbsp;|&nbsp; Peso: 15%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Porcentaje de préstamos en mora sobre la cartera total del sistema bancario. Un aumento indica deterioro en la capacidad de pago de hogares y empresas.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Solvencia bancaria</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-watch">VIGILANCIA</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">18.75%</span>
+                <span class="value-arrow arrow-good">↑</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:80.6%; background:#002D62;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: +1.84 &nbsp;|&nbsp; Peso: 5%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Índice de adecuación de capital del sistema bancario. Refleja la capacidad del sistema financiero de absorber pérdidas. Valores altos son positivos.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card " onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Desempleo en EE.UU.</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-watch">VIGILANCIA</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">4.30%</span>
+                <span class="value-arrow arrow-good">↓</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:64.3%; background:#002D62;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: +0.86 &nbsp;|&nbsp; Peso: 10%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Tasa de desempleo en los Estados Unidos. Un alza sostenida reduce los ingresos de la diáspora dominicana y presiona a la baja las remesas hacia el país.</div>
+            </div>
+        </div>
+
+        <div class="indicator-card interactive-card card-stress" onclick="toggleAccordion(this)">
+            <div class="card-header">
+                <span class="card-label">Confianza del consumidor en EE.UU.</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="status-badge status-stress">ALERTA</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+            <div class="card-value">
+                <span class="value-number">49.8</span>
+                <span class="value-arrow arrow-bad">↓</span>
+            </div>
+            <div class="zscore-bar-container">
+                <div class="zscore-bar" style="width:22.6%; background:#CE1126;"></div>
+            </div>
+            <div class="accordion-content">
+                <div class="zscore-label" style="margin-top:14px;">Z-score: -1.64 &nbsp;|&nbsp; Peso: 10%</div>
+                <div class="card-desc" style="border-top:none; padding-top:0;">Índice de confianza del consumidor estadounidense (Universidad de Michigan). Una caída anticipa menor gasto en turismo hacia el Caribe, incluyendo la República Dominicana.</div>
+            </div>
+        </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="section-label">Historial completo del índice</div>
+            <div class="chart-controls">
+                <button class="chart-btn" onclick="setRange(12)">12 meses</button>
+                <button class="chart-btn" onclick="setRange(24)">24 meses</button>
+                <button class="chart-btn" onclick="setRange(36)">36 meses</button>
+                <button class="chart-btn active" onclick="setRange(0)">Todo</button>
+                <button class="chart-btn" onclick="resetZoom()">Restablecer zoom</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="scoreChart"></canvas>
+            </div>
+            <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar</div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-sources">
+            <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) ·
+            Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
+            El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia
+            para la economía dominicana. Metodología disponible en el repositorio del proyecto.
+        </div>
+        <div class="footer-run">Generado: 11/06/2026 a las 10:50</div>
+    </div>
+</footer>
+
+<script>
+// --- UI Interaction Logic ---
+function toggleAccordion(element) {
+    element.classList.toggle('active');
+    const content = element.querySelector('.accordion-content');
+    if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        content.style.maxHeight = null;
+    } else {
+        content.classList.add('open');
+        content.style.maxHeight = content.scrollHeight + "px";
+    }
+}
+
+// --- Scroll Animations Logic ---
+document.addEventListener("DOMContentLoaded", function() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            }
+        });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('section').forEach(sec => {
+        sec.classList.add('fade-in-section');
+        observer.observe(sec);
+    });
+});
+
+// --- Chart Logic ---
+const chartData = {"labels": ["Diciembre 1985", "Febrero 1986", "Marzo 1986", "Abril 1986", "Mayo 1986", "Junio 1986", "Julio 1986", "Agosto 1986", "Septiembre 1986", "Octubre 1986", "Noviembre 1986", "Diciembre 1986", "Enero 1987", "Febrero 1987", "Marzo 1987", "Abril 1987", "Mayo 1987", "Junio 1987", "Julio 1987", "Agosto 1987", "Septiembre 1987", "Octubre 1987", "Noviembre 1987", "Diciembre 1987", "Enero 1988", "Febrero 1988", "Marzo 1988", "Abril 1988", "Mayo 1988", "Junio 1988", "Julio 1988", "Agosto 1988", "Septiembre 1988", "Octubre 1988", "Noviembre 1988", "Diciembre 1988", "Enero 1989", "Febrero 1989", "Marzo 1989", "Abril 1989", "Mayo 1989", "Junio 1989", "Julio 1989", "Agosto 1989", "Septiembre 1989", "Octubre 1989", "Noviembre 1989", "Diciembre 1989", "Enero 1990", "Febrero 1990", "Marzo 1990", "Abril 1990", "Mayo 1990", "Junio 1990", "Julio 1990", "Agosto 1990", "Septiembre 1990", "Octubre 1990", "Noviembre 1990", "Diciembre 1990", "Enero 1991", "Febrero 1991", "Marzo 1991", "Abril 1991", "Mayo 1991", "Junio 1991", "Julio 1991", "Agosto 1991", "Septiembre 1991", "Octubre 1991", "Noviembre 1991", "Diciembre 1991", "Enero 1992", "Febrero 1992", "Marzo 1992", "Abril 1992", "Mayo 1992", "Junio 1992", "Julio 1992", "Agosto 1992", "Septiembre 1992", "Octubre 1992", "Noviembre 1992", "Diciembre 1992", "Enero 1993", "Febrero 1993", "Marzo 1993", "Abril 1993", "Mayo 1993", "Junio 1993", "Julio 1993", "Agosto 1993", "Septiembre 1993", "Octubre 1993", "Noviembre 1993", "Diciembre 1993", "Enero 1994", "Febrero 1994", "Marzo 1994", "Abril 1994", "Mayo 1994", "Junio 1994", "Julio 1994", "Agosto 1994", "Septiembre 1994", "Octubre 1994", "Noviembre 1994", "Diciembre 1994", "Enero 1995", "Febrero 1995", "Marzo 1995", "Abril 1995", "Mayo 1995", "Junio 1995", "Julio 1995", "Agosto 1995", "Septiembre 1995", "Octubre 1995", "Noviembre 1995", "Diciembre 1995", "Enero 1996", "Febrero 1996", "Marzo 1996", "Abril 1996", "Mayo 1996", "Junio 1996", "Julio 1996", "Agosto 1996", "Septiembre 1996", "Octubre 1996", "Noviembre 1996", "Diciembre 1996", "Enero 1997", "Febrero 1997", "Marzo 1997", "Abril 1997", "Mayo 1997", "Junio 1997", "Julio 1997", "Agosto 1997", "Septiembre 1997", "Octubre 1997", "Noviembre 1997", "Diciembre 1997", "Enero 1998", "Febrero 1998", "Marzo 1998", "Abril 1998", "Mayo 1998", "Junio 1998", "Julio 1998", "Agosto 1998", "Septiembre 1998", "Octubre 1998", "Noviembre 1998", "Diciembre 1998", "Enero 1999", "Febrero 1999", "Marzo 1999", "Abril 1999", "Mayo 1999", "Junio 1999", "Julio 1999", "Agosto 1999", "Septiembre 1999", "Octubre 1999", "Noviembre 1999", "Diciembre 1999", "Enero 2000", "Febrero 2000", "Marzo 2000", "Abril 2000", "Mayo 2000", "Junio 2000", "Julio 2000", "Agosto 2000", "Septiembre 2000", "Octubre 2000", "Noviembre 2000", "Diciembre 2000", "Enero 2001", "Febrero 2001", "Marzo 2001", "Abril 2001", "Mayo 2001", "Junio 2001", "Julio 2001", "Agosto 2001", "Septiembre 2001", "Octubre 2001", "Noviembre 2001", "Diciembre 2001", "Enero 2002", "Febrero 2002", "Marzo 2002", "Abril 2002", "Mayo 2002", "Junio 2002", "Julio 2002", "Agosto 2002", "Septiembre 2002", "Octubre 2002", "Noviembre 2002", "Diciembre 2002", "Enero 2003", "Febrero 2003", "Marzo 2003", "Abril 2003", "Mayo 2003", "Junio 2003", "Julio 2003", "Agosto 2003", "Septiembre 2003", "Octubre 2003", "Noviembre 2003", "Diciembre 2003", "Enero 2004", "Febrero 2004", "Marzo 2004", "Abril 2004", "Mayo 2004", "Junio 2004", "Julio 2004", "Agosto 2004", "Septiembre 2004", "Octubre 2004", "Noviembre 2004", "Diciembre 2004", "Enero 2005", "Febrero 2005", "Marzo 2005", "Abril 2005", "Mayo 2005", "Junio 2005", "Julio 2005", "Agosto 2005", "Septiembre 2005", "Octubre 2005", "Noviembre 2005", "Diciembre 2005", "Enero 2006", "Febrero 2006", "Marzo 2006", "Abril 2006", "Mayo 2006", "Junio 2006", "Julio 2006", "Agosto 2006", "Septiembre 2006", "Octubre 2006", "Noviembre 2006", "Diciembre 2006", "Enero 2007", "Febrero 2007", "Marzo 2007", "Abril 2007", "Mayo 2007", "Junio 2007", "Julio 2007", "Agosto 2007", "Septiembre 2007", "Octubre 2007", "Noviembre 2007", "Diciembre 2007", "Enero 2008", "Febrero 2008", "Marzo 2008", "Abril 2008", "Mayo 2008", "Junio 2008", "Julio 2008", "Agosto 2008", "Septiembre 2008", "Octubre 2008", "Noviembre 2008", "Diciembre 2008", "Enero 2009", "Febrero 2009", "Marzo 2009", "Abril 2009", "Mayo 2009", "Junio 2009", "Julio 2009", "Agosto 2009", "Septiembre 2009", "Octubre 2009", "Noviembre 2009", "Diciembre 2009", "Enero 2010", "Febrero 2010", "Marzo 2010", "Abril 2010", "Mayo 2010", "Junio 2010", "Julio 2010", "Agosto 2010", "Septiembre 2010", "Octubre 2010", "Noviembre 2010", "Diciembre 2010", "Enero 2011", "Febrero 2011", "Marzo 2011", "Abril 2011", "Mayo 2011", "Junio 2011", "Julio 2011", "Agosto 2011", "Septiembre 2011", "Octubre 2011", "Noviembre 2011", "Diciembre 2011", "Enero 2012", "Febrero 2012", "Marzo 2012", "Abril 2012", "Mayo 2012", "Junio 2012", "Julio 2012", "Agosto 2012", "Septiembre 2012", "Octubre 2012", "Noviembre 2012", "Diciembre 2012", "Enero 2013", "Febrero 2013", "Marzo 2013", "Abril 2013", "Mayo 2013", "Junio 2013", "Julio 2013", "Agosto 2013", "Septiembre 2013", "Octubre 2013", "Noviembre 2013", "Diciembre 2013", "Enero 2014", "Febrero 2014", "Marzo 2014", "Abril 2014", "Mayo 2014", "Junio 2014", "Julio 2014", "Agosto 2014", "Septiembre 2014", "Octubre 2014", "Noviembre 2014", "Diciembre 2014", "Enero 2015", "Febrero 2015", "Marzo 2015", "Abril 2015", "Mayo 2015", "Junio 2015", "Julio 2015", "Agosto 2015", "Septiembre 2015", "Octubre 2015", "Noviembre 2015", "Diciembre 2015", "Enero 2016", "Febrero 2016", "Marzo 2016", "Abril 2016", "Mayo 2016", "Junio 2016", "Julio 2016", "Agosto 2016", "Septiembre 2016", "Octubre 2016", "Noviembre 2016", "Diciembre 2016", "Enero 2017", "Febrero 2017", "Marzo 2017", "Abril 2017", "Mayo 2017", "Junio 2017", "Julio 2017", "Agosto 2017", "Septiembre 2017", "Octubre 2017", "Noviembre 2017", "Diciembre 2017", "Enero 2018", "Febrero 2018", "Marzo 2018", "Abril 2018", "Mayo 2018", "Junio 2018", "Julio 2018", "Agosto 2018", "Septiembre 2018", "Octubre 2018", "Noviembre 2018", "Diciembre 2018", "Enero 2019", "Febrero 2019", "Marzo 2019", "Abril 2019", "Mayo 2019", "Junio 2019", "Julio 2019", "Agosto 2019", "Septiembre 2019", "Octubre 2019", "Noviembre 2019", "Diciembre 2019", "Enero 2020", "Febrero 2020", "Marzo 2020", "Abril 2020", "Mayo 2020", "Junio 2020", "Julio 2020", "Agosto 2020", "Septiembre 2020", "Octubre 2020", "Noviembre 2020", "Diciembre 2020", "Enero 2021", "Febrero 2021", "Marzo 2021", "Abril 2021", "Mayo 2021", "Junio 2021", "Julio 2021", "Agosto 2021", "Septiembre 2021", "Octubre 2021", "Noviembre 2021", "Diciembre 2021", "Enero 2022", "Febrero 2022", "Marzo 2022", "Abril 2022", "Mayo 2022", "Junio 2022", "Julio 2022", "Agosto 2022", "Septiembre 2022", "Octubre 2022", "Noviembre 2022", "Diciembre 2022", "Enero 2023", "Febrero 2023", "Marzo 2023", "Abril 2023", "Mayo 2023", "Junio 2023", "Julio 2023", "Agosto 2023", "Septiembre 2023", "Octubre 2023", "Noviembre 2023", "Diciembre 2023", "Enero 2024", "Febrero 2024", "Marzo 2024", "Abril 2024", "Mayo 2024", "Junio 2024", "Julio 2024", "Agosto 2024", "Septiembre 2024", "Octubre 2024", "Noviembre 2024", "Diciembre 2024", "Enero 2025", "Febrero 2025", "Marzo 2025", "Abril 2025", "Mayo 2025", "Junio 2025", "Julio 2025", "Agosto 2025", "Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026", "Abril 2026", "Mayo 2026"], "values": [59.4, 54.6, 55.2, 56.2, 44.3, 42.9, 43.7, 44.8, 48.0, 53.1, 55.7, 56.1, 55.9, 58.2, 75.8, 75.3, 81.7, 86.7, 79.0, 70.6, 76.1, 79.2, 87.1, 87.1, 87.1, 87.1, 85.0, 84.0, 82.9, 87.1, 86.8, 85.7, 84.6, 83.9, 82.9, 80.9, 79.3, 78.7, 78.1, 77.6, 77.2, 76.8, 76.5, 76.2, 75.9, 75.6, 75.4, 75.2, 74.8, 74.5, 74.2, 77.7, 78.7, 78.2, 77.6, 85.5, 87.7, 90.0, 90.3, 88.9, 86.7, 87.9, 87.5, 84.4, 82.3, 81.4, 79.5, 78.9, 78.4, 77.9, 77.4, 77.0, 76.6, 60.4, 59.8, 60.0, 60.0, 60.4, 60.0, 59.8, 59.6, 59.5, 59.5, 59.5, 59.6, 72.9, 72.7, 59.5, 59.5, 59.0, 59.2, 59.0, 58.9, 58.9, 58.8, 58.6, 58.6, 58.8, 59.0, 70.1, 69.9, 69.8, 69.6, 72.6, 70.9, 70.3, 70.1, 70.0, 69.9, 69.8, 69.8, 69.8, 69.8, 70.1, 71.2, 71.9, 72.6, 72.8, 73.1, 73.6, 74.4, 74.1, 65.3, 65.8, 66.1, 66.2, 65.6, 64.2, 62.4, 61.4, 60.9, 73.0, 79.7, 79.3, 79.1, 87.1, 87.1, 85.4, 83.9, 82.7, 81.7, 80.8, 80.0, 79.3, 68.0, 67.6, 66.7, 64.8, 64.9, 64.6, 73.7, 73.2, 71.9, 73.7, 75.0, 82.6, 81.8, 73.9, 82.5, 81.6, 80.7, 70.3, 68.4, 68.0, 67.1, 68.9, 68.2, 66.1, 67.5, 68.2, 66.8, 66.2, 66.2, 75.3, 75.0, 74.7, 82.2, 76.3, 76.1, 76.0, 79.9, 79.4, 77.7, 78.2, 77.8, 74.9, 74.7, 74.5, 64.7, 64.4, 63.5, 62.8, 59.4, 60.0, 63.0, 66.4, 65.3, 66.3, 67.2, 67.2, 68.0, 77.1, 76.8, 76.6, 81.0, 87.4, 94.3, 94.0, 94.3, 94.3, 94.3, 94.3, 94.3, 94.3, 94.3, 94.3, 94.3, 94.3, 94.3, 91.0, 91.6, 88.5, 83.6, 79.4, 74.8, 71.5, 69.6, 68.9, 69.4, 58.0, 56.9, 56.6, 56.0, 55.6, 55.5, 55.7, 57.8, 58.9, 59.5, 70.0, 70.8, 70.3, 69.0, 68.5, 68.7, 68.6, 68.5, 68.2, 57.6, 57.6, 57.9, 57.3, 57.4, 57.1, 56.6, 56.0, 55.8, 55.7, 55.9, 55.4, 56.1, 66.2, 65.9, 70.0, 68.4, 68.4, 68.3, 67.0, 70.7, 70.7, 68.9, 69.9, 68.2, 68.9, 69.2, 61.6, 64.3, 63.3, 61.6, 60.2, 60.9, 60.9, 62.3, 63.1, 61.8, 60.6, 62.5, 61.4, 63.7, 62.1, 65.1, 66.5, 65.9, 61.5, 64.6, 63.9, 65.3, 65.3, 61.5, 50.6, 60.4, 58.2, 55.1, 58.1, 56.7, 59.9, 58.9, 65.1, 69.0, 69.5, 69.5, 57.1, 62.5, 52.1, 46.4, 55.6, 52.4, 55.4, 52.0, 51.1, 57.8, 61.1, 57.0, 61.6, 62.4, 56.9, 51.8, 64.8, 60.0, 51.1, 53.1, 48.1, 58.9, 51.3, 48.2, 37.2, 47.1, 43.3, 38.1, 42.7, 42.5, 45.6, 42.2, 41.8, 49.4, 43.1, 44.9, 43.0, 44.6, 41.6, 37.0, 39.9, 41.3, 41.1, 41.4, 42.7, 48.9, 48.0, 52.0, 42.9, 50.7, 45.8, 45.6, 46.4, 48.3, 46.5, 45.9, 45.7, 55.5, 51.7, 49.7, 40.8, 49.2, 51.2, 42.8, 51.1, 49.5, 50.0, 49.5, 49.8, 55.0, 50.2, 52.2, 45.3, 54.3, 45.2, 41.4, 49.8, 48.2, 49.6, 41.6, 43.3, 52.8, 51.1, 52.6, 34.8, 48.2, 47.8, 35.8, 46.9, 46.5, 36.5, 37.7, 37.7, 48.9, 50.0, 56.3, 40.3, 45.0, 45.4, 64.4, 76.4, 63.7, 62.9, 61.5, 61.5, 52.3, 52.4, 55.8, 47.4, 50.3, 52.6, 45.6, 48.0, 47.6, 46.4, 45.4, 47.2, 46.9, 47.3, 48.4, 43.3, 50.2, 49.3, 44.9, 46.7, 47.4, 49.1, 48.7, 45.8, 47.4, 48.0, 50.3, 45.6, 49.7, 47.0, 42.3, 46.8, 42.5, 44.3, 43.0, 45.7, 48.4, 50.3, 51.7, 40.2, 45.4, 45.1, 43.9, 48.2, 47.1, 55.5, 51.1, 52.0, 57.5, 57.9, 62.6, 51.4, 58.8, 58.2, 53.2, 57.2, 54.3, 55.0, 53.3, 58.1, 63.0, 61.1, 65.6, 53.4, 59.3, 55.9, 44.1, 50.6, 54.4], "colors": ["rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)"]};
+
+const ctx = document.getElementById('scoreChart').getContext('2d');
+const scoreChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: chartData.labels,
+        datasets: [{
+            label: 'Índice de Vulnerabilidad',
+            data: chartData.values,
+            borderColor: '#002D62',
+            backgroundColor: 'rgba(0,45,98,0.06)',
+            borderWidth: 2,
+            pointBackgroundColor: chartData.colors,
+            pointBorderColor: chartData.colors,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.3,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#0A0A0A',
+                titleColor: '#FFFFFF',
+                bodyColor: '#CCCCCC',
+                padding: 12,
+                callbacks: {
+                    label: ctx => `Índice: ${ctx.parsed.y} / 100`
+                }
+            },
+            zoom: {
+                zoom: {
+                    wheel: { enabled: true },
+                    pinch: { enabled: true },
+                    mode: 'x',
+                },
+                pan: {
+                    enabled: true,
+                    mode: 'x',
+                },
+            }
+        },
+        scales: {
+            x: {
+                grid: { color: 'rgba(0,0,0,0.05)' },
+                ticks: {
+                    font: { family: 'IBM Plex Mono', size: 11 },
+                    color: '#0A0A0A',
+                    maxTicksLimit: 18,
+                    maxRotation: 45,
+                }
+            },
+            y: {
+                min: 0, max: 100,
+                grid: { color: 'rgba(0,0,0,0.05)' },
+                ticks: {
+                    font: { family: 'IBM Plex Mono', size: 11 },
+                    color: '#0A0A0A',
+                    callback: val => val + '/100'
+                },
+            }
+        },
+    }
+});
+
+// Draw threshold line manually after render
+const originalDraw = scoreChart.draw.bind(scoreChart);
+scoreChart.draw = function() {
+    originalDraw();
+    const chart = scoreChart;
+    const ctx2 = chart.ctx;
+    const yScale = chart.scales.y;
+    const xScale = chart.scales.x;
+    const y = yScale.getPixelForValue(65);
+    ctx2.save();
+    ctx2.beginPath();
+    ctx2.moveTo(xScale.left, y);
+    ctx2.lineTo(xScale.right, y);
+    ctx2.strokeStyle = 'rgba(206,17,38,0.35)';
+    ctx2.lineWidth = 1;
+    ctx2.setLineDash([5, 5]);
+    ctx2.stroke();
+    ctx2.restore();
+};
+
+function setRange(months) {
+    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    scoreChart.resetZoom();
+    if (months === 0) {
+        scoreChart.data.labels = chartData.labels;
+        scoreChart.data.datasets[0].data = chartData.values;
+        scoreChart.data.datasets[0].pointBackgroundColor = chartData.colors;
+        scoreChart.data.datasets[0].pointBorderColor = chartData.colors;
+    } else {
+        const n = months;
+        scoreChart.data.labels = chartData.labels.slice(-n);
+        scoreChart.data.datasets[0].data = chartData.values.slice(-n);
+        scoreChart.data.datasets[0].pointBackgroundColor = chartData.colors.slice(-n);
+        scoreChart.data.datasets[0].pointBorderColor = chartData.colors.slice(-n);
+    }
+    scoreChart.update();
+}
+
+function resetZoom() {
+    scoreChart.resetZoom();
+}
+</script>
+
+</body>
+</html>
