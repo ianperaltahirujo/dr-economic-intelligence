@@ -319,6 +319,11 @@ def load_indicadores_financieros(
     if periodo_final is None:
         periodo_final = pd.Timestamp.now().strftime("%Y-%m")
 
+    # Hard cap at 36 months regardless of what periodo_inicial is passed in.
+    # This endpoint returns ~50k records per page and times out on large ranges.
+    capped_start = (pd.Timestamp.now() - pd.DateOffset(months=36)).strftime("%Y-%m")
+    periodo_inicial = max(periodo_inicial, capped_start)
+
     params = {
         "periodoInicial": periodo_inicial,
         "periodoFinal": periodo_final,
