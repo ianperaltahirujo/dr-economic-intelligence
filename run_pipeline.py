@@ -4,8 +4,10 @@ Runs the full weekly pipeline in order:
 
     1. Download fresh BCRD Excel files from CDN
     2. Run vulnerability scoring (BCRD + SB API + FRED)
-    3. Write Excel workbook to data/output/
-    4. (Future) Upload to SharePoint via Microsoft Graph API
+    3. Load context indicators (gas, tourism, debt)
+    4. Write Excel workbook to data/output/
+    5. Write HTML site to docs/index.html
+    6. (Future) Upload to SharePoint via Microsoft Graph API
 
 Usage:
     python run_pipeline.py                  # full run
@@ -19,14 +21,14 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
-# ── Config ─────────────────────────────────────────────────────────────────────
+# -- Config ------------------------------------------------------------------
 
 BCRD_DATA_DIR   = "data/raw"
 FRED_CACHE_PATH = "data/processed/us_indicators.csv"
 OUTPUT_PATH     = "data/output/vulnerability_report.xlsx"
 SB_START_DATE   = "2010-01"
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# -- Helpers -----------------------------------------------------------------
 
 def _section(title: str) -> None:
     width = 54
@@ -40,7 +42,7 @@ def _step(n: int, total: int, label: str) -> None:
     print(f"{'-'*40}")
 
 
-# ── Pipeline steps ─────────────────────────────────────────────────────────────
+# -- Pipeline steps ----------------------------------------------------------
 
 def step_download_bcrd() -> bool:
     """Download fresh BCRD Excel files. Returns True on success."""
@@ -49,8 +51,6 @@ def step_download_bcrd() -> bool:
     if results["failed"]:
         print(f"\n  WARNING: {len(results['failed'])} file(s) failed to download.")
         print("  Pipeline will use cached versions for failed files.")
-        # Non-fatal: cached files may still be recent enough
-        return True
     return True
 
 
@@ -64,16 +64,28 @@ def step_score() -> dict:
     )
 
 
+def step_load_context() -> dict:
+    """Load context indicators (gas, tourism, debt). Returns context dict."""
+    from pipeline.ingest_context import load_context_all
+    return load_context_all()
+
+
 def step_write_excel(results: dict) -> Path:
     """Write Excel workbook. Returns output path."""
     from pipeline.write_excel import write_workbook
     return write_workbook(results, path=OUTPUT_PATH)
 
 
+def step_write_site(results: dict) -> Path:
+    """Write HTML report to docs/index.html for GitHub Pages."""
+    from pipeline.write_html import write_site
+    return write_site(results)
+
+
 def step_upload_sharepoint(filepath: Path) -> bool:
     """
     Upload workbook to SharePoint via Microsoft Graph API.
-    NOT YET IMPLEMENTED — requires Azure AD app credentials.
+    NOT YET IMPLEMENTED -- requires Azure AD app credentials.
 
     To enable:
     1. Add to .env:
@@ -91,7 +103,7 @@ def step_upload_sharepoint(filepath: Path) -> bool:
     return False
 
 
-# ── Main ───────────────────────────────────────────────────────────────────────
+# -- Main --------------------------------------------------------------------
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -105,14 +117,23 @@ def main() -> int:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run scoring only — skip Excel output and upload"
+        help="Run scoring only -- skip Excel output and upload"
     )
     args = parser.parse_args()
 
     run_start = datetime.now()
-    total_steps = 2 if args.dry_run else (3 if args.skip_download else 4)
 
-    _section(f"DR Economic Intelligence Pipeline")
+    # dry-run: score only (2 steps)
+    # skip-download: score + context + excel + site + sharepoint (5 steps)
+    # full run: download + score + context + excel + site + sharepoint (6 steps)
+    if args.dry_run:
+        total_steps = 2
+    elif args.skip_download:
+        total_steps = 5
+    else:
+        total_steps = 6
+
+    _section("DR Economic Intelligence Pipeline")
     print(f"  Started: {run_start.strftime('%Y-%m-%d %H:%M:%S')}")
     if args.skip_download:
         print("  Mode: skip BCRD download")
@@ -121,7 +142,7 @@ def main() -> int:
 
     step_n = 1
 
-    # ── Step 1: Download BCRD files ──
+    # -- Step 1: Download BCRD files (skipped in --skip-download mode) --
     if not args.skip_download:
         _step(step_n, total_steps, "Downloading BCRD Excel files")
         step_n += 1
@@ -131,7 +152,7 @@ def main() -> int:
             print(f"\n  ERROR in BCRD download: {e}")
             print("  Continuing with cached files...")
 
-    # ── Step 2: Score ──
+    # -- Step 2: Score --
     _step(step_n, total_steps, "Running vulnerability scoring")
     step_n += 1
     try:
@@ -142,13 +163,24 @@ def main() -> int:
         return 1
 
     if args.dry_run:
-        _section("Dry run complete — no output written")
-        _print_summary(results, run_start)
+        _section("Dry run complete -- no output written")
+        _print_summary(results, run_start, output_path=None)
         return 0
 
-    # ── Step 3: Write Excel ──
+    # -- Step 3: Load context indicators --
+    _step(step_n, total_steps, "Loading context indicators")
+    step_n += 1
+    try:
+        context = step_load_context()
+        results.update(context)
+    except Exception as e:
+        print(f"\n  WARNING: Context indicators failed: {e}")
+        traceback.print_exc()
+
+    # -- Step 4: Write Excel --
     _step(step_n, total_steps, "Writing Excel workbook")
     step_n += 1
+    output_path = None
     try:
         output_path = step_write_excel(results)
     except Exception as e:
@@ -156,20 +188,28 @@ def main() -> int:
         traceback.print_exc()
         return 1
 
-    # ── Step 4: Upload to SharePoint ──
+    # -- Step 5: Write HTML site --
+    _step(step_n, total_steps, "Generating website")
+    step_n += 1
+    try:
+        site_path = step_write_site(results)
+    except Exception as e:
+        print(f"\n  ERROR writing site: {e}")
+        traceback.print_exc()
+
+    # -- Step 6: Upload to SharePoint --
     _step(step_n, total_steps, "Uploading to SharePoint")
     try:
         step_upload_sharepoint(output_path)
     except Exception as e:
         print(f"\n  ERROR in SharePoint upload: {e}")
-        # Non-fatal: local file is still available
 
-    # ── Summary ──
-    _print_summary(results, run_start)
+    # -- Summary --
+    _print_summary(results, run_start, output_path=output_path)
     return 0
 
 
-def _print_summary(results: dict, run_start: datetime) -> None:
+def _print_summary(results: dict, run_start: datetime, output_path: Path = None) -> None:
     run_end = datetime.now()
     elapsed = (run_end - run_start).total_seconds()
 
@@ -192,16 +232,17 @@ def _print_summary(results: dict, run_start: datetime) -> None:
             print(f"  Status:    LOW STRESS")
 
     if alerts is not None and not alerts.empty:
-        stress_count = alerts["is_stress"].sum()
+        stress_count = int(alerts["is_stress"].sum())
         print(f"\n  Alerts:    {len(alerts)} flagged "
-              f"({stress_count} stress, {len(alerts)-stress_count} notable)")
+              f"({stress_count} stress, {len(alerts) - stress_count} notable)")
         for _, alert in alerts.iterrows():
             tag = "STRESS" if alert["is_stress"] else "WATCH"
             print(f"    [{tag}] {alert.get('label', alert['indicator'])}")
     else:
         print(f"\n  Alerts:    None")
 
-    print(f"\n  Output:    {Path(OUTPUT_PATH).resolve()}")
+    if output_path:
+        print(f"\n  Output:    {Path(output_path).resolve()}")
     print(f"{'='*54}")
 
 
