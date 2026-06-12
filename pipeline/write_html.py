@@ -583,46 +583,22 @@ def build_html(results: dict) -> str:
         .footer-sources strong {{ font-weight: 600; }}
         .footer-run {{ font-family: var(--font-mono); font-size: 11px; color: var(--black); }}
 
-        /* Responsive Breakpoints */
+        /* Responsive */
         @media (max-width: 900px) {{
-            .score-hero {{ grid-template-columns: 1fr; gap: 24px; }}
+            .score-hero {{ grid-template-columns: 1fr; gap: 32px; }}
             .score-number-block {{ border-right: none; padding-right: 0; }}
-            .score-status {{ padding-left: 28px; border-left: 4px solid {score_color}; margin-left: 0; }}
+            .score-status {{ padding-left: 28px; border-left: 4px solid {score_color}; }}
             .score-number {{ font-size: 72px; }}
             .cards-grid, .context-grid, .legend-grid {{ grid-template-columns: repeat(2, 1fr); }}
             .hero-logo {{ max-width: 400px; }}
             .header-nav {{ gap: 20px; }}
         }}
-
         @media (max-width: 600px) {{
-            .container, .header-inner {{ padding: 0 16px; }}
-            section {{ padding: 40px 0; }}
-            .page-title {{ font-size: 28px; margin-bottom: 24px; }}
-            .section-label {{ font-size: 18px; margin-bottom: 20px; }}
-            .hero-logo {{ max-width: 240px; margin-bottom: 32px; }}
-            
-            /* Score Block Adjustments */
-            .score-number {{ font-size: 52px; flex-wrap: wrap; }}
-            .score-main-arrow {{ font-size: 36px; margin-left: 8px; }}
-            .score-status {{ padding-left: 16px; border-left: 3px solid {score_color}; }}
-            
-            /* Nav Links */
-            .header-nav {{ gap: 8px; justify-content: center; }}
-            .nav-link {{ padding: 8px 12px; font-size: 13px; }}
-            
-            /* Text & Grid */
-            .briefing-text {{ font-size: 16px; }}
-            .cards-grid, .context-grid, .legend-grid {{ grid-template-columns: 1fr; gap: 16px; }}
-            .context-card, .indicator-card {{ padding: 16px; }}
-            .value-number {{ font-size: 24px; }}
-            
-            /* Alerts Adjustments */
-            .alert-item {{ display: flex; flex-direction: column; gap: 8px; padding: 16px; border-left-width: 4px; }}
-            .alert-tag {{ margin-bottom: 4px; }}
-            
-            /* Chart Controls Adjustments */
-            .chart-controls {{ justify-content: space-between; }}
-            .chart-btn {{ flex: 1 1 45%; text-align: center; padding: 10px; }}
+            .container, .header-inner {{ padding: 0 20px; }}
+            .cards-grid, .context-grid, .legend-grid, .alert-item {{ grid-template-columns: 1fr; }}
+            .score-number {{ font-size: 56px; }}
+            .header-nav {{ gap: 16px; font-size: 13px; }}
+            .hero-logo {{ max-width: 280px; }}
         }}
     </style>
 </head>
@@ -716,10 +692,10 @@ def build_html(results: dict) -> str:
         <div class="container">
             <div class="section-label">Historial completo del índice</div>
             <div class="chart-controls">
-                <button class="chart-btn active" onclick="setRange(12, this)">12 meses</button>
-                <button class="chart-btn" onclick="setRange(24, this)">24 meses</button>
-                <button class="chart-btn" onclick="setRange(36, this)">36 meses</button>
-                <button class="chart-btn" onclick="setRange(0, this)">Todo</button>
+                <button class="chart-btn" onclick="setRange(12)">12 meses</button>
+                <button class="chart-btn" onclick="setRange(24)">24 meses</button>
+                <button class="chart-btn" onclick="setRange(36)">36 meses</button>
+                <button class="chart-btn active" onclick="setRange(0)">Todo</button>
             </div>
             <div class="chart-container"><canvas id="scoreChart"></canvas></div>
             <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar</div>
@@ -802,25 +778,9 @@ document.addEventListener("DOMContentLoaded", function() {{
 
 const chartData = {chart_data};
 const ctx = document.getElementById('scoreChart').getContext('2d');
-const defaultN = 12;
 const scoreChart = new Chart(ctx, {{
     type: 'line',
-    data: {{ 
-        labels: chartData.labels.slice(-defaultN), 
-        datasets: [{{ 
-            label: 'Índice de Vulnerabilidad', 
-            data: chartData.values.slice(-defaultN), 
-            borderColor: '#002D62', 
-            backgroundColor: 'rgba(0,45,98,0.06)', 
-            borderWidth: 2, 
-            pointBackgroundColor: chartData.colors.slice(-defaultN), 
-            pointBorderColor: chartData.colors.slice(-defaultN), 
-            pointRadius: 3, 
-            pointHoverRadius: 6, 
-            fill: true, 
-            tension: 0.3 
-        }}] 
-    }},
+    data: {{ labels: chartData.labels, datasets: [{{ label: 'Índice de Vulnerabilidad', data: chartData.values, borderColor: '#002D62', backgroundColor: 'rgba(0,45,98,0.06)', borderWidth: 2, pointBackgroundColor: chartData.colors, pointBorderColor: chartData.colors, pointRadius: 3, pointHoverRadius: 6, fill: true, tension: 0.3 }}] }},
     options: {{
         responsive: true, maintainAspectRatio: false,
         plugins: {{
@@ -845,9 +805,8 @@ scoreChart.draw = function() {{
     ctx2.strokeStyle = 'rgba(206,17,38,0.35)'; ctx2.lineWidth = 1; ctx2.setLineDash([5,5]); ctx2.stroke(); ctx2.restore();
 }};
 
-function setRange(months, btn) {{
-    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active')); 
-    if (btn) btn.classList.add('active');
+function setRange(months) {{
+    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active');
     scoreChart.resetZoom();
     const n = months || chartData.labels.length;
     scoreChart.data.labels = chartData.labels.slice(-n);
