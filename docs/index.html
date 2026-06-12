@@ -72,6 +72,11 @@
         .interactive-alert:hover { animation: alertPulse 0.6s ease-in-out infinite; }
         .alert-arrow { margin-left: 8px; font-size: 12px; }
 
+        /* Navigation Buttons */
+        .nav-buttons { display: flex; gap: 12px; margin-top: 48px; flex-wrap: wrap; }
+        .nav-btn { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.05em; color: var(--black); background: var(--gray-50); border: 1px solid var(--gray-200); padding: 12px 20px; text-decoration: none; transition: all 0.2s ease; text-transform: uppercase; }
+        .nav-btn:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+
         /* Briefing */
         .briefing-text { font-size: 20px; line-height: 1.85; color: var(--black); max-width: 850px; }
         .briefing-text p { margin-bottom: 20px; }
@@ -143,22 +148,48 @@
         .footer-sources strong { font-weight: 600; }
         .footer-run { font-family: var(--font-mono); font-size: 11px; color: var(--black); }
 
-        /* Responsive */
+        /* Responsive Breakpoints */
         @media (max-width: 900px) {
-            .score-hero { grid-template-columns: 1fr; gap: 32px; }
+            .score-hero { grid-template-columns: 1fr; gap: 24px; }
             .score-number-block { border-right: none; padding-right: 0; }
-            .score-status { padding-left: 28px; border-left: 4px solid #002D62; }
+            .score-status { padding-left: 28px; border-left: 4px solid #002D62; margin-left: 0; }
             .score-number { font-size: 72px; }
             .cards-grid, .context-grid, .legend-grid { grid-template-columns: repeat(2, 1fr); }
             .hero-logo { max-width: 400px; }
             .header-nav { gap: 20px; }
         }
+
         @media (max-width: 600px) {
-            .container, .header-inner { padding: 0 20px; }
-            .cards-grid, .context-grid, .legend-grid, .alert-item { grid-template-columns: 1fr; }
-            .score-number { font-size: 56px; }
-            .header-nav { gap: 16px; font-size: 13px; }
-            .hero-logo { max-width: 280px; }
+            .container, .header-inner { padding: 0 16px; }
+            section { padding: 40px 0; }
+            .page-title { font-size: 28px; margin-bottom: 24px; }
+            .section-label { font-size: 18px; margin-bottom: 20px; }
+            .hero-logo { max-width: 240px; margin-bottom: 32px; }
+            
+            /* Score Block Adjustments */
+            .score-number { font-size: 52px; flex-wrap: wrap; }
+            .score-main-arrow { font-size: 36px; margin-left: 8px; }
+            .score-status { padding-left: 16px; border-left: 3px solid #002D62; }
+            
+            /* Nav Links & Buttons */
+            .header-nav { gap: 8px; justify-content: center; }
+            .nav-link { padding: 8px 12px; font-size: 13px; }
+            .nav-buttons { flex-direction: column; gap: 10px; width: 100%; margin-top: 32px; }
+            .nav-btn { width: 100%; text-align: center; padding: 14px; }
+            
+            /* Text & Grid */
+            .briefing-text { font-size: 16px; }
+            .cards-grid, .context-grid, .legend-grid { grid-template-columns: 1fr; gap: 16px; }
+            .context-card, .indicator-card { padding: 16px; }
+            .value-number { font-size: 24px; }
+            
+            /* Alerts Adjustments */
+            .alert-item { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-left-width: 4px; }
+            .alert-tag { margin-bottom: 4px; }
+            
+            /* Chart Controls Adjustments */
+            .chart-controls { justify-content: space-between; }
+            .chart-btn { flex: 1 1 45%; text-align: center; padding: 10px; }
         }
     </style>
 </head>
@@ -198,6 +229,13 @@
         &#9888; 1 indicador en zona de alerta <span class="alert-arrow">&#8595;</span>
     </div>
                 </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <a href="#contexto-macro" class="nav-btn">Contexto Macroeconómico</a>
+                <a href="#indicadores-seguimiento" class="nav-btn">Indicadores en seguimiento</a>
+                <a href="#panel-indicadores" class="nav-btn">Panel de indicadores</a>
+                <a href="#historial-indice" class="nav-btn">Historial completo del índice</a>
             </div>
         </div>
     </section>
@@ -512,7 +550,7 @@
             <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) · Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
             El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
         </div>
-        <div class="footer-run">Actualizado: 12/06/2026 a las 13:29</div>
+        <div class="footer-run">Actualizado: 12/06/2026 a las 13:53</div>
     </div>
 </footer>
 
