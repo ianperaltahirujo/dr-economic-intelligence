@@ -512,11 +512,6 @@ def build_html(results: dict) -> str:
         .interactive-alert:hover {{ animation: alertPulse 0.6s ease-in-out infinite; }}
         .alert-arrow {{ margin-left: 8px; font-size: 12px; }}
 
-        /* Navigation Buttons */
-        .nav-buttons {{ display: flex; gap: 12px; margin-top: 48px; flex-wrap: wrap; }}
-        .nav-btn {{ font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.05em; color: var(--black); background: var(--gray-50); border: 1px solid var(--gray-200); padding: 12px 20px; text-decoration: none; transition: all 0.2s ease; text-transform: uppercase; }}
-        .nav-btn:hover {{ background: var(--blue); color: var(--white); border-color: var(--blue); }}
-
         /* Briefing */
         .briefing-text {{ font-size: 20px; line-height: 1.85; color: var(--black); max-width: 850px; }}
         .briefing-text p {{ margin-bottom: 20px; }}
@@ -611,11 +606,9 @@ def build_html(results: dict) -> str:
             .score-main-arrow {{ font-size: 36px; margin-left: 8px; }}
             .score-status {{ padding-left: 16px; border-left: 3px solid {score_color}; }}
             
-            /* Nav Links & Buttons */
+            /* Nav Links */
             .header-nav {{ gap: 8px; justify-content: center; }}
             .nav-link {{ padding: 8px 12px; font-size: 13px; }}
-            .nav-buttons {{ flex-direction: column; gap: 10px; width: 100%; margin-top: 32px; }}
-            .nav-btn {{ width: 100%; text-align: center; padding: 14px; }}
             
             /* Text & Grid */
             .briefing-text {{ font-size: 16px; }}
@@ -666,13 +659,6 @@ def build_html(results: dict) -> str:
                     <div class="status-desc">{status_desc}</div>
                     {alert_box_html}
                 </div>
-            </div>
-            
-            <div class="nav-buttons">
-                {f'<a href="#contexto-macro" class="nav-btn">Contexto Macroeconómico</a>' if context_section_html else ''}
-                <a href="#indicadores-seguimiento" class="nav-btn">Indicadores en seguimiento</a>
-                <a href="#panel-indicadores" class="nav-btn">Panel de indicadores</a>
-                <a href="#historial-indice" class="nav-btn">Historial completo del índice</a>
             </div>
         </div>
     </section>
@@ -730,10 +716,10 @@ def build_html(results: dict) -> str:
         <div class="container">
             <div class="section-label">Historial completo del índice</div>
             <div class="chart-controls">
-                <button class="chart-btn" onclick="setRange(12)">12 meses</button>
-                <button class="chart-btn" onclick="setRange(24)">24 meses</button>
-                <button class="chart-btn" onclick="setRange(36)">36 meses</button>
-                <button class="chart-btn active" onclick="setRange(0)">Todo</button>
+                <button class="chart-btn active" onclick="setRange(12, this)">12 meses</button>
+                <button class="chart-btn" onclick="setRange(24, this)">24 meses</button>
+                <button class="chart-btn" onclick="setRange(36, this)">36 meses</button>
+                <button class="chart-btn" onclick="setRange(0, this)">Todo</button>
             </div>
             <div class="chart-container"><canvas id="scoreChart"></canvas></div>
             <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar</div>
@@ -816,9 +802,25 @@ document.addEventListener("DOMContentLoaded", function() {{
 
 const chartData = {chart_data};
 const ctx = document.getElementById('scoreChart').getContext('2d');
+const defaultN = 12;
 const scoreChart = new Chart(ctx, {{
     type: 'line',
-    data: {{ labels: chartData.labels, datasets: [{{ label: 'Índice de Vulnerabilidad', data: chartData.values, borderColor: '#002D62', backgroundColor: 'rgba(0,45,98,0.06)', borderWidth: 2, pointBackgroundColor: chartData.colors, pointBorderColor: chartData.colors, pointRadius: 3, pointHoverRadius: 6, fill: true, tension: 0.3 }}] }},
+    data: {{ 
+        labels: chartData.labels.slice(-defaultN), 
+        datasets: [{{ 
+            label: 'Índice de Vulnerabilidad', 
+            data: chartData.values.slice(-defaultN), 
+            borderColor: '#002D62', 
+            backgroundColor: 'rgba(0,45,98,0.06)', 
+            borderWidth: 2, 
+            pointBackgroundColor: chartData.colors.slice(-defaultN), 
+            pointBorderColor: chartData.colors.slice(-defaultN), 
+            pointRadius: 3, 
+            pointHoverRadius: 6, 
+            fill: true, 
+            tension: 0.3 
+        }}] 
+    }},
     options: {{
         responsive: true, maintainAspectRatio: false,
         plugins: {{
@@ -843,8 +845,9 @@ scoreChart.draw = function() {{
     ctx2.strokeStyle = 'rgba(206,17,38,0.35)'; ctx2.lineWidth = 1; ctx2.setLineDash([5,5]); ctx2.stroke(); ctx2.restore();
 }};
 
-function setRange(months) {{
-    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active');
+function setRange(months, btn) {{
+    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active')); 
+    if (btn) btn.classList.add('active');
     scoreChart.resetZoom();
     const n = months || chartData.labels.length;
     scoreChart.data.labels = chartData.labels.slice(-n);
