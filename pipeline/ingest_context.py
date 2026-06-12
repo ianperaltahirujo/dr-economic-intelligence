@@ -520,11 +520,19 @@ def load_context_all(data_dir: str = "data/raw") -> dict:
     except Exception as e:
         print(f"  ERROR loading national debt: {e}")
 
+    debt_detail = pd.DataFrame()
+    try:
+        from pipeline.ingest_debt import load_debt_all
+        debt_detail = load_debt_all()
+    except Exception as e:
+        print(f"  ERROR loading debt detail: {e}")
+
     return {
         "gas":            gas,
         "tourism_spend":  tourism_spend,
         "tourism_fiscal": tourism_fiscal,
         "debt":           debt,
+        "debt_detail":    debt_detail,
     }
 
 
