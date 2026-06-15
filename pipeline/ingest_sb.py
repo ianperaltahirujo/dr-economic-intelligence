@@ -227,6 +227,19 @@ def load_principales_indicadores(
     raw = raw.sort_index()
     raw = raw[~raw.index.duplicated(keep="last")]
 
+    # ── Zero-value guard ────────────────────────────────────────────────────
+    # The SB API occasionally returns 0.00 for solvencia and tasaActiva in
+    # the most recent 1-2 months when data has not yet been validated and
+    # published. A true solvency ratio of 0% or lending rate of 0% is
+    # economically impossible for the Dominican banking system. These zeros
+    # are missing values misencoded as 0 by the API, not real readings.
+    # We replace them with NaN so the short-fill logic in build_vulnerability
+    # can carry the last valid value forward instead of scoring a false alert.
+    ZERO_IMPOSSIBLE_COLS = ["sb_solvencia_pct", "sb_tasa_activa_pct"]
+    for col in ZERO_IMPOSSIBLE_COLS:
+        if col in raw.columns:
+            raw[col] = raw[col].replace(0.0, pd.NA)
+
     print(f"  Loaded: {len(raw)} rows "
           f"({raw.index.min().date()} to {raw.index.max().date()})")
     return raw
