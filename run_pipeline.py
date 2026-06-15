@@ -24,9 +24,7 @@ from pathlib import Path
 # -- Config ------------------------------------------------------------------
 
 BCRD_DATA_DIR   = "data/raw"
-FRED_CACHE_PATH = "data/processed/us_indicators.csv"
 OUTPUT_PATH     = "data/output/vulnerability_report.xlsx"
-SB_START_DATE   = "2010-01"
 
 # -- Helpers -----------------------------------------------------------------
 
@@ -45,23 +43,27 @@ def _step(n: int, total: int, label: str) -> None:
 # -- Pipeline steps ----------------------------------------------------------
 
 def step_download_bcrd() -> bool:
-    """Download fresh BCRD Excel files. Returns True on success."""
-    from pipeline.download_bcrd_files import download_all
-    results = download_all(Path(BCRD_DATA_DIR))
-    if results["failed"]:
-        print(f"\n  WARNING: {len(results['failed'])} file(s) failed to download.")
+    """Download fresh BCRD Excel files and context files. Returns True on success."""
+    from pipeline.download_bcrd_files import download_all as download_bcrd
+    from pipeline.download_context_files import download_all as download_context
+
+    results_bcrd = download_bcrd(Path(BCRD_DATA_DIR))
+    if results_bcrd["failed"]:
+        print(f"\n  WARNING: {len(results_bcrd['failed'])} BCRD file(s) failed to download.")
         print("  Pipeline will use cached versions for failed files.")
+
+    print("\nDownloading context files...")
+    results_ctx = download_context(Path(BCRD_DATA_DIR))
+    if results_ctx["failed"]:
+        print(f"\n  WARNING: {len(results_ctx['failed'])} context file(s) failed to download.")
+
     return True
 
 
-def step_score() -> dict:
+def step_score(skip_download: bool = False) -> dict:
     """Run vulnerability scoring pipeline. Returns results dict."""
     from pipeline.build_vulnerability import run_vulnerability_pipeline
-    return run_vulnerability_pipeline(
-        bcrd_dir=BCRD_DATA_DIR,
-        fred_cache=FRED_CACHE_PATH,
-        sb_start=SB_START_DATE,
-    )
+    return run_vulnerability_pipeline()
 
 
 def step_load_context() -> dict:
@@ -123,9 +125,6 @@ def main() -> int:
 
     run_start = datetime.now()
 
-    # dry-run: score only (2 steps)
-    # skip-download: score + context + excel + site + sharepoint (5 steps)
-    # full run: download + score + context + excel + site + sharepoint (6 steps)
     if args.dry_run:
         total_steps = 2
     elif args.skip_download:
@@ -142,7 +141,7 @@ def main() -> int:
 
     step_n = 1
 
-    # -- Step 1: Download BCRD files (skipped in --skip-download mode) --
+    # -- Step 1: Download BCRD files
     if not args.skip_download:
         _step(step_n, total_steps, "Downloading BCRD Excel files")
         step_n += 1
@@ -152,11 +151,11 @@ def main() -> int:
             print(f"\n  ERROR in BCRD download: {e}")
             print("  Continuing with cached files...")
 
-    # -- Step 2: Score --
+    # -- Step 2: Score
     _step(step_n, total_steps, "Running vulnerability scoring")
     step_n += 1
     try:
-        results = step_score()
+        results = step_score(args.skip_download)
     except Exception as e:
         print(f"\n  FATAL ERROR in scoring: {e}")
         traceback.print_exc()
@@ -167,7 +166,7 @@ def main() -> int:
         _print_summary(results, run_start, output_path=None)
         return 0
 
-    # -- Step 3: Load context indicators --
+    # -- Step 3: Load context indicators
     _step(step_n, total_steps, "Loading context indicators")
     step_n += 1
     try:
@@ -177,7 +176,7 @@ def main() -> int:
         print(f"\n  WARNING: Context indicators failed: {e}")
         traceback.print_exc()
 
-    # -- Step 4: Write Excel --
+    # -- Step 4: Write Excel
     _step(step_n, total_steps, "Writing Excel workbook")
     step_n += 1
     output_path = None
@@ -188,7 +187,7 @@ def main() -> int:
         traceback.print_exc()
         return 1
 
-    # -- Step 5: Write HTML site --
+    # -- Step 5: Write HTML site
     _step(step_n, total_steps, "Generating website")
     step_n += 1
     try:
@@ -197,14 +196,14 @@ def main() -> int:
         print(f"\n  ERROR writing site: {e}")
         traceback.print_exc()
 
-    # -- Step 6: Upload to SharePoint --
+    # -- Step 6: Upload to SharePoint
     _step(step_n, total_steps, "Uploading to SharePoint")
     try:
         step_upload_sharepoint(output_path)
     except Exception as e:
         print(f"\n  ERROR in SharePoint upload: {e}")
 
-    # -- Summary --
+    # -- Summary
     _print_summary(results, run_start, output_path=output_path)
     return 0
 
