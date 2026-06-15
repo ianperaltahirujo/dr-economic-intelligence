@@ -53,10 +53,10 @@ def step_download_bcrd() -> bool:
         print("  Pipeline will use cached versions for failed files.")
 
     print("\nDownloading context files...")
+    from pipeline.download_context_files import download_all as download_context
     results_ctx = download_context(Path(BCRD_DATA_DIR))
     if results_ctx["failed"]:
         print(f"\n  WARNING: {len(results_ctx['failed'])} context file(s) failed to download.")
-
     return True
 
 
