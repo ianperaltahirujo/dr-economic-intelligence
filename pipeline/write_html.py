@@ -26,6 +26,7 @@ from pipeline.build_vulnerability import (
     VULNERABILITY_COMPONENTS,
     INDICATOR_LABELS,
     HIGH_STRESS_THRESHOLD,
+    classify_indicator
 )
 
 # ── Hero logo ────────────────────────────────────────────────
@@ -49,7 +50,7 @@ INDICATOR_DESCRIPTIONS_ES = {
     "ipc_yoy_pct": (
         "Inflación interanual",
         "Variación porcentual del nivel de precios respecto al mismo mes del año anterior. "
-        "Valores por encima del 6% indican presión inflacionaria significativa."
+        "Valores por encima del 7% indican presión inflacionaria significativa."
     ),
     "dop_usd": (
         "Tasa de cambio DOP/USD",
@@ -85,6 +86,19 @@ INDICATOR_DESCRIPTIONS_ES = {
         "Confianza del consumidor en EE.UU.",
         "Índice de confianza del consumidor estadounidense (Universidad de Michigan). "
         "Una caída anticipa menor gasto en turismo hacia el Caribe, incluyendo la República Dominicana."
+    ),
+    "sb_tasa_activa_pct": (
+        "Tasa de Interés Activa",
+        "Tasa de interés promedio ponderada cobrada por los bancos en préstamos. "
+        "Un aumento encarece el crédito, frena el consumo y aumenta la carga financiera de hogares y empresas."
+    ),
+    "gas_premium_dop": (
+        "Precio Gasolina Premium",
+        "Precio oficial por galón fijado por el MICM. Las alzas reflejan choques petroleros externos y se traducen en mayores costos logísticos e inflación generalizada."
+    ),
+    "tourism_daily_spend_usd": (
+        "Gasto Turístico Diario",
+        "Gasto promedio diario (en USD) de visitantes extranjeros. Una caída señala debilidad en la principal industria exportadora y menor entrada de divisas a la economía."
     ),
 }
 
@@ -144,27 +158,27 @@ def generate_briefing(results: dict, scored: pd.DataFrame) -> str:
             col = alert["indicator"]
             val = alert["value"]
             if col == "ipc_yoy_pct":
-                drivers.append(f"la inflación interanual se mantiene en <strong>{val:.1f}%</strong>, por encima del promedio de los últimos cinco años")
+                drivers.append(f"la inflación interanual se mantiene en <strong>{val:.1f}%</strong>")
             elif col == "dop_usd":
-                drivers.append(f"el tipo de cambio alcanzó <strong>{val:.2f} DOP/USD</strong>, reflejando presión depreciatoria sobre el peso dominicano")
+                drivers.append(f"el tipo de cambio alcanzó <strong>{val:.2f} DOP/USD</strong>")
             elif col == "remesas_usd_mm":
-                drivers.append(f"las remesas familiares totalizaron <strong>USD {val:.0f} millones</strong>, por debajo de su tendencia reciente")
+                drivers.append(f"las remesas cayeron a <strong>USD {val:.0f}M</strong>")
             elif col == "sb_morosidad_pct":
-                drivers.append(f"la morosidad bancaria se ubicó en <strong>{val:.2f}%</strong>, señalando deterioro en la calidad de la cartera de crédito")
+                drivers.append(f"la morosidad bancaria subió a <strong>{val:.2f}%</strong>")
             elif col == "UNRATE":
-                drivers.append(f"el desempleo en EE.UU. subió a <strong>{val:.1f}%</strong>, lo que podría reducir el flujo de remesas hacia el país")
-            elif col == "UMCSENT":
-                drivers.append(f"la confianza del consumidor estadounidense cayó a <strong>{val:.1f} puntos</strong>, anticipando posible reducción en el turismo hacia la región")
-            elif col == "reserves_usd_mm":
-                drivers.append(f"las reservas internacionales se situaron en <strong>USD {val:,.0f} millones</strong>, por debajo de niveles óptimos")
+                drivers.append(f"el desempleo en EE.UU. subió a <strong>{val:.1f}%</strong>")
+            elif col == "gas_premium_dop":
+                drivers.append(f"la gasolina premium alcanzó <strong>DOP {val:.1f}</strong>")
+            elif col == "sb_tasa_activa_pct":
+                drivers.append(f"la tasa activa promedia <strong>{val:.2f}%</strong>")
 
     if drivers:
         paragraphs.append("Los principales factores que explican este resultado son: " + "; ".join(drivers) + ".")
     else:
         paragraphs.append("No se identificaron indicadores fuera de sus rangos históricos normales durante este período. La economía dominicana muestra resiliencia ante el entorno internacional.")
 
-    recent = scored[list(VULNERABILITY_COMPONENTS.keys())].dropna(how="all").tail(1)
-    if not recent.empty:
+    if score_date and score_date in scored.index:
+        recent = scored.loc[[score_date]]
         context_parts = []
         if "remesas_usd_mm" in recent.columns and pd.notna(recent["remesas_usd_mm"].iloc[0]):
             context_parts.append(f"las remesas se mantienen en USD {recent['remesas_usd_mm'].iloc[0]:.0f} millones mensuales")
@@ -172,14 +186,10 @@ def generate_briefing(results: dict, scored: pd.DataFrame) -> str:
             mor_val = recent["sb_morosidad_pct"].iloc[0]
             if mor_val < 2.5:
                 context_parts.append(f"la morosidad bancaria permanece contenida en {mor_val:.2f}%")
-        if "sb_solvencia_pct" in recent.columns and pd.notna(recent["sb_solvencia_pct"].iloc[0]):
-            sol_val = recent["sb_solvencia_pct"].iloc[0]
-            if sol_val > 15:
-                context_parts.append(f"el sistema bancario mantiene sólidos niveles de capitalización ({sol_val:.1f}%)")
         if context_parts:
             paragraphs.append("Entre los factores de estabilidad destacan que " + " y ".join(context_parts) + ".")
 
-    paragraphs.append("Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad a partir de fuentes oficiales: Banco Central de la República Dominicana (BCRD), Superintendencia de Bancos (SB) y la Reserva Federal de EE.UU. (FRED).")
+    paragraphs.append("Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad.")
 
     return "</p><p>".join(f"{p}" for p in paragraphs)
 
@@ -191,14 +201,17 @@ def build_chart_data(scored: pd.DataFrame) -> str:
     labels = [f"{MONTHS_ES[d.month].capitalize()} {d.year}" for d in history.index]
     values = [round(v, 1) for v in history["vulnerability_score"].tolist()]
     colors = []
-    for v in values:
+    provisional = []
+    for d, v in zip(history.index, values):
         if v >= HIGH_STRESS_THRESHOLD:
             colors.append("rgba(206,17,38,0.8)")
         elif v >= MODERATE_SCORE_THRESHOLD:
             colors.append("rgba(0,45,98,0.6)")
         else:
             colors.append("rgba(0,45,98,0.3)")
-    return json.dumps({"labels": labels, "values": values, "colors": colors})
+        is_prov = bool(scored.loc[d, "is_provisional"]) if "is_provisional" in scored.columns else False
+        provisional.append(is_prov)
+    return json.dumps({"labels": labels, "values": values, "colors": colors, "provisional": provisional})
 
 
 # ── Context Cards Builder ──────────────────────────────────────────────────────
@@ -212,47 +225,10 @@ def get_sparkline_data(df, col, n=24):
 
 def build_context_cards(results: dict) -> str:
     cards = []
-    gas            = results.get("gas", pd.DataFrame())
-    tourism_spend  = results.get("tourism_spend", pd.DataFrame())
     tourism_fiscal = results.get("tourism_fiscal", pd.DataFrame())
     debt           = results.get("debt_detail", pd.DataFrame())
 
-    # 1. Combustibles
-    if not gas.empty:
-        recent_gas = gas.dropna(subset=["gas_premium_dop"]).tail(13)
-        if not recent_gas.empty:
-            val_prem   = recent_gas["gas_premium_dop"].iloc[-1]
-            val_reg    = recent_gas["gas_regular_dop"].iloc[-1]
-            spark_prem = get_sparkline_data(gas, "gas_premium_dop")
-            spark_reg  = get_sparkline_data(gas, "gas_regular_dop")
-            prem_delta = val_prem - recent_gas["gas_premium_dop"].iloc[-2] if len(recent_gas) >= 2 else 0
-            reg_delta  = val_reg  - recent_gas["gas_regular_dop"].iloc[-2]  if len(recent_gas) >= 2 else 0
-            prem_12m   = recent_gas["gas_premium_dop"].tail(12).mean()
-            cards.append(f"""
-            <div class="context-card interactive-card" data-group="context-group" onclick="toggleAccordion(this)">
-                <div class="card-header">
-                    <span class="card-label">Precios Combustibles (DOP)</span>
-                    <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
-                </div>
-                <div class="context-item">
-                    <div class="ci-info"><span class="ci-label">Gasolina Premium</span><span class="ci-value">{val_prem:.1f}</span></div>
-                    <div class="ci-chart"><canvas class="sparkline" data-chart='{spark_prem}'></canvas></div>
-                </div>
-                <div class="context-item">
-                    <div class="ci-info"><span class="ci-label">Gasolina Regular</span><span class="ci-value">{val_reg:.1f}</span></div>
-                    <div class="ci-chart"><canvas class="sparkline" data-chart='{spark_reg}'></canvas></div>
-                </div>
-                <div class="accordion-content">
-                    <div class="context-stats">
-                        <div class="context-row"><span>Var. mes anterior (Premium):</span> <strong>{prem_delta:+.1f} DOP</strong></div>
-                        <div class="context-row"><span>Var. mes anterior (Regular):</span> <strong>{reg_delta:+.1f} DOP</strong></div>
-                        <div class="context-row"><span>Promedio 12 meses (Premium):</span> <strong>{prem_12m:.1f} DOP</strong></div>
-                    </div>
-                    <div class="card-desc context-desc">Precios de referencia fijados por el MICM. Impactan directamente los costos de transporte y logística, incidiendo transversalmente en los precios de la canasta básica y la inflación general.</div>
-                </div>
-            </div>""")
-
-    # 2. Deuda Pública
+    # 1. Deuda Pública
     if not debt.empty:
         recent_debt = debt.dropna(subset=["debt_total_usd_mm"]).tail(6)
         if not recent_debt.empty:
@@ -281,41 +257,85 @@ def build_context_cards(results: dict) -> str:
                         <div class="context-row"><span>Deuda Interna Neta:</span> <strong>${val_int:,.0f}M</strong></div>
                         <div class="context-row"><span>Como % del PIB:</span> <strong>{val_pct_gdp:.1f}%</strong></div>
                     </div>
-                    <div class="card-desc context-desc">Deuda consolidada del sector público dominicano. La deuda externa representa el principal componente y genera exposición al riesgo cambiario. Fuente: BCRD (trimestral).</div>
                 </div>
             </div>""")
 
-    # 3. Turismo
-    if not tourism_spend.empty or not tourism_fiscal.empty:
-        items = []
-        stats_items = []
-        if not tourism_spend.empty:
-            recent_spend = tourism_spend.dropna(subset=["tourism_daily_spend_usd"]).tail(13)
-            if not recent_spend.empty:
-                val_spend   = recent_spend["tourism_daily_spend_usd"].iloc[-1]
-                spark_spend = get_sparkline_data(tourism_spend, "tourism_daily_spend_usd", n=12)
-                spend_delta = val_spend - recent_spend["tourism_daily_spend_usd"].iloc[-2] if len(recent_spend) >= 2 else 0
-                items.append(f"""<div class="context-item"><div class="ci-info"><span class="ci-label">Gasto Diario Promedio</span><span class="ci-value">${val_spend:.1f} USD</span></div><div class="ci-chart"><canvas class="sparkline" data-chart='{spark_spend}'></canvas></div></div>""")
-                stats_items.append(f"""<div class="context-row"><span>Var. periodo anterior (Gasto USD):</span> <strong>{spend_delta:+.1f} USD</strong></div>""")
-        if not tourism_fiscal.empty:
-            recent_fisc = tourism_fiscal.dropna(subset=["tourism_fiscal_rdm"]).tail(13)
-            if not recent_fisc.empty:
-                val_fisc   = recent_fisc["tourism_fiscal_rdm"].iloc[-1]
-                spark_fisc = get_sparkline_data(tourism_fiscal, "tourism_fiscal_rdm", n=24)
-                fisc_12m   = recent_fisc["tourism_fiscal_rdm"].tail(12).mean()
-                items.append(f"""<div class="context-item"><div class="ci-info"><span class="ci-label">Recaudación Fiscal</span><span class="ci-value">DOP {val_fisc:,.0f}M</span></div><div class="ci-chart"><canvas class="sparkline" data-chart='{spark_fisc}'></canvas></div></div>""")
-                stats_items.append(f"""<div class="context-row"><span>Promedio 12 meses (Recaudación):</span> <strong>DOP {fisc_12m:,.0f}M</strong></div>""")
-        if items:
+    # 2. Turismo
+    if not tourism_fiscal.empty:
+        recent_fisc = tourism_fiscal.dropna(subset=["tourism_fiscal_rdm"]).tail(13)
+        if not recent_fisc.empty:
+            val_fisc   = recent_fisc["tourism_fiscal_rdm"].iloc[-1]
+            spark_fisc = get_sparkline_data(tourism_fiscal, "tourism_fiscal_rdm", n=24)
+
+            all_fisc = tourism_fiscal.dropna(subset=["tourism_fiscal_rdm"])
+
+            def _yr(y):
+                rows = all_fisc[all_fisc.index.year == y]["tourism_fiscal_rdm"]
+                return rows.iloc[0] if not rows.empty else None
+
+            val_2024 = _yr(2024)
+            val_2022 = _yr(2022)
+            val_2019 = _yr(2019)
+            val_2020 = _yr(2020)
+
+            # 2026 YTD average from distinct monthly readings
+            ytd_rows = all_fisc[all_fisc.index.year == 2026]["tourism_fiscal_rdm"]
+            val_ytd  = ytd_rows.mean() if not ytd_rows.empty else val_fisc
+
+            def _delta_html(label, base, current):
+                if base is None or base == 0:
+                    return ""
+                pct = ((current - base) / base) * 100
+                color  = "#2E7D32" if pct >= 0 else "#CE1126"
+                arrow  = "&#8593;" if pct >= 0 else "&#8595;"
+                return f'<div class="context-row"><span>{label}:</span> <strong style="color:{color}">{arrow} {pct:+.1f}%</strong></div>'
+
+            yoy_html  = _delta_html("vs. 2024", val_2024, val_fisc)
+            pre_html  = _delta_html("vs. pre-COVID (2019)", val_2019, val_fisc)
+            rec_html  = _delta_html("Recuperación desde 2020", val_2020, val_fisc)
+            rec22_html = _delta_html("vs. 2022", val_2022, val_fisc)
+
+            # Monthly trend within 2026
+            trend_html = ""
+            if len(ytd_rows) >= 2:
+                m_delta = ytd_rows.iloc[-1] - ytd_rows.iloc[-2]
+                m_color = "#2E7D32" if m_delta >= 0 else "#CE1126"
+                m_arrow = "&#8593;" if m_delta >= 0 else "&#8595;"
+                trend_html = f'<div class="context-row"><span>Tendencia mensual 2026:</span> <strong style="color:{m_color}">{m_arrow} DOP {m_delta:+,.0f}M</strong></div>'
+
             cards.append(f"""
             <div class="context-card interactive-card" data-group="context-group" onclick="toggleAccordion(this)">
                 <div class="card-header">
-                    <span class="card-label">Sector Turismo</span>
+                    <span class="card-label">Sector Turismo (Fiscal)</span>
                     <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
                 </div>
-                {"".join(items)}
+                <div class="context-item">
+                    <div class="ci-info">
+                        <span class="ci-label">Recaudación Fiscal (últ. dato)</span>
+                        <span class="ci-value">DOP {val_fisc:,.0f}M</span>
+                    </div>
+                    <div class="ci-chart"><canvas class="sparkline" data-chart='{spark_fisc}'></canvas></div>
+                </div>
+                <div class="context-item" style="border-bottom:none;padding-bottom:0;margin-top:0;">
+                    <div class="ci-info">
+                        <span class="ci-label">Promedio YTD 2026</span>
+                        <span class="ci-value" style="font-size:15px;">DOP {val_ytd:,.0f}M</span>
+                    </div>
+                    <div class="ci-info" style="text-align:right;">
+                        <span class="ci-label">vs. pre-COVID 2019</span>
+                        <span class="ci-value" style="font-size:15px;color:#2E7D32;">{"&#8593; " + f"{((val_fisc - val_2019) / val_2019 * 100):+.1f}%" if val_2019 else "N/D"}</span>
+                    </div>
+                </div>
                 <div class="accordion-content">
-                    <div class="context-stats">{"".join(stats_items)}</div>
-                    <div class="card-desc context-desc">El turismo es una de las principales fuentes de divisas de la República Dominicana. Su dinamismo estabiliza el tipo de cambio, aporta liquidez al sistema financiero nacional e impulsa industrias conectadas.</div>
+                    <div class="context-stats">
+                        {yoy_html}
+                        {rec22_html}
+                        {rec_html}
+                        {trend_html}
+                        <div class="context-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-200);font-size:12px;color:var(--gray-600);">
+                            Fuente: BCRD — Recaudación fiscal atribuida al sector turismo. Datos anuales hasta 2024, mensuales desde ene 2026.
+                        </div>
+                    </div>
                 </div>
             </div>""")
 
@@ -347,37 +367,38 @@ def count_indicator_statuses(scored: pd.DataFrame):
     return stress, watch, normal
 
 
-def build_indicator_cards(scored: pd.DataFrame) -> str:
+def build_indicator_cards(scored: pd.DataFrame, score_date) -> str:
     cards = []
+    if score_date not in scored.index: return ""
+    row = scored.loc[score_date]
     for col, (weight, direction) in VULNERABILITY_COMPONENTS.items():
-        zscore_col = f"{col}_zscore"
-        if col not in scored.columns: continue
-        recent = scored[[col, zscore_col]].dropna().tail(1)
-        if recent.empty: continue
-        value  = recent[col].iloc[0]
-        zscore = recent[zscore_col].iloc[0]
+        z_col = f"{col}_zscore"
+        if col not in row or z_col not in row or pd.isna(row[col]): continue
+        val, z = row[col], row[z_col]
+        classification = classify_indicator(col, val, z)
         es_label, es_desc = INDICATOR_DESCRIPTIONS_ES.get(col, (INDICATOR_LABELS.get(col, col), ""))
-        is_stress = ((direction == "positive" and zscore > STRESS_Z_THRESHOLD) or (direction == "negative" and zscore < -STRESS_Z_THRESHOLD))
-        is_watch  = abs(zscore) > WATCH_Z_THRESHOLD and not is_stress
-        if is_stress:   status_label, status_class, data_status = "ALERTA",    "status-stress", "stress"
-        elif is_watch:  status_label, status_class, data_status = "VIGILANCIA","status-watch",  "watch"
-        else:           status_label, status_class, data_status = "NORMAL",    "status-normal", "normal"
-        if col in ["remesas_usd_mm", "reserves_usd_mm"]: value_str = f"USD {value:,.0f}M"
-        elif col == "dop_usd": value_str = f"{value:.2f}"
-        elif col in ["ipc_yoy_pct","sb_morosidad_pct","sb_solvencia_pct","UNRATE"]: value_str = f"{value:.2f}%"
-        elif col == "UMCSENT": value_str = f"{value:.1f}"
-        else: value_str = f"{value:.2f}"
-        bar_pct   = max(0, min(100, (zscore + 3) / 6 * 100))
-        bar_color = "var(--red)" if is_stress else ("var(--blue)" if is_watch else "var(--gray-400)")
-        col_history = scored[col].dropna().tail(3)
-        if len(col_history) >= 2:
-            delta = col_history.iloc[-1] - col_history.iloc[-2]
-            if direction == "positive": arrow, arrow_class = ("&#8593;","arrow-bad") if delta > 0 else ("&#8595;","arrow-good")
-            else:                       arrow, arrow_class = ("&#8593;","arrow-good") if delta > 0 else ("&#8595;","arrow-bad")
-        else:
-            arrow, arrow_class = "&#8211;", ""
+        
+        if classification["is_stress"]: status_label, status_class, data_status = "ALERTA", "status-stress", "stress"
+        elif classification["is_watch"]: status_label, status_class, data_status = "VIGILANCIA", "status-watch", "watch"
+        else: status_label, status_class, data_status = "NORMAL", "status-normal", "normal"
+        
+        if col in ["remesas_usd_mm", "reserves_usd_mm"]: value_str = f"USD {val:,.0f}M"
+        elif col in ["ipc_yoy_pct", "sb_morosidad_pct", "sb_solvencia_pct", "UNRATE", "sb_tasa_activa_pct"]: value_str = f"{val:.2f}%"
+        elif col == "gas_premium_dop": value_str = f"DOP {val:.1f}"
+        elif col == "tourism_daily_spend_usd": value_str = f"USD {val:.1f}"
+        else: value_str = f"{val:.2f}"
+        
+        bar_pct = classification["contribution"] * 100
+        bar_color = "var(--red)" if classification["is_stress"] else ("var(--blue)" if classification["is_watch"] else "var(--gray-400)")
+        
+        prev_idx = scored.index[scored.index < score_date]
+        delta = val - scored.loc[prev_idx[-1], col] if not prev_idx.empty else 0
+        if delta == 0: arrow, arrow_class = "&#8211;", ""
+        elif direction == "positive": arrow, arrow_class = ("&#8593;","arrow-bad") if delta > 0 else ("&#8595;","arrow-good")
+        else: arrow, arrow_class = ("&#8593;","arrow-good") if delta > 0 else ("&#8595;","arrow-bad")
+        
         cards.append(f"""
-        <div class="indicator-card interactive-card {'card-stress' if is_stress else ''}" data-status="{data_status}" onclick="toggleAccordion(this)">
+        <div class="indicator-card interactive-card {'card-stress' if classification['is_stress'] else ''}" data-status="{data_status}" onclick="toggleAccordion(this)">
             <div class="card-header">
                 <span class="card-label">{es_label}</span>
                 <div class="card-header-meta">
@@ -391,8 +412,8 @@ def build_indicator_cards(scored: pd.DataFrame) -> str:
             </div>
             <div class="zscore-bar-container"><div class="zscore-bar" style="width:{bar_pct:.1f}%;background:{bar_color};"></div></div>
             <div class="accordion-content">
-                <div class="zscore-label">Z-score: {zscore:+.2f} &nbsp;|&nbsp; Peso: {weight*100:.0f}%</div>
-                <div class="card-desc">{es_desc}</div>
+                <div class="zscore-label">Z-score: {z:+.2f} &nbsp;|&nbsp; Peso: {weight*100:.0f}%</div>
+                <div class="card-desc" style="border-top:none;padding-top:0;">{es_desc}</div>
             </div>
         </div>""")
     return "\n".join(cards)
@@ -401,24 +422,8 @@ def build_indicator_cards(scored: pd.DataFrame) -> str:
 # ── Alert items ────────────────────────────────────────────────────────────────
 
 def build_alert_items(alerts: pd.DataFrame) -> str:
-    if alerts.empty:
-        return '''<div class="no-alerts"><span class="no-alerts-icon">&#10003;</span>Ningún indicador supera el umbral de alerta esta semana.</div>'''
-    items = []
-    for _, alert in alerts.iterrows():
-        col   = alert["indicator"]
-        label = INDICATOR_DESCRIPTIONS_ES.get(col, (alert.get("label", col), ""))[0]
-        is_stress, z, val = alert["is_stress"], alert["zscore"], alert["value"]
-        direction_word = "por encima" if z > 0 else "por debajo"
-        alert_class, alert_tag = ("alert-stress","ALERTA") if is_stress else ("alert-watch","VIGILANCIA")
-        items.append(f"""
-        <div class="alert-item {alert_class}">
-            <div class="alert-tag">{alert_tag}</div>
-            <div class="alert-content">
-                <strong>{label}</strong>
-                <span class="alert-text">{abs(z):.1f} desviaciones estándar {direction_word} de su promedio histórico (valor actual: {val:.2f})</span>
-            </div>
-        </div>""")
-    return "\n".join(items)
+    if alerts.empty: return '''<div class="no-alerts"><span class="no-alerts-icon">&#10003;</span>Ningún indicador supera el umbral de alerta esta semana.</div>'''
+    return "\n".join([f"""<div class="alert-item {"alert-stress" if a['is_stress'] else "alert-watch"}"><div class="alert-tag">{"ALERTA" if a['is_stress'] else "VIGILANCIA"}</div><div class="alert-content"><strong>{INDICATOR_DESCRIPTIONS_ES.get(a['indicator'], (a['label'],))[0]}</strong><span class="alert-text">{a['alert_text']}</span></div></div>""" for _, a in alerts.iterrows()])
 
 
 # ── Full HTML ──────────────────────────────────────────────────────────────────
@@ -429,12 +434,17 @@ def build_html(results: dict) -> str:
     score_date = results.get("score_date")
     alerts     = results.get("alerts", pd.DataFrame())
 
+    # Determine if the headline score is a provisional nowcast estimate
+    is_provisional = False
+    if score_date is not None and "is_provisional" in scored.columns and score_date in scored.index:
+        is_provisional = bool(scored.loc[score_date, "is_provisional"])
+
     score_history = scored["vulnerability_score"].dropna().tail(2)
     if len(score_history) >= 2:
         delta = score - score_history.iloc[-2]
-        if delta > 0.05:    trend_arrow, trend_class, trend_text = "&#8593;", "trend-bad",     f"+{delta:.1f} pts vs semana anterior"
-        elif delta < -0.05: trend_arrow, trend_class, trend_text = "&#8595;", "trend-good",    f"{delta:.1f} pts vs semana anterior"
-        else:               trend_arrow, trend_class, trend_text = "&#8211;","trend-neutral",  "Sin cambios vs semana anterior"
+        if delta > 0.05:    trend_arrow, trend_class, trend_text = "&#8593;", "trend-bad",     f"+{delta:.1f} pts vs mes anterior"
+        elif delta < -0.05: trend_arrow, trend_class, trend_text = "&#8595;", "trend-good",    f"{delta:.1f} pts vs mes anterior"
+        else:               trend_arrow, trend_class, trend_text = "&#8211;","trend-neutral",  "Sin cambios vs mes anterior"
     else:
         trend_arrow, trend_class, trend_text = "", "trend-neutral", "Dato base"
 
@@ -442,23 +452,26 @@ def build_html(results: dict) -> str:
     status_label, status_desc = STATUS_TEXT_ES[status_key]
     score_color  = "#CE1126" if status_key == "HIGH" else "#002D62" if status_key == "MODERATE" else "#1A1A1A"
     date_str     = f"{MONTHS_ES[score_date.month].capitalize()} de {score_date.year}" if score_date else ""
+    if is_provisional:
+        date_str += " <span class='provisional-tag'>Avance Estimado</span>"
     run_date     = datetime.now().strftime("%d/%m/%Y a las %H:%M")
     meter_pos    = max(0.0, min(100.0, float(score)))
 
     briefing      = generate_briefing(results, scored)
     chart_data    = build_chart_data(scored)
     context_cards = build_context_cards(results)
-    cards         = build_indicator_cards(scored)
+    cards         = build_indicator_cards(scored, score_date)
     alert_html    = build_alert_items(alerts)
 
     stress_n, watch_n, normal_n = count_indicator_statuses(scored)
     total_n = stress_n + watch_n + normal_n
+    n_total = len(VULNERABILITY_COMPONENTS)
 
     alert_count  = len(alerts) if alerts is not None and not alerts.empty else 0
     stress_count = int(alerts["is_stress"].sum()) if alert_count > 0 else 0
 
     alert_box_html = f'''
-    <div class="alert-count {'interactive-alert' if stress_count > 0 else ''}" {f'onclick="scrollToAlerts()"' if stress_count > 0 else ''}>
+    <div class="alert-count {'interactive-alert' if stress_count > 0 else ''}" {f'onclick="jumpFilter(\'stress\')"' if stress_count > 0 else ''}>
         {f'&#9888; {stress_count} indicador{"es" if stress_count != 1 else ""} en zona de alerta <span class="alert-arrow">&#8595;</span>' if stress_count > 0 else '&#10003; Sin alertas activas'}
     </div>'''
 
@@ -482,7 +495,7 @@ def build_html(results: dict) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Informe semanal de vulnerabilidad económica de la República Dominicana — La Sociedad.">
     <meta name="theme-color" content="#002D62">
-    <meta name="color-scheme" content="light">
+    <meta name="color-scheme" content="light"><link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
     <title>DR Economic Intelligence &#8212; La Sociedad</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -731,6 +744,11 @@ def build_html(results: dict) -> str:
             main > section {{ padding: 24px 0; }}
             body {{ font-size: 12px; }}
         }}
+
+        /* Provisional / nowcast label */
+        .provisional-tag {{ display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--gray-600); background: var(--gray-100); border: 1px solid var(--gray-300); border-radius: 999px; padding: 2px 9px; margin-left: 8px; vertical-align: middle; white-space: nowrap; }}
+        .provisional-tag::before {{ content: '~'; font-size: 13px; color: var(--gray-400); }}
+        .provisional-note {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 8px; line-height: 1.5; }}
     </style>
     <noscript><style>
         .fade-in-section {{ opacity: 1 !important; transform: none !important; }}
@@ -764,13 +782,14 @@ def build_html(results: dict) -> str:
             <img src="{HERO_LOGO_SRC}" alt="La Sociedad — DR Economic Intelligence" class="hero-logo">
             <div class="score-hero">
                 <div class="panel score-panel">
-                    <div class="score-label">Nivel de Vulnerabilidad Económica</div>
+                    <div class="score-label">Índice de Vulnerabilidad Económica</div>
                     <div class="score-number">
                         {score:.1f}<span class="score-denom">/100</span>
                         <span class="score-main-arrow {trend_class}">{trend_arrow}</span>
                     </div>
                     <div class="score-trend-text {trend_class}">{trend_text}</div>
                     <div class="score-date">{date_str}</div>
+                    {f'<div class="provisional-note">&#126; Gasto turístico estimado a partir del último dato disponible (dic 2025). Se actualizará al publicar el BCRD.</div>' if is_provisional else ''}
                     <div class="score-meter" role="img" aria-label="Puntuación {score:.1f} de 100">
                         <div class="meter-track"><div class="meter-marker" style="left:{meter_pos:.1f}%"></div></div>
                         <div class="meter-scale"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:65%">65</span><span style="left:100%">100</span></div>
@@ -859,8 +878,8 @@ def build_html(results: dict) -> str:
                 <div class="chart-controls">
                     <button class="chart-btn" data-range="12">12 meses</button>
                     <button class="chart-btn" data-range="24">24 meses</button>
-                    <button class="chart-btn active" data-range="36">36 meses</button>
-                    <button class="chart-btn" data-range="0">Todo</button>
+                    <button class="chart-btn" data-range="36">36 meses</button>
+                    <button class="chart-btn active" data-range="0">Todo</button>
                 </div>
                 <div class="chart-container"><canvas id="scoreChart"></canvas></div>
                 <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar · La línea roja marca el umbral de alerta ({HIGH_STRESS_THRESHOLD})</div>
@@ -956,18 +975,6 @@ function toggleAccordion(element) {{
     }});
 }}
 
-function scrollToAlerts() {{
-    const target = document.getElementById('panel-indicadores');
-    if (target) {{
-        window.scrollTo({{ top: target.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }});
-        setTimeout(() => {{
-            document.querySelectorAll('.card-stress').forEach(card => {{
-                card.classList.remove('blink-alert'); void card.offsetWidth; card.classList.add('blink-alert');
-            }});
-        }}, 500);
-    }}
-}}
-
 function filterIndicators(status, btn) {{
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     if (btn) {{ btn.classList.add('active'); }}
@@ -979,23 +986,92 @@ function filterIndicators(status, btn) {{
 }}
 
 function jumpFilter(status) {{
-    const panel = document.getElementById('panel-indicadores');
-    if (panel) {{ window.scrollTo({{ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }}); }}
     filterIndicators(status);
+    const panel = document.getElementById('panel-indicadores');
+    if (panel) {{
+        const targetY = panel.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({{ top: targetY, behavior: 'smooth' }});
+    }}
+    if (status === 'stress') {{
+        setTimeout(() => {{
+            document.querySelectorAll('.card-stress').forEach(card => {{
+                card.classList.remove('blink-alert');
+                void card.offsetWidth;
+                card.classList.add('blink-alert');
+            }});
+        }}, 1000);
+    }}
 }}
 
 // Main history chart
 const chartData = {chart_data};
 const ctx = document.getElementById('scoreChart').getContext('2d');
+
+// Split data into confirmed and provisional segments for dashed rendering
+function buildChartDatasets(labels, values, colors, provisional) {{
+    // Find the index where provisional starts (first True)
+    const splitIdx = provisional.indexOf(true);
+    if (splitIdx === -1) {{
+        // No provisional data — single solid dataset
+        return [{{
+            label: 'Índice de Vulnerabilidad',
+            data: values,
+            borderColor: '#002D62',
+            backgroundColor: 'rgba(0,45,98,0.06)',
+            borderWidth: 2,
+            pointBackgroundColor: colors,
+            pointBorderColor: colors,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.3
+        }}];
+    }}
+    // Confirmed segment: solid line up to and including the last confirmed point
+    const confirmedValues = values.map((v, i) => i <= splitIdx ? v : null);
+    // Provisional segment: dashed line from the last confirmed point onward
+    const provisionalValues = values.map((v, i) => i >= splitIdx ? v : null);
+    return [
+        {{
+            label: 'Índice de Vulnerabilidad',
+            data: confirmedValues,
+            borderColor: '#002D62',
+            backgroundColor: 'rgba(0,45,98,0.06)',
+            borderWidth: 2,
+            pointBackgroundColor: colors,
+            pointBorderColor: colors,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.3,
+            borderDash: []
+        }},
+        {{
+            label: 'Avance Estimado',
+            data: provisionalValues,
+            borderColor: '#002D62',
+            backgroundColor: 'rgba(0,45,98,0.03)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointBackgroundColor: colors.map((c, i) => i >= splitIdx ? c : 'transparent'),
+            pointBorderColor: colors.map((c, i) => i >= splitIdx ? c : 'transparent'),
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.3
+        }}
+    ];
+}}
+
 const scoreChart = new Chart(ctx, {{
     type: 'line',
-    data: {{ labels: chartData.labels, datasets: [{{ label: 'Índice de Vulnerabilidad', data: chartData.values, borderColor: '#002D62', backgroundColor: 'rgba(0,45,98,0.06)', borderWidth: 2, pointBackgroundColor: chartData.colors, pointBorderColor: chartData.colors, pointRadius: 3, pointHoverRadius: 6, fill: true, tension: 0.3 }}] }},
+    data: {{ labels: chartData.labels, datasets: buildChartDatasets(chartData.labels, chartData.values, chartData.colors, chartData.provisional || []) }},
     options: {{
         responsive: true, maintainAspectRatio: false,
         interaction: {{ intersect: false, mode: 'index' }},
         plugins: {{
             legend: {{ display: false }},
-            tooltip: {{ backgroundColor: '#0A0A0A', titleColor: '#fff', bodyColor: '#ccc', padding: 12, displayColors: false, callbacks: {{ label: c => `Índice: ${{c.parsed.y}} / 100` }} }},
+            tooltip: {{ backgroundColor: '#0A0A0A', titleColor: '#fff', bodyColor: '#ccc', padding: 12, displayColors: false, callbacks: {{ label: c => c.dataset.label === 'Avance Estimado' ? `Índice: ${{c.parsed.y}} / 100 (estimado)` : `Índice: ${{c.parsed.y}} / 100` }} }},
             zoom: {{ zoom: {{ wheel: {{ enabled: true }}, pinch: {{ enabled: true }}, mode: 'x' }}, pan: {{ enabled: true, mode: 'x' }} }}
         }},
         scales: {{
@@ -1024,14 +1100,16 @@ function applyRange(months, btn) {{
     if (btn) btn.classList.add('active');
     if (scoreChart.resetZoom) scoreChart.resetZoom();
     const n = months || chartData.labels.length;
-    scoreChart.data.labels = chartData.labels.slice(-n);
-    scoreChart.data.datasets[0].data = chartData.values.slice(-n);
-    scoreChart.data.datasets[0].pointBackgroundColor = chartData.colors.slice(-n);
-    scoreChart.data.datasets[0].pointBorderColor = chartData.colors.slice(-n);
+    const slicedLabels = chartData.labels.slice(-n);
+    const slicedValues = chartData.values.slice(-n);
+    const slicedColors = chartData.colors.slice(-n);
+    const slicedProv   = (chartData.provisional || []).slice(-n);
+    scoreChart.data.labels = slicedLabels;
+    scoreChart.data.datasets = buildChartDatasets(slicedLabels, slicedValues, slicedColors, slicedProv);
     scoreChart.update();
 }}
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
-(function() {{ const def = document.querySelector('.chart-btn[data-range="36"]'); applyRange(36, def); }})();
+(function() {{ const def = document.querySelector('.chart-btn[data-range="0"]'); applyRange(0, def); }})();
 </script>
 
 </body>
