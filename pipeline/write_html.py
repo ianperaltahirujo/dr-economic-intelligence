@@ -427,7 +427,7 @@ def build_html(results: dict) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Informe semanal de vulnerabilidad económica de la República Dominicana — La Sociedad.">
     <meta name="theme-color" content="#002D62">
-    <meta name="color-scheme" content="light">
+    <meta name="color-scheme" content="light"><link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
     <title>DR Economic Intelligence &#8212; La Sociedad</title>
     <style>
         @font-face {{
@@ -505,7 +505,7 @@ def build_html(results: dict) -> str:
         .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }}
         main > section {{ padding: 72px 0; border-bottom: var(--border); }}
         main > section:last-child {{ border-bottom: none; }}
-        section[id] {{ scroll-margin-top: 84px; }}
+        section[id] {{ scroll-margin-top: 16px; }}
         .hero {{ padding-top: 48px; }}
         .section-head {{ display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }}
         .section-label {{ font-size: 20px; font-weight: 700; font-family: var(--font-display); color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
@@ -937,9 +937,21 @@ function filterIndicators(status, btn) {{
 }}
 
 function jumpFilter(status) {{
-    const panel = document.getElementById('panel-indicadores');
-    if (panel) {{ window.scrollTo({{ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }}); }}
     filterIndicators(status);
+    const panel = document.getElementById('panel-indicadores');
+    if (panel) {{
+        const targetY = panel.getBoundingClientRect().top + window.scrollY - 16;
+        window.scrollTo({{ top: targetY, behavior: 'smooth' }});
+    }}
+    if (status === 'stress') {{
+        setTimeout(() => {{
+            document.querySelectorAll('.card-stress').forEach(card => {{
+                card.classList.remove('blink-alert');
+                void card.offsetWidth;
+                card.classList.add('blink-alert');
+            }});
+        }}, 1000);
+    }}
 }}
 
 // Main history chart
