@@ -348,8 +348,11 @@ def load_tourism_fiscal(
                         if pd.isna(val):
                             continue
                         try:
-                            # Convert to RD$ millions
-                            rdm = float(val) * scale / 1_000_000
+                            # Historical sheets give ANNUAL totals. Divide by 12 to get
+                            # an average-monthly figure (RD$ millions) so this lines up
+                            # on the same per-month basis as the true monthly 2026 data,
+                            # instead of sitting ~12x higher and creating a false cliff.
+                            rdm = float(val) * scale / 1_000_000 / 12.0
                             date = pd.Timestamp(year=year, month=1, day=1)
                             records.append({"date": date, "tourism_fiscal_rdm": rdm})
                         except (ValueError, TypeError):

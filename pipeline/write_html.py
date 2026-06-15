@@ -4,7 +4,7 @@ Produces a professional Spanish-language website from pipeline results.
 Output: docs/index.html (served by GitHub Pages)
 
 Design: Dominican flag palette (white/black + DR blue #002D62 / DR red #CE1126)
-Typography: Haffer (body/UI) + Reckless (display)
+Typography: IBM Plex Sans + IBM Plex Mono
 Audience: La Sociedad management (non-technical)
 Language: Spanish throughout
 
@@ -26,7 +26,6 @@ from pipeline.build_vulnerability import (
     VULNERABILITY_COMPONENTS,
     INDICATOR_LABELS,
     HIGH_STRESS_THRESHOLD,
-    classify_indicator
 )
 
 # ── Hero logo ────────────────────────────────────────────────
@@ -50,7 +49,7 @@ INDICATOR_DESCRIPTIONS_ES = {
     "ipc_yoy_pct": (
         "Inflación interanual",
         "Variación porcentual del nivel de precios respecto al mismo mes del año anterior. "
-        "Valores por encima del 7% indican presión inflacionaria significativa."
+        "Valores por encima del 6% indican presión inflacionaria significativa."
     ),
     "dop_usd": (
         "Tasa de cambio DOP/USD",
@@ -86,19 +85,6 @@ INDICATOR_DESCRIPTIONS_ES = {
         "Confianza del consumidor en EE.UU.",
         "Índice de confianza del consumidor estadounidense (Universidad de Michigan). "
         "Una caída anticipa menor gasto en turismo hacia el Caribe, incluyendo la República Dominicana."
-    ),
-    "sb_tasa_activa_pct": (
-        "Tasa de Interés Activa",
-        "Tasa de interés promedio ponderada cobrada por los bancos en préstamos. "
-        "Un aumento encarece el crédito, frena el consumo y aumenta la carga financiera de hogares y empresas."
-    ),
-    "gas_premium_dop": (
-        "Precio Gasolina Premium",
-        "Precio oficial por galón fijado por el MICM. Las alzas reflejan choques petroleros externos y se traducen en mayores costos logísticos e inflación generalizada."
-    ),
-    "tourism_daily_spend_usd": (
-        "Gasto Turístico Diario",
-        "Gasto promedio diario (en USD) de visitantes extranjeros. Una caída señala debilidad en la principal industria exportadora y menor entrada de divisas a la economía."
     ),
 }
 
@@ -158,27 +144,27 @@ def generate_briefing(results: dict, scored: pd.DataFrame) -> str:
             col = alert["indicator"]
             val = alert["value"]
             if col == "ipc_yoy_pct":
-                drivers.append(f"la inflación interanual se mantiene en <strong>{val:.1f}%</strong>")
+                drivers.append(f"la inflación interanual se mantiene en <strong>{val:.1f}%</strong>, por encima del promedio de los últimos cinco años")
             elif col == "dop_usd":
-                drivers.append(f"el tipo de cambio alcanzó <strong>{val:.2f} DOP/USD</strong>")
+                drivers.append(f"el tipo de cambio alcanzó <strong>{val:.2f} DOP/USD</strong>, reflejando presión depreciatoria sobre el peso dominicano")
             elif col == "remesas_usd_mm":
-                drivers.append(f"las remesas cayeron a <strong>USD {val:.0f}M</strong>")
+                drivers.append(f"las remesas familiares totalizaron <strong>USD {val:.0f} millones</strong>, por debajo de su tendencia reciente")
             elif col == "sb_morosidad_pct":
-                drivers.append(f"la morosidad bancaria subió a <strong>{val:.2f}%</strong>")
+                drivers.append(f"la morosidad bancaria se ubicó en <strong>{val:.2f}%</strong>, señalando deterioro en la calidad de la cartera de crédito")
             elif col == "UNRATE":
-                drivers.append(f"el desempleo en EE.UU. subió a <strong>{val:.1f}%</strong>")
-            elif col == "gas_premium_dop":
-                drivers.append(f"la gasolina premium alcanzó <strong>DOP {val:.1f}</strong>")
-            elif col == "sb_tasa_activa_pct":
-                drivers.append(f"la tasa activa promedia <strong>{val:.2f}%</strong>")
+                drivers.append(f"el desempleo en EE.UU. subió a <strong>{val:.1f}%</strong>, lo que podría reducir el flujo de remesas hacia el país")
+            elif col == "UMCSENT":
+                drivers.append(f"la confianza del consumidor estadounidense cayó a <strong>{val:.1f} puntos</strong>, anticipando posible reducción en el turismo hacia la región")
+            elif col == "reserves_usd_mm":
+                drivers.append(f"las reservas internacionales se situaron en <strong>USD {val:,.0f} millones</strong>, por debajo de niveles óptimos")
 
     if drivers:
         paragraphs.append("Los principales factores que explican este resultado son: " + "; ".join(drivers) + ".")
     else:
         paragraphs.append("No se identificaron indicadores fuera de sus rangos históricos normales durante este período. La economía dominicana muestra resiliencia ante el entorno internacional.")
 
-    if score_date and score_date in scored.index:
-        recent = scored.loc[[score_date]]
+    recent = scored[list(VULNERABILITY_COMPONENTS.keys())].dropna(how="all").tail(1)
+    if not recent.empty:
         context_parts = []
         if "remesas_usd_mm" in recent.columns and pd.notna(recent["remesas_usd_mm"].iloc[0]):
             context_parts.append(f"las remesas se mantienen en USD {recent['remesas_usd_mm'].iloc[0]:.0f} millones mensuales")
@@ -186,10 +172,14 @@ def generate_briefing(results: dict, scored: pd.DataFrame) -> str:
             mor_val = recent["sb_morosidad_pct"].iloc[0]
             if mor_val < 2.5:
                 context_parts.append(f"la morosidad bancaria permanece contenida en {mor_val:.2f}%")
+        if "sb_solvencia_pct" in recent.columns and pd.notna(recent["sb_solvencia_pct"].iloc[0]):
+            sol_val = recent["sb_solvencia_pct"].iloc[0]
+            if sol_val > 15:
+                context_parts.append(f"el sistema bancario mantiene sólidos niveles de capitalización ({sol_val:.1f}%)")
         if context_parts:
             paragraphs.append("Entre los factores de estabilidad destacan que " + " y ".join(context_parts) + ".")
 
-    paragraphs.append("Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad.")
+    paragraphs.append("Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad a partir de fuentes oficiales: Banco Central de la República Dominicana (BCRD), Superintendencia de Bancos (SB) y la Reserva Federal de EE.UU. (FRED).")
 
     return "</p><p>".join(f"{p}" for p in paragraphs)
 
@@ -222,10 +212,47 @@ def get_sparkline_data(df, col, n=24):
 
 def build_context_cards(results: dict) -> str:
     cards = []
+    gas            = results.get("gas", pd.DataFrame())
+    tourism_spend  = results.get("tourism_spend", pd.DataFrame())
     tourism_fiscal = results.get("tourism_fiscal", pd.DataFrame())
     debt           = results.get("debt_detail", pd.DataFrame())
 
-    # 1. Deuda Pública
+    # 1. Combustibles
+    if not gas.empty:
+        recent_gas = gas.dropna(subset=["gas_premium_dop"]).tail(13)
+        if not recent_gas.empty:
+            val_prem   = recent_gas["gas_premium_dop"].iloc[-1]
+            val_reg    = recent_gas["gas_regular_dop"].iloc[-1]
+            spark_prem = get_sparkline_data(gas, "gas_premium_dop")
+            spark_reg  = get_sparkline_data(gas, "gas_regular_dop")
+            prem_delta = val_prem - recent_gas["gas_premium_dop"].iloc[-2] if len(recent_gas) >= 2 else 0
+            reg_delta  = val_reg  - recent_gas["gas_regular_dop"].iloc[-2]  if len(recent_gas) >= 2 else 0
+            prem_12m   = recent_gas["gas_premium_dop"].tail(12).mean()
+            cards.append(f"""
+            <div class="context-card interactive-card" data-group="context-group" onclick="toggleAccordion(this)">
+                <div class="card-header">
+                    <span class="card-label">Precios Combustibles (DOP)</span>
+                    <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
+                </div>
+                <div class="context-item">
+                    <div class="ci-info"><span class="ci-label">Gasolina Premium</span><span class="ci-value">{val_prem:.1f}</span></div>
+                    <div class="ci-chart"><canvas class="sparkline" data-chart='{spark_prem}'></canvas></div>
+                </div>
+                <div class="context-item">
+                    <div class="ci-info"><span class="ci-label">Gasolina Regular</span><span class="ci-value">{val_reg:.1f}</span></div>
+                    <div class="ci-chart"><canvas class="sparkline" data-chart='{spark_reg}'></canvas></div>
+                </div>
+                <div class="accordion-content">
+                    <div class="context-stats">
+                        <div class="context-row"><span>Var. mes anterior (Premium):</span> <strong>{prem_delta:+.1f} DOP</strong></div>
+                        <div class="context-row"><span>Var. mes anterior (Regular):</span> <strong>{reg_delta:+.1f} DOP</strong></div>
+                        <div class="context-row"><span>Promedio 12 meses (Premium):</span> <strong>{prem_12m:.1f} DOP</strong></div>
+                    </div>
+                    <div class="card-desc context-desc">Precios de referencia fijados por el MICM. Impactan directamente los costos de transporte y logística, incidiendo transversalmente en los precios de la canasta básica y la inflación general.</div>
+                </div>
+            </div>""")
+
+    # 2. Deuda Pública
     if not debt.empty:
         recent_debt = debt.dropna(subset=["debt_total_usd_mm"]).tail(6)
         if not recent_debt.empty:
@@ -254,27 +281,41 @@ def build_context_cards(results: dict) -> str:
                         <div class="context-row"><span>Deuda Interna Neta:</span> <strong>${val_int:,.0f}M</strong></div>
                         <div class="context-row"><span>Como % del PIB:</span> <strong>{val_pct_gdp:.1f}%</strong></div>
                     </div>
+                    <div class="card-desc context-desc">Deuda consolidada del sector público dominicano. La deuda externa representa el principal componente y genera exposición al riesgo cambiario. Fuente: BCRD (trimestral).</div>
                 </div>
             </div>""")
 
-    # 2. Turismo
-    if not tourism_fiscal.empty:
-        recent_fisc = tourism_fiscal.dropna(subset=["tourism_fiscal_rdm"]).tail(13)
-        if not recent_fisc.empty:
-            val_fisc   = recent_fisc["tourism_fiscal_rdm"].iloc[-1]
-            spark_fisc = get_sparkline_data(tourism_fiscal, "tourism_fiscal_rdm", n=24)
-            fisc_12m   = recent_fisc["tourism_fiscal_rdm"].tail(12).mean()
+    # 3. Turismo
+    if not tourism_spend.empty or not tourism_fiscal.empty:
+        items = []
+        stats_items = []
+        if not tourism_spend.empty:
+            recent_spend = tourism_spend.dropna(subset=["tourism_daily_spend_usd"]).tail(13)
+            if not recent_spend.empty:
+                val_spend   = recent_spend["tourism_daily_spend_usd"].iloc[-1]
+                spark_spend = get_sparkline_data(tourism_spend, "tourism_daily_spend_usd", n=12)
+                spend_delta = val_spend - recent_spend["tourism_daily_spend_usd"].iloc[-2] if len(recent_spend) >= 2 else 0
+                items.append(f"""<div class="context-item"><div class="ci-info"><span class="ci-label">Gasto Diario Promedio</span><span class="ci-value">${val_spend:.1f} USD</span></div><div class="ci-chart"><canvas class="sparkline" data-chart='{spark_spend}'></canvas></div></div>""")
+                stats_items.append(f"""<div class="context-row"><span>Var. periodo anterior (Gasto USD):</span> <strong>{spend_delta:+.1f} USD</strong></div>""")
+        if not tourism_fiscal.empty:
+            recent_fisc = tourism_fiscal.dropna(subset=["tourism_fiscal_rdm"]).tail(13)
+            if not recent_fisc.empty:
+                val_fisc   = recent_fisc["tourism_fiscal_rdm"].iloc[-1]
+                spark_fisc = get_sparkline_data(tourism_fiscal, "tourism_fiscal_rdm", n=24)
+                fisc_12m   = recent_fisc["tourism_fiscal_rdm"].tail(12).mean()
+                items.append(f"""<div class="context-item"><div class="ci-info"><span class="ci-label">Recaudación Fiscal</span><span class="ci-value">DOP {val_fisc:,.0f}M</span></div><div class="ci-chart"><canvas class="sparkline" data-chart='{spark_fisc}'></canvas></div></div>""")
+                stats_items.append(f"""<div class="context-row"><span>Promedio 12 meses (Recaudación):</span> <strong>DOP {fisc_12m:,.0f}M</strong></div>""")
+        if items:
             cards.append(f"""
             <div class="context-card interactive-card" data-group="context-group" onclick="toggleAccordion(this)">
                 <div class="card-header">
-                    <span class="card-label">Sector Turismo (Fiscal)</span>
+                    <span class="card-label">Sector Turismo</span>
                     <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
                 </div>
-                <div class="context-item"><div class="ci-info"><span class="ci-label">Recaudación Fiscal</span><span class="ci-value">DOP {val_fisc:,.0f}M</span></div><div class="ci-chart"><canvas class="sparkline" data-chart='{spark_fisc}'></canvas></div></div>
+                {"".join(items)}
                 <div class="accordion-content">
-                    <div class="context-stats">
-                        <div class="context-row"><span>Promedio 12 meses:</span> <strong>DOP {fisc_12m:,.0f}M</strong></div>
-                    </div>
+                    <div class="context-stats">{"".join(stats_items)}</div>
+                    <div class="card-desc context-desc">El turismo es una de las principales fuentes de divisas de la República Dominicana. Su dinamismo estabiliza el tipo de cambio, aporta liquidez al sistema financiero nacional e impulsa industrias conectadas.</div>
                 </div>
             </div>""")
 
@@ -306,38 +347,37 @@ def count_indicator_statuses(scored: pd.DataFrame):
     return stress, watch, normal
 
 
-def build_indicator_cards(scored: pd.DataFrame, score_date) -> str:
+def build_indicator_cards(scored: pd.DataFrame) -> str:
     cards = []
-    if score_date not in scored.index: return ""
-    row = scored.loc[score_date]
     for col, (weight, direction) in VULNERABILITY_COMPONENTS.items():
-        z_col = f"{col}_zscore"
-        if col not in row or z_col not in row or pd.isna(row[col]): continue
-        val, z = row[col], row[z_col]
-        classification = classify_indicator(col, val, z)
+        zscore_col = f"{col}_zscore"
+        if col not in scored.columns: continue
+        recent = scored[[col, zscore_col]].dropna().tail(1)
+        if recent.empty: continue
+        value  = recent[col].iloc[0]
+        zscore = recent[zscore_col].iloc[0]
         es_label, es_desc = INDICATOR_DESCRIPTIONS_ES.get(col, (INDICATOR_LABELS.get(col, col), ""))
-        
-        if classification["is_stress"]: status_label, status_class, data_status = "ALERTA", "status-stress", "stress"
-        elif classification["is_watch"]: status_label, status_class, data_status = "VIGILANCIA", "status-watch", "watch"
-        else: status_label, status_class, data_status = "NORMAL", "status-normal", "normal"
-        
-        if col in ["remesas_usd_mm", "reserves_usd_mm"]: value_str = f"USD {val:,.0f}M"
-        elif col in ["ipc_yoy_pct", "sb_morosidad_pct", "sb_solvencia_pct", "UNRATE", "sb_tasa_activa_pct"]: value_str = f"{val:.2f}%"
-        elif col == "gas_premium_dop": value_str = f"DOP {val:.1f}"
-        elif col == "tourism_daily_spend_usd": value_str = f"USD {val:.1f}"
-        else: value_str = f"{val:.2f}"
-        
-        bar_pct = classification["contribution"] * 100
-        bar_color = "var(--red)" if classification["is_stress"] else ("var(--blue)" if classification["is_watch"] else "var(--gray-400)")
-        
-        prev_idx = scored.index[scored.index < score_date]
-        delta = val - scored.loc[prev_idx[-1], col] if not prev_idx.empty else 0
-        if delta == 0: arrow, arrow_class = "&#8211;", ""
-        elif direction == "positive": arrow, arrow_class = ("&#8593;","arrow-bad") if delta > 0 else ("&#8595;","arrow-good")
-        else: arrow, arrow_class = ("&#8593;","arrow-good") if delta > 0 else ("&#8595;","arrow-bad")
-        
+        is_stress = ((direction == "positive" and zscore > STRESS_Z_THRESHOLD) or (direction == "negative" and zscore < -STRESS_Z_THRESHOLD))
+        is_watch  = abs(zscore) > WATCH_Z_THRESHOLD and not is_stress
+        if is_stress:   status_label, status_class, data_status = "ALERTA",    "status-stress", "stress"
+        elif is_watch:  status_label, status_class, data_status = "VIGILANCIA","status-watch",  "watch"
+        else:           status_label, status_class, data_status = "NORMAL",    "status-normal", "normal"
+        if col in ["remesas_usd_mm", "reserves_usd_mm"]: value_str = f"USD {value:,.0f}M"
+        elif col == "dop_usd": value_str = f"{value:.2f}"
+        elif col in ["ipc_yoy_pct","sb_morosidad_pct","sb_solvencia_pct","UNRATE"]: value_str = f"{value:.2f}%"
+        elif col == "UMCSENT": value_str = f"{value:.1f}"
+        else: value_str = f"{value:.2f}"
+        bar_pct   = max(0, min(100, (zscore + 3) / 6 * 100))
+        bar_color = "var(--red)" if is_stress else ("var(--blue)" if is_watch else "var(--gray-400)")
+        col_history = scored[col].dropna().tail(3)
+        if len(col_history) >= 2:
+            delta = col_history.iloc[-1] - col_history.iloc[-2]
+            if direction == "positive": arrow, arrow_class = ("&#8593;","arrow-bad") if delta > 0 else ("&#8595;","arrow-good")
+            else:                       arrow, arrow_class = ("&#8593;","arrow-good") if delta > 0 else ("&#8595;","arrow-bad")
+        else:
+            arrow, arrow_class = "&#8211;", ""
         cards.append(f"""
-        <div class="indicator-card interactive-card {'card-stress' if classification['is_stress'] else ''}" data-status="{data_status}" onclick="toggleAccordion(this)">
+        <div class="indicator-card interactive-card {'card-stress' if is_stress else ''}" data-status="{data_status}" onclick="toggleAccordion(this)">
             <div class="card-header">
                 <span class="card-label">{es_label}</span>
                 <div class="card-header-meta">
@@ -351,8 +391,8 @@ def build_indicator_cards(scored: pd.DataFrame, score_date) -> str:
             </div>
             <div class="zscore-bar-container"><div class="zscore-bar" style="width:{bar_pct:.1f}%;background:{bar_color};"></div></div>
             <div class="accordion-content">
-                <div class="zscore-label">Z-score: {z:+.2f} &nbsp;|&nbsp; Peso: {weight*100:.0f}%</div>
-                <div class="card-desc" style="border-top:none;padding-top:0;">{es_desc}</div>
+                <div class="zscore-label">Z-score: {zscore:+.2f} &nbsp;|&nbsp; Peso: {weight*100:.0f}%</div>
+                <div class="card-desc">{es_desc}</div>
             </div>
         </div>""")
     return "\n".join(cards)
@@ -361,8 +401,24 @@ def build_indicator_cards(scored: pd.DataFrame, score_date) -> str:
 # ── Alert items ────────────────────────────────────────────────────────────────
 
 def build_alert_items(alerts: pd.DataFrame) -> str:
-    if alerts.empty: return '''<div class="no-alerts"><span class="no-alerts-icon">&#10003;</span>Ningún indicador supera el umbral de alerta esta semana.</div>'''
-    return "\n".join([f"""<div class="alert-item {"alert-stress" if a['is_stress'] else "alert-watch"}"><div class="alert-tag">{"ALERTA" if a['is_stress'] else "VIGILANCIA"}</div><div class="alert-content"><strong>{INDICATOR_DESCRIPTIONS_ES.get(a['indicator'], (a['label'],))[0]}</strong><span class="alert-text">{a['alert_text']}</span></div></div>""" for _, a in alerts.iterrows()])
+    if alerts.empty:
+        return '''<div class="no-alerts"><span class="no-alerts-icon">&#10003;</span>Ningún indicador supera el umbral de alerta esta semana.</div>'''
+    items = []
+    for _, alert in alerts.iterrows():
+        col   = alert["indicator"]
+        label = INDICATOR_DESCRIPTIONS_ES.get(col, (alert.get("label", col), ""))[0]
+        is_stress, z, val = alert["is_stress"], alert["zscore"], alert["value"]
+        direction_word = "por encima" if z > 0 else "por debajo"
+        alert_class, alert_tag = ("alert-stress","ALERTA") if is_stress else ("alert-watch","VIGILANCIA")
+        items.append(f"""
+        <div class="alert-item {alert_class}">
+            <div class="alert-tag">{alert_tag}</div>
+            <div class="alert-content">
+                <strong>{label}</strong>
+                <span class="alert-text">{abs(z):.1f} desviaciones estándar {direction_word} de su promedio histórico (valor actual: {val:.2f})</span>
+            </div>
+        </div>""")
+    return "\n".join(items)
 
 
 # ── Full HTML ──────────────────────────────────────────────────────────────────
@@ -376,9 +432,9 @@ def build_html(results: dict) -> str:
     score_history = scored["vulnerability_score"].dropna().tail(2)
     if len(score_history) >= 2:
         delta = score - score_history.iloc[-2]
-        if delta > 0.05:    trend_arrow, trend_class, trend_text = "&#8593;", "trend-bad",     f"+{delta:.1f} pts vs mes anterior"
-        elif delta < -0.05: trend_arrow, trend_class, trend_text = "&#8595;", "trend-good",    f"{delta:.1f} pts vs mes anterior"
-        else:               trend_arrow, trend_class, trend_text = "&#8211;","trend-neutral",  "Sin cambios vs mes anterior"
+        if delta > 0.05:    trend_arrow, trend_class, trend_text = "&#8593;", "trend-bad",     f"+{delta:.1f} pts vs semana anterior"
+        elif delta < -0.05: trend_arrow, trend_class, trend_text = "&#8595;", "trend-good",    f"{delta:.1f} pts vs semana anterior"
+        else:               trend_arrow, trend_class, trend_text = "&#8211;","trend-neutral",  "Sin cambios vs semana anterior"
     else:
         trend_arrow, trend_class, trend_text = "", "trend-neutral", "Dato base"
 
@@ -392,12 +448,11 @@ def build_html(results: dict) -> str:
     briefing      = generate_briefing(results, scored)
     chart_data    = build_chart_data(scored)
     context_cards = build_context_cards(results)
-    cards         = build_indicator_cards(scored, score_date)
+    cards         = build_indicator_cards(scored)
     alert_html    = build_alert_items(alerts)
 
     stress_n, watch_n, normal_n = count_indicator_statuses(scored)
     total_n = stress_n + watch_n + normal_n
-    n_total = len(VULNERABILITY_COMPONENTS)
 
     alert_count  = len(alerts) if alerts is not None and not alerts.empty else 0
     stress_count = int(alerts["is_stress"].sum()) if alert_count > 0 else 0
@@ -427,26 +482,11 @@ def build_html(results: dict) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Informe semanal de vulnerabilidad económica de la República Dominicana — La Sociedad.">
     <meta name="theme-color" content="#002D62">
-    <meta name="color-scheme" content="light">
-    <link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
-    <link rel="shortcut icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
+    <meta name="color-scheme" content="light"><link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
     <title>DR Economic Intelligence &#8212; La Sociedad</title>
-    <style>
-        @font-face {{
-            font-family: 'Haffer';
-            src: url('fonts/Haffer-Regular.ttf') format('truetype');
-            font-weight: 100 900;
-            font-style: normal;
-            font-display: swap;
-        }}
-        @font-face {{
-            font-family: 'Reckless';
-            src: url('fonts/Reckless-Regular.otf') format('opentype');
-            font-weight: 100 900;
-            font-style: normal;
-            font-display: swap;
-        }}
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -457,8 +497,8 @@ def build_html(results: dict) -> str:
             --gray-50: #F9F9F9; --gray-100: #F0F0F0; --gray-200: #E0E0E0; --gray-300: #D2D2D2;
             --gray-400: #999999; --gray-600: #555555;
             --blue-tint: #EEF2F8; --blue-soft: #CDD9EA; --red-tint: #FDF0F2; --green: #2E7D32;
-            --font-sans: 'Haffer', system-ui, sans-serif;
-            --font-display: 'Reckless', Georgia, serif;
+            --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
             --maxw: 1140px; --radius: 14px; --radius-sm: 9px;
             --border: 1px solid var(--gray-200);
             --shadow-sm: 0 1px 2px rgba(10,10,10,.04), 0 2px 6px rgba(10,10,10,.05);
@@ -494,7 +534,7 @@ def build_html(results: dict) -> str:
         /* Header */
         .site-header {{ position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.85); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: var(--border); }}
         .header-inner {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 24px; }}
-        .brand {{ display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-sans); font-size: 13px; letter-spacing: .02em; color: var(--black); white-space: nowrap; }}
+        .brand {{ display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-mono); font-size: 13px; letter-spacing: .02em; color: var(--black); white-space: nowrap; }}
         .brand-mark {{ width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--blue) 0 50%, var(--red) 50% 100%); box-shadow: var(--shadow-sm); flex-shrink: 0; }}
         .brand-text strong {{ color: var(--blue); font-weight: 600; }}
         .header-nav {{ display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: none; }}
@@ -507,10 +547,10 @@ def build_html(results: dict) -> str:
         .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }}
         main > section {{ padding: 72px 0; border-bottom: var(--border); }}
         main > section:last-child {{ border-bottom: none; }}
-        section[id] {{ scroll-margin-top: 16px; }}
+        section[id] {{ scroll-margin-top: 84px; }}
         .hero {{ padding-top: 48px; }}
         .section-head {{ display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }}
-        .section-label {{ font-size: 20px; font-weight: 700; font-family: var(--font-display); color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
+        .section-label {{ font-size: 20px; font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
         .section-label::before {{ content: ''; position: absolute; left: 0; top: .14em; bottom: .14em; width: 4px; border-radius: 2px; background: var(--blue); }}
         .section-rule {{ flex: 1; height: 1px; background: linear-gradient(90deg, var(--gray-200), transparent); }}
         .section-intro {{ font-size: 15px; color: var(--gray-600); max-width: 760px; margin-bottom: 30px; line-height: 1.7; }}
@@ -520,19 +560,19 @@ def build_html(results: dict) -> str:
         .score-hero {{ display: grid; grid-template-columns: 1.05fr 1fr; gap: 24px; align-items: stretch; }}
         .panel {{ background: var(--white); border: var(--border); border-radius: var(--radius); padding: 30px 32px; box-shadow: var(--shadow-sm); }}
         .score-panel {{ border-top: 3px solid {score_color}; }}
-        .score-label {{ font-family: var(--font-sans); font-size: 11px; letter-spacing: .1em; color: var(--gray-600); text-transform: uppercase; margin-bottom: 12px; }}
-        .score-number {{ font-family: var(--font-display); font-size: 84px; font-weight: 600; line-height: 1; color: {score_color}; letter-spacing: -3px; display: flex; align-items: baseline; flex-wrap: wrap; }}
-        .score-denom {{ font-family: var(--font-display); font-size: 20px; color: var(--gray-400); margin-left: 6px; letter-spacing: 0; }}
+        .score-label {{ font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; color: var(--gray-600); text-transform: uppercase; margin-bottom: 12px; }}
+        .score-number {{ font-family: var(--font-mono); font-size: 84px; font-weight: 600; line-height: 1; color: {score_color}; letter-spacing: -3px; display: flex; align-items: baseline; flex-wrap: wrap; }}
+        .score-denom {{ font-family: var(--font-mono); font-size: 20px; color: var(--gray-400); margin-left: 6px; letter-spacing: 0; }}
         .score-main-arrow {{ font-size: 40px; margin-left: 14px; letter-spacing: 0; }}
         .trend-bad {{ color: var(--red); }} .trend-good {{ color: var(--green); }} .trend-neutral {{ color: var(--gray-400); }}
         .score-trend-text {{ font-size: 14px; font-weight: 600; margin-top: 14px; }}
-        .score-date {{ font-size: 13px; color: var(--gray-400); margin-top: 4px; font-family: var(--font-sans); }}
+        .score-date {{ font-size: 13px; color: var(--gray-400); margin-top: 4px; font-family: var(--font-mono); }}
 
         /* Score meter */
         .score-meter {{ margin-top: 26px; }}
         .meter-track {{ position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-soft) 0 50%, var(--blue) 50% 65%, var(--red) 65% 100%); box-shadow: inset 0 1px 2px rgba(10,10,10,.14); }}
         .meter-marker {{ position: absolute; top: 50%; width: 18px; height: 18px; transform: translate(-50%,-50%) rotate(45deg); background: {score_color}; border: 2px solid var(--white); box-shadow: var(--shadow-sm); }}
-        .meter-scale {{ position: relative; height: 16px; margin-top: 9px; font-family: var(--font-sans); font-size: 10px; color: var(--gray-400); }}
+        .meter-scale {{ position: relative; height: 16px; margin-top: 9px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-400); }}
         .meter-scale span {{ position: absolute; top: 0; transform: translateX(-50%); }}
         .meter-scale span:first-child {{ transform: none; }}
         .meter-scale span:last-child {{ transform: translateX(-100%); }}
@@ -542,12 +582,12 @@ def build_html(results: dict) -> str:
 
         /* Status panel */
         .status-panel {{ display: flex; flex-direction: column; }}
-        .status-title {{ font-family: var(--font-display); font-size: 12px; letter-spacing: .1em; color: {score_color}; text-transform: uppercase; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 10px; }}
+        .status-title {{ font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; color: {score_color}; text-transform: uppercase; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 10px; }}
         .status-title::before {{ content: ''; width: 9px; height: 9px; border-radius: 50%; background: {score_color}; box-shadow: 0 0 0 4px {score_color}1f; }}
         .status-desc {{ font-size: 16px; color: var(--gray-600); max-width: 520px; line-height: 1.7; }}
 
         /* Alert button */
-        .alert-count {{ display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: {'var(--red-tint)' if stress_count > 0 else 'var(--gray-100)'}; border: 1px solid {'var(--red)' if stress_count > 0 else 'var(--gray-200)'}; font-size: 13px; color: {'var(--red)' if stress_count > 0 else 'var(--gray-600)'}; font-family: var(--font-sans); align-self: flex-start; }}
+        .alert-count {{ display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: {'var(--red-tint)' if stress_count > 0 else 'var(--gray-100)'}; border: 1px solid {'var(--red)' if stress_count > 0 else 'var(--gray-200)'}; font-size: 13px; color: {'var(--red)' if stress_count > 0 else 'var(--gray-600)'}; font-family: var(--font-mono); align-self: flex-start; }}
         .interactive-alert {{ cursor: pointer; transition: all .2s var(--ease); }}
         @keyframes alertPulse {{ 0%, 100% {{ background-color: var(--red-tint); border-color: var(--red); box-shadow: none; }} 50% {{ background-color: #ffd6d6; border-color: #ff0000; box-shadow: 0 0 14px rgba(206,17,38,0.55); }} }}
         .interactive-alert:hover {{ animation: alertPulse .9s ease-in-out infinite; }}
@@ -555,7 +595,7 @@ def build_html(results: dict) -> str:
 
         /* Summary chips */
         .summary-chips {{ display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }}
-        .chip {{ display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: var(--border); background: var(--white); font-family: var(--font-sans); font-size: 12.5px; color: var(--black); cursor: pointer; transition: box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease); }}
+        .chip {{ display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: var(--border); background: var(--white); font-family: var(--font-mono); font-size: 12.5px; color: var(--black); cursor: pointer; transition: box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease); }}
         .chip:hover {{ box-shadow: var(--shadow-sm); transform: translateY(-1px); border-color: var(--gray-300); }}
         .chip b {{ font-weight: 600; }}
         .chip-dot {{ width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }}
@@ -582,7 +622,7 @@ def build_html(results: dict) -> str:
         .context-item:last-of-type {{ border-bottom: none; padding-bottom: 0; }}
         .ci-info {{ display: flex; flex-direction: column; }}
         .ci-label {{ font-size: 12.5px; color: var(--gray-600); margin-bottom: 4px; }}
-        .ci-value {{ font-family: var(--font-sans); font-size: 18px; font-weight: 600; color: var(--black); }}
+        .ci-value {{ font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--black); }}
         .ci-chart {{ height: 36px; width: 100%; position: relative; }}
         .context-stats {{ margin-top: 16px; padding-top: 14px; border-top: var(--border); display: flex; flex-direction: column; gap: 7px; }}
         .context-row {{ display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--gray-600); }}
@@ -594,7 +634,7 @@ def build_html(results: dict) -> str:
         .alert-item {{ display: grid; grid-template-columns: 110px 1fr; gap: 20px; align-items: start; padding: 20px 24px; border: var(--border); border-radius: var(--radius); background: var(--white); box-shadow: var(--shadow-sm); }}
         .alert-stress {{ border-left: 4px solid var(--red); background: var(--red-tint); }}
         .alert-watch  {{ border-left: 4px solid var(--blue); background: var(--blue-tint); }}
-        .alert-tag {{ font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; padding-top: 2px; }}
+        .alert-tag {{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; padding-top: 2px; }}
         .alert-stress .alert-tag {{ color: var(--red); }} .alert-watch .alert-tag {{ color: var(--blue); }}
         .alert-content {{ display: flex; flex-direction: column; gap: 6px; }}
         .alert-content strong {{ font-size: 16px; font-weight: 600; }}
@@ -611,7 +651,7 @@ def build_html(results: dict) -> str:
         .legend-dot {{ width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }}
         .legend-desc {{ font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-top: 10px; }}
         .filter-bar {{ display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }}
-        .filter-chip {{ font-family: var(--font-sans); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 8px 16px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .2s var(--ease); }}
+        .filter-chip {{ font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 8px 16px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .2s var(--ease); }}
         .filter-chip:hover {{ border-color: var(--blue); color: var(--blue); }}
         .filter-chip.active {{ background: var(--blue); border-color: var(--blue); color: var(--white); }}
 
@@ -628,32 +668,32 @@ def build_html(results: dict) -> str:
         .blink-alert {{ animation: redBlink .6s ease-in-out 2; }}
         .indicator-card .card-header {{ align-items: flex-start; margin-bottom: 16px; }}
         .card-header-meta {{ display: flex; align-items: center; gap: 8px; }}
-        .status-badge {{ font-family: var(--font-sans); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }}
+        .status-badge {{ font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }}
         .status-stress {{ background: var(--red); color: var(--white); }}
         .status-watch  {{ background: var(--blue); color: var(--white); }}
         .status-normal {{ background: var(--gray-100); color: var(--gray-600); }}
         .card-value {{ display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }}
-        .value-number {{ font-family: var(--font-sans); font-size: 27px; font-weight: 600; color: var(--black); }}
+        .value-number {{ font-family: var(--font-mono); font-size: 27px; font-weight: 600; color: var(--black); }}
         .value-arrow {{ font-size: 18px; }} .arrow-bad {{ color: var(--red); }} .arrow-good {{ color: var(--green); }}
         .zscore-bar-container {{ height: 5px; background: var(--gray-200); border-radius: 999px; margin-bottom: 8px; overflow: hidden; }}
         .zscore-bar {{ height: 100%; border-radius: 999px; transition: width .4s var(--ease); }}
-        .zscore-label {{ font-family: var(--font-sans); font-size: 11px; color: var(--gray-400); margin-top: 14px; margin-bottom: 12px; }}
+        .zscore-label {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 14px; margin-bottom: 12px; }}
 
         /* Chart */
         .chart-card {{ border: var(--border); border-radius: var(--radius); padding: 24px; background: var(--white); box-shadow: var(--shadow-sm); }}
         .chart-controls {{ display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }}
-        .chart-btn {{ font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 7px 15px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .15s var(--ease); }}
+        .chart-btn {{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 7px 15px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .15s var(--ease); }}
         .chart-btn:hover {{ border-color: var(--blue); color: var(--blue); }}
         .chart-btn.active {{ background: var(--blue); color: var(--white); border-color: var(--blue); }}
         .chart-container {{ position: relative; height: 380px; }}
-        .chart-hint {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-sans); margin-top: 12px; }}
+        .chart-hint {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 12px; }}
 
         /* Footer */
         .site-footer {{ padding: 44px 0; background: var(--gray-50); border-top: var(--border); }}
         .footer-inner {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }}
         .footer-sources {{ font-size: 13px; color: var(--gray-600); line-height: 1.7; max-width: 640px; }}
         .footer-sources strong {{ font-weight: 600; color: var(--black); }}
-        .footer-run {{ font-family: var(--font-sans); font-size: 11px; color: var(--gray-400); white-space: nowrap; }}
+        .footer-run {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); white-space: nowrap; }}
 
         /* Back to top */
         .back-to-top {{ position: fixed; right: 24px; bottom: 24px; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--blue); color: var(--white); font-size: 20px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-md); opacity: 0; visibility: hidden; transform: translateY(10px); transition: all .3s var(--ease); z-index: 40; }}
@@ -724,7 +764,7 @@ def build_html(results: dict) -> str:
             <img src="{HERO_LOGO_SRC}" alt="La Sociedad — DR Economic Intelligence" class="hero-logo">
             <div class="score-hero">
                 <div class="panel score-panel">
-                    <div class="score-label">Índice de Vulnerabilidad Económica ({n_total}/{n_total} indicadores)</div>
+                    <div class="score-label">Nivel de Vulnerabilidad Económica</div>
                     <div class="score-number">
                         {score:.1f}<span class="score-denom">/100</span>
                         <span class="score-main-arrow {trend_class}">{trend_arrow}</span>
@@ -819,8 +859,8 @@ def build_html(results: dict) -> str:
                 <div class="chart-controls">
                     <button class="chart-btn" data-range="12">12 meses</button>
                     <button class="chart-btn" data-range="24">24 meses</button>
-                    <button class="chart-btn" data-range="36">36 meses</button>
-                    <button class="chart-btn active" data-range="0">Todo</button>
+                    <button class="chart-btn active" data-range="36">36 meses</button>
+                    <button class="chart-btn" data-range="0">Todo</button>
                 </div>
                 <div class="chart-container"><canvas id="scoreChart"></canvas></div>
                 <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar · La línea roja marca el umbral de alerta ({HIGH_STRESS_THRESHOLD})</div>
@@ -939,21 +979,9 @@ function filterIndicators(status, btn) {{
 }}
 
 function jumpFilter(status) {{
-    filterIndicators(status);
     const panel = document.getElementById('panel-indicadores');
-    if (panel) {{
-        const targetY = panel.getBoundingClientRect().top + window.scrollY - 16;
-        window.scrollTo({{ top: targetY, behavior: 'smooth' }});
-    }}
-    if (status === 'stress') {{
-        setTimeout(() => {{
-            document.querySelectorAll('.card-stress').forEach(card => {{
-                card.classList.remove('blink-alert');
-                void card.offsetWidth;
-                card.classList.add('blink-alert');
-            }});
-        }}, 1000);
-    }}
+    if (panel) {{ window.scrollTo({{ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }}); }}
+    filterIndicators(status);
 }}
 
 // Main history chart
@@ -971,8 +999,8 @@ const scoreChart = new Chart(ctx, {{
             zoom: {{ zoom: {{ wheel: {{ enabled: true }}, pinch: {{ enabled: true }}, mode: 'x' }}, pan: {{ enabled: true, mode: 'x' }} }}
         }},
         scales: {{
-            x: {{ grid: {{ color: 'rgba(0,0,0,0.05)' }}, ticks: {{ font: {{ family: 'Haffer', size: 11 }}, color: '#555555', maxTicksLimit: 14, maxRotation: 45 }} }},
-            y: {{ min: 0, max: 100, grid: {{ color: 'rgba(0,0,0,0.05)' }}, ticks: {{ font: {{ family: 'Haffer', size: 11 }}, color: '#555555', stepSize: 25, callback: v => v + '/100' }} }}
+            x: {{ grid: {{ color: 'rgba(0,0,0,0.05)' }}, ticks: {{ font: {{ family: 'IBM Plex Mono', size: 11 }}, color: '#555555', maxTicksLimit: 14, maxRotation: 45 }} }},
+            y: {{ min: 0, max: 100, grid: {{ color: 'rgba(0,0,0,0.05)' }}, ticks: {{ font: {{ family: 'IBM Plex Mono', size: 11 }}, color: '#555555', stepSize: 25, callback: v => v + '/100' }} }}
         }}
     }}
 }});
@@ -986,7 +1014,7 @@ scoreChart.draw = function() {{
     c2.save(); c2.beginPath();
     c2.moveTo(scoreChart.scales.x.left, y); c2.lineTo(scoreChart.scales.x.right, y);
     c2.strokeStyle = 'rgba(206,17,38,0.4)'; c2.lineWidth = 1; c2.setLineDash([5,5]); c2.stroke();
-    c2.setLineDash([]); c2.fillStyle = 'rgba(206,17,38,0.85)'; c2.font = '600 10px "Haffer", sans-serif';
+    c2.setLineDash([]); c2.fillStyle = 'rgba(206,17,38,0.85)'; c2.font = '600 10px "IBM Plex Mono", monospace';
     c2.textAlign = 'right'; c2.fillText('Umbral de alerta ({HIGH_STRESS_THRESHOLD})', scoreChart.scales.x.right - 6, y - 6);
     c2.restore();
 }};
@@ -1003,7 +1031,7 @@ function applyRange(months, btn) {{
     scoreChart.update();
 }}
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
-(function() {{ const def = document.querySelector('.chart-btn[data-range="0"]'); applyRange(0, def); }})();
+(function() {{ const def = document.querySelector('.chart-btn[data-range="36"]'); applyRange(36, def); }})();
 </script>
 
 </body>

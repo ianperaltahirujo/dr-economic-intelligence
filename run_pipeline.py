@@ -43,6 +43,11 @@ def _step(n: int, total: int, label: str) -> None:
 # -- Pipeline steps ----------------------------------------------------------
 
 def step_download_bcrd() -> bool:
+    """Download fresh BCRD Excel files. Returns True on success."""
+    from pipeline.download_bcrd_files import download_all
+    results = download_all(Path(BCRD_DATA_DIR))
+    if results["failed"]:
+        print(f"\n  WARNING: {len(results['failed'])} file(s) failed to download.")
     """Download fresh BCRD Excel files and context files. Returns True on success."""
     from pipeline.download_bcrd_files import download_all as download_bcrd
     from pipeline.download_context_files import download_all as download_context
@@ -53,10 +58,10 @@ def step_download_bcrd() -> bool:
         print("  Pipeline will use cached versions for failed files.")
 
     print("\nDownloading context files...")
-    from pipeline.download_context_files import download_all as download_context
     results_ctx = download_context(Path(BCRD_DATA_DIR))
     if results_ctx["failed"]:
         print(f"\n  WARNING: {len(results_ctx['failed'])} context file(s) failed to download.")
+
     return True
 
 

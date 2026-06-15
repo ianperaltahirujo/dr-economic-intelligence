@@ -5,24 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Informe semanal de vulnerabilidad económica de la República Dominicana — La Sociedad.">
     <meta name="theme-color" content="#002D62">
-    <meta name="color-scheme" content="light">
+    <meta name="color-scheme" content="light"><link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
     <title>DR Economic Intelligence &#8212; La Sociedad</title>
-    <style>
-        @font-face {
-            font-family: 'Haffer';
-            src: url('fonts/Haffer-Regular.ttf') format('truetype');
-            font-weight: 100 900;
-            font-style: normal;
-            font-display: swap;
-        }
-        @font-face {
-            font-family: 'Reckless';
-            src: url('fonts/Reckless-Regular.otf') format('opentype');
-            font-weight: 100 900;
-            font-style: normal;
-            font-display: swap;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -33,8 +20,8 @@
             --gray-50: #F9F9F9; --gray-100: #F0F0F0; --gray-200: #E0E0E0; --gray-300: #D2D2D2;
             --gray-400: #999999; --gray-600: #555555;
             --blue-tint: #EEF2F8; --blue-soft: #CDD9EA; --red-tint: #FDF0F2; --green: #2E7D32;
-            --font-sans: 'Haffer', system-ui, sans-serif;
-            --font-display: 'Reckless', Georgia, serif;
+            --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
             --maxw: 1140px; --radius: 14px; --radius-sm: 9px;
             --border: 1px solid var(--gray-200);
             --shadow-sm: 0 1px 2px rgba(10,10,10,.04), 0 2px 6px rgba(10,10,10,.05);
@@ -70,7 +57,7 @@
         /* Header */
         .site-header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.85); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: var(--border); }
         .header-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-        .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-sans); font-size: 13px; letter-spacing: .02em; color: var(--black); white-space: nowrap; }
+        .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-mono); font-size: 13px; letter-spacing: .02em; color: var(--black); white-space: nowrap; }
         .brand-mark { width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--blue) 0 50%, var(--red) 50% 100%); box-shadow: var(--shadow-sm); flex-shrink: 0; }
         .brand-text strong { color: var(--blue); font-weight: 600; }
         .header-nav { display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: none; }
@@ -86,7 +73,7 @@
         section[id] { scroll-margin-top: 84px; }
         .hero { padding-top: 48px; }
         .section-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
-        .section-label { font-size: 20px; font-weight: 700; font-family: var(--font-display); color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }
+        .section-label { font-size: 20px; font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }
         .section-label::before { content: ''; position: absolute; left: 0; top: .14em; bottom: .14em; width: 4px; border-radius: 2px; background: var(--blue); }
         .section-rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--gray-200), transparent); }
         .section-intro { font-size: 15px; color: var(--gray-600); max-width: 760px; margin-bottom: 30px; line-height: 1.7; }
@@ -95,20 +82,20 @@
         .hero-logo { max-width: 520px; width: 100%; height: auto; margin-bottom: 44px; display: block; }
         .score-hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 24px; align-items: stretch; }
         .panel { background: var(--white); border: var(--border); border-radius: var(--radius); padding: 30px 32px; box-shadow: var(--shadow-sm); }
-        .score-panel { border-top: 3px solid #002D62; }
-        .score-label { font-family: var(--font-sans); font-size: 11px; letter-spacing: .1em; color: var(--gray-600); text-transform: uppercase; margin-bottom: 12px; }
-        .score-number { font-family: var(--font-display); font-size: 84px; font-weight: 600; line-height: 1; color: #002D62; letter-spacing: -3px; display: flex; align-items: baseline; flex-wrap: wrap; }
-        .score-denom { font-family: var(--font-display); font-size: 20px; color: var(--gray-400); margin-left: 6px; letter-spacing: 0; }
+        .score-panel { border-top: 3px solid #1A1A1A; }
+        .score-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; color: var(--gray-600); text-transform: uppercase; margin-bottom: 12px; }
+        .score-number { font-family: var(--font-mono); font-size: 84px; font-weight: 600; line-height: 1; color: #1A1A1A; letter-spacing: -3px; display: flex; align-items: baseline; flex-wrap: wrap; }
+        .score-denom { font-family: var(--font-mono); font-size: 20px; color: var(--gray-400); margin-left: 6px; letter-spacing: 0; }
         .score-main-arrow { font-size: 40px; margin-left: 14px; letter-spacing: 0; }
         .trend-bad { color: var(--red); } .trend-good { color: var(--green); } .trend-neutral { color: var(--gray-400); }
         .score-trend-text { font-size: 14px; font-weight: 600; margin-top: 14px; }
-        .score-date { font-size: 13px; color: var(--gray-400); margin-top: 4px; font-family: var(--font-sans); }
+        .score-date { font-size: 13px; color: var(--gray-400); margin-top: 4px; font-family: var(--font-mono); }
 
         /* Score meter */
         .score-meter { margin-top: 26px; }
         .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-soft) 0 50%, var(--blue) 50% 65%, var(--red) 65% 100%); box-shadow: inset 0 1px 2px rgba(10,10,10,.14); }
-        .meter-marker { position: absolute; top: 50%; width: 18px; height: 18px; transform: translate(-50%,-50%) rotate(45deg); background: #002D62; border: 2px solid var(--white); box-shadow: var(--shadow-sm); }
-        .meter-scale { position: relative; height: 16px; margin-top: 9px; font-family: var(--font-sans); font-size: 10px; color: var(--gray-400); }
+        .meter-marker { position: absolute; top: 50%; width: 18px; height: 18px; transform: translate(-50%,-50%) rotate(45deg); background: #1A1A1A; border: 2px solid var(--white); box-shadow: var(--shadow-sm); }
+        .meter-scale { position: relative; height: 16px; margin-top: 9px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-400); }
         .meter-scale span { position: absolute; top: 0; transform: translateX(-50%); }
         .meter-scale span:first-child { transform: none; }
         .meter-scale span:last-child { transform: translateX(-100%); }
@@ -118,12 +105,12 @@
 
         /* Status panel */
         .status-panel { display: flex; flex-direction: column; }
-        .status-title { font-family: var(--font-display); font-size: 12px; letter-spacing: .1em; color: #002D62; text-transform: uppercase; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 10px; }
-        .status-title::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #002D62; box-shadow: 0 0 0 4px #002D621f; }
+        .status-title { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; color: #1A1A1A; text-transform: uppercase; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 10px; }
+        .status-title::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #1A1A1A; box-shadow: 0 0 0 4px #1A1A1A1f; }
         .status-desc { font-size: 16px; color: var(--gray-600); max-width: 520px; line-height: 1.7; }
 
         /* Alert button */
-        .alert-count { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: var(--red-tint); border: 1px solid var(--red); font-size: 13px; color: var(--red); font-family: var(--font-sans); align-self: flex-start; }
+        .alert-count { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: var(--red-tint); border: 1px solid var(--red); font-size: 13px; color: var(--red); font-family: var(--font-mono); align-self: flex-start; }
         .interactive-alert { cursor: pointer; transition: all .2s var(--ease); }
         @keyframes alertPulse { 0%, 100% { background-color: var(--red-tint); border-color: var(--red); box-shadow: none; } 50% { background-color: #ffd6d6; border-color: #ff0000; box-shadow: 0 0 14px rgba(206,17,38,0.55); } }
         .interactive-alert:hover { animation: alertPulse .9s ease-in-out infinite; }
@@ -131,7 +118,7 @@
 
         /* Summary chips */
         .summary-chips { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-        .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: var(--border); background: var(--white); font-family: var(--font-sans); font-size: 12.5px; color: var(--black); cursor: pointer; transition: box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease); }
+        .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: var(--border); background: var(--white); font-family: var(--font-mono); font-size: 12.5px; color: var(--black); cursor: pointer; transition: box-shadow .2s var(--ease), transform .2s var(--ease), border-color .2s var(--ease); }
         .chip:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); border-color: var(--gray-300); }
         .chip b { font-weight: 600; }
         .chip-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
@@ -158,7 +145,7 @@
         .context-item:last-of-type { border-bottom: none; padding-bottom: 0; }
         .ci-info { display: flex; flex-direction: column; }
         .ci-label { font-size: 12.5px; color: var(--gray-600); margin-bottom: 4px; }
-        .ci-value { font-family: var(--font-sans); font-size: 18px; font-weight: 600; color: var(--black); }
+        .ci-value { font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--black); }
         .ci-chart { height: 36px; width: 100%; position: relative; }
         .context-stats { margin-top: 16px; padding-top: 14px; border-top: var(--border); display: flex; flex-direction: column; gap: 7px; }
         .context-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--gray-600); }
@@ -170,7 +157,7 @@
         .alert-item { display: grid; grid-template-columns: 110px 1fr; gap: 20px; align-items: start; padding: 20px 24px; border: var(--border); border-radius: var(--radius); background: var(--white); box-shadow: var(--shadow-sm); }
         .alert-stress { border-left: 4px solid var(--red); background: var(--red-tint); }
         .alert-watch  { border-left: 4px solid var(--blue); background: var(--blue-tint); }
-        .alert-tag { font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; padding-top: 2px; }
+        .alert-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; padding-top: 2px; }
         .alert-stress .alert-tag { color: var(--red); } .alert-watch .alert-tag { color: var(--blue); }
         .alert-content { display: flex; flex-direction: column; gap: 6px; }
         .alert-content strong { font-size: 16px; font-weight: 600; }
@@ -187,7 +174,7 @@
         .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
         .legend-desc { font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-top: 10px; }
         .filter-bar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
-        .filter-chip { font-family: var(--font-sans); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 8px 16px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .2s var(--ease); }
+        .filter-chip { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 8px 16px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .2s var(--ease); }
         .filter-chip:hover { border-color: var(--blue); color: var(--blue); }
         .filter-chip.active { background: var(--blue); border-color: var(--blue); color: var(--white); }
 
@@ -204,32 +191,32 @@
         .blink-alert { animation: redBlink .6s ease-in-out 2; }
         .indicator-card .card-header { align-items: flex-start; margin-bottom: 16px; }
         .card-header-meta { display: flex; align-items: center; gap: 8px; }
-        .status-badge { font-family: var(--font-sans); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+        .status-badge { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
         .status-stress { background: var(--red); color: var(--white); }
         .status-watch  { background: var(--blue); color: var(--white); }
         .status-normal { background: var(--gray-100); color: var(--gray-600); }
         .card-value { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }
-        .value-number { font-family: var(--font-sans); font-size: 27px; font-weight: 600; color: var(--black); }
+        .value-number { font-family: var(--font-mono); font-size: 27px; font-weight: 600; color: var(--black); }
         .value-arrow { font-size: 18px; } .arrow-bad { color: var(--red); } .arrow-good { color: var(--green); }
         .zscore-bar-container { height: 5px; background: var(--gray-200); border-radius: 999px; margin-bottom: 8px; overflow: hidden; }
         .zscore-bar { height: 100%; border-radius: 999px; transition: width .4s var(--ease); }
-        .zscore-label { font-family: var(--font-sans); font-size: 11px; color: var(--gray-400); margin-top: 14px; margin-bottom: 12px; }
+        .zscore-label { font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 14px; margin-bottom: 12px; }
 
         /* Chart */
         .chart-card { border: var(--border); border-radius: var(--radius); padding: 24px; background: var(--white); box-shadow: var(--shadow-sm); }
         .chart-controls { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
-        .chart-btn { font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 7px 15px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .15s var(--ease); }
+        .chart-btn { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 7px 15px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .15s var(--ease); }
         .chart-btn:hover { border-color: var(--blue); color: var(--blue); }
         .chart-btn.active { background: var(--blue); color: var(--white); border-color: var(--blue); }
         .chart-container { position: relative; height: 380px; }
-        .chart-hint { font-size: 12px; color: var(--gray-400); font-family: var(--font-sans); margin-top: 12px; }
+        .chart-hint { font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 12px; }
 
         /* Footer */
         .site-footer { padding: 44px 0; background: var(--gray-50); border-top: var(--border); }
         .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
         .footer-sources { font-size: 13px; color: var(--gray-600); line-height: 1.7; max-width: 640px; }
         .footer-sources strong { font-weight: 600; color: var(--black); }
-        .footer-run { font-family: var(--font-sans); font-size: 11px; color: var(--gray-400); white-space: nowrap; }
+        .footer-run { font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); white-space: nowrap; }
 
         /* Back to top */
         .back-to-top { position: fixed; right: 24px; bottom: 24px; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--blue); color: var(--white); font-size: 20px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-md); opacity: 0; visibility: hidden; transform: translateY(10px); transition: all .3s var(--ease); z-index: 40; }
@@ -267,6 +254,11 @@
             main > section { padding: 24px 0; }
             body { font-size: 12px; }
         }
+
+        /* Provisional / nowcast label */
+        .provisional-tag { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--gray-600); background: var(--gray-100); border: 1px solid var(--gray-300); border-radius: 999px; padding: 2px 9px; margin-left: 8px; vertical-align: middle; white-space: nowrap; }
+        .provisional-tag::before { content: '~'; font-size: 13px; color: var(--gray-400); }
+        .provisional-note { font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 8px; line-height: 1.5; }
     </style>
     <noscript><style>
         .fade-in-section { opacity: 1 !important; transform: none !important; }
@@ -300,15 +292,16 @@
             <img src="hero_logo.png" alt="La Sociedad — DR Economic Intelligence" class="hero-logo">
             <div class="score-hero">
                 <div class="panel score-panel">
-                    <div class="score-label">Índice de Vulnerabilidad Económica (12/12 indicadores)</div>
+                    <div class="score-label">Índice de Vulnerabilidad Económica</div>
                     <div class="score-number">
-                        51.5<span class="score-denom">/100</span>
+                        41.5<span class="score-denom">/100</span>
                         <span class="score-main-arrow trend-good">&#8595;</span>
                     </div>
                     <div class="score-trend-text trend-good">-0.3 pts vs mes anterior</div>
-                    <div class="score-date">Mayo de 2026</div>
-                    <div class="score-meter" role="img" aria-label="Puntuación 51.5 de 100">
-                        <div class="meter-track"><div class="meter-marker" style="left:51.5%"></div></div>
+                    <div class="score-date">Mayo de 2026 <span class='provisional-tag'>Avance Estimado</span></div>
+                    <div class="provisional-note">&#126; Gasto turístico estimado a partir del último dato disponible (dic 2025). Se actualizará al publicar el BCRD.</div>
+                    <div class="score-meter" role="img" aria-label="Puntuación 41.5 de 100">
+                        <div class="meter-track"><div class="meter-marker" style="left:41.5%"></div></div>
                         <div class="meter-scale"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:65%">65</span><span style="left:100%">100</span></div>
                         <div class="meter-caption">
                             <span class="zone-key"><span class="zone-swatch" style="background:var(--blue-soft)"></span>Normal</span>
@@ -318,16 +311,16 @@
                     </div>
                 </div>
                 <div class="panel status-panel">
-                    <div class="status-title">ESTRÉS MODERADO</div>
-                    <div class="status-desc">Condiciones por encima del promedio histórico. Se recomienda seguimiento cercano.</div>
+                    <div class="status-title">CONDICIONES NORMALES</div>
+                    <div class="status-desc">Los indicadores se encuentran dentro de rangos históricos normales.</div>
                     
-    <div class="alert-count interactive-alert" onclick="scrollToAlerts()">
+    <div class="alert-count interactive-alert" onclick="jumpFilter('stress')">
         &#9888; 2 indicadores en zona de alerta <span class="alert-arrow">&#8595;</span>
     </div>
                     <div class="summary-chips" role="group" aria-label="Resumen de indicadores">
                         <button type="button" class="chip chip-stress" onclick="jumpFilter('stress')" aria-label="1 indicadores en alerta"><span class="chip-dot" aria-hidden="true"></span><b>1</b>&nbsp;en alerta</button>
-                        <button type="button" class="chip chip-watch" onclick="jumpFilter('watch')" aria-label="6 indicadores en vigilancia"><span class="chip-dot" aria-hidden="true"></span><b>6</b>&nbsp;en vigilancia</button>
-                        <button type="button" class="chip chip-normal" onclick="jumpFilter('normal')" aria-label="5 indicadores normales"><span class="chip-dot" aria-hidden="true"></span><b>5</b>&nbsp;normales</button>
+                        <button type="button" class="chip chip-watch" onclick="jumpFilter('watch')" aria-label="4 indicadores en vigilancia"><span class="chip-dot" aria-hidden="true"></span><b>4</b>&nbsp;en vigilancia</button>
+                        <button type="button" class="chip chip-normal" onclick="jumpFilter('normal')" aria-label="4 indicadores normales"><span class="chip-dot" aria-hidden="true"></span><b>4</b>&nbsp;normales</button>
                     </div>
                 </div>
             </div>
@@ -337,7 +330,7 @@
     <section>
         <div class="container">
             <div class="section-head"><h2 class="section-label">Análisis semanal</h2><span class="section-rule"></span></div>
-            <div class="briefing-text"><p>El Índice de Vulnerabilidad Económica de la República Dominicana se situó en <strong>51.5 puntos</strong> en mayo de 2026, indicando condiciones de estrés moderado. Varios indicadores se encuentran por encima de sus promedios históricos recientes, aunque sin alcanzar niveles de alarma.</p><p>Los principales factores que explican este resultado son: la gasolina premium alcanzó <strong>DOP 324.4</strong>.</p><p>Entre los factores de estabilidad destacan que las remesas se mantienen en USD 1060 millones mensuales y la morosidad bancaria permanece contenida en 1.89%.</p><p>Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad.</p></div>
+            <div class="briefing-text"><p>El Índice de Vulnerabilidad Económica de la República Dominicana se ubicó en <strong>41.5 puntos</strong> en mayo de 2026, dentro de rangos históricos normales. Los principales indicadores macroeconómicos y financieros muestran estabilidad relativa.</p><p>Los principales factores que explican este resultado son: la gasolina premium alcanzó <strong>DOP 324.4</strong>.</p><p>Entre los factores de estabilidad destacan que las remesas se mantienen en USD 1060 millones mensuales.</p><p>Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad.</p></div>
         </div>
     </section>
 
@@ -373,10 +366,32 @@
                     <span class="card-label">Sector Turismo (Fiscal)</span>
                     <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
                 </div>
-                <div class="context-item"><div class="ci-info"><span class="ci-label">Recaudación Fiscal</span><span class="ci-value">DOP 1,673M</span></div><div class="ci-chart"><canvas class="sparkline" data-chart='[1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1693.24, 1723.14, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02]'></canvas></div></div>
+                <div class="context-item">
+                    <div class="ci-info">
+                        <span class="ci-label">Recaudación Fiscal (últ. dato)</span>
+                        <span class="ci-value">DOP 1,673M</span>
+                    </div>
+                    <div class="ci-chart"><canvas class="sparkline" data-chart='[1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1236.5, 1693.24, 1723.14, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02, 1673.02]'></canvas></div>
+                </div>
+                <div class="context-item" style="border-bottom:none;padding-bottom:0;margin-top:0;">
+                    <div class="ci-info">
+                        <span class="ci-label">Promedio YTD 2026</span>
+                        <span class="ci-value" style="font-size:15px;">DOP 1,679M</span>
+                    </div>
+                    <div class="ci-info" style="text-align:right;">
+                        <span class="ci-label">vs. pre-COVID 2019</span>
+                        <span class="ci-value" style="font-size:15px;color:#2E7D32;">&#8593; +82.7%</span>
+                    </div>
+                </div>
                 <div class="accordion-content">
                     <div class="context-stats">
-                        <div class="context-row"><span>Promedio 12 meses:</span> <strong>DOP 1,673M</strong></div>
+                        <div class="context-row"><span>vs. 2024:</span> <strong style="color:#2E7D32">&#8593; +35.3%</strong></div>
+                        <div class="context-row"><span>vs. 2022:</span> <strong style="color:#2E7D32">&#8593; +54.1%</strong></div>
+                        <div class="context-row"><span>Recuperación desde 2020:</span> <strong style="color:#2E7D32">&#8593; +300.3%</strong></div>
+                        <div class="context-row"><span>Tendencia mensual 2026:</span> <strong style="color:#2E7D32">&#8593; DOP +0M</strong></div>
+                        <div class="context-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-200);font-size:12px;color:var(--gray-600);">
+                            Fuente: BCRD — Recaudación fiscal atribuida al sector turismo. Datos anuales hasta 2024, mensuales desde ene 2026.
+                        </div>
                     </div>
                 </div>
             </div></div>
@@ -387,8 +402,7 @@
         <div class="container">
             <div class="section-head"><h2 class="section-label">Indicadores en seguimiento</h2><span class="section-rule"></span></div>
             <p class="section-intro">Indicadores que se desvían de forma notable de su promedio histórico y concentran la atención esta semana.</p>
-            <div class="alerts-list"><div class="alert-item alert-watch"><div class="alert-tag">VIGILANCIA</div><div class="alert-content"><strong>Morosidad bancaria</strong><span class="alert-text">El indicador se ubica a 0.9 desviaciones estándar por encima de su promedio de 3 años (valor actual: 1.89).</span></div></div>
-<div class="alert-item alert-watch"><div class="alert-tag">VIGILANCIA</div><div class="alert-content"><strong>Desempleo en EE.UU.</strong><span class="alert-text">El indicador se ubica a 0.9 desviaciones estándar por encima de su promedio de 3 años (valor actual: 4.30).</span></div></div>
+            <div class="alerts-list"><div class="alert-item alert-watch"><div class="alert-tag">VIGILANCIA</div><div class="alert-content"><strong>Desempleo en EE.UU.</strong><span class="alert-text">El indicador se ubica a 0.9 desviaciones estándar por encima de su promedio de 3 años (valor actual: 4.30).</span></div></div>
 <div class="alert-item alert-stress"><div class="alert-tag">ALERTA</div><div class="alert-content"><strong>Confianza del consumidor en EE.UU.</strong><span class="alert-text">El indicador supera el umbral crítico absoluto de 60.0 (valor actual: 49.80).</span></div></div>
 <div class="alert-item alert-stress"><div class="alert-tag">ALERTA</div><div class="alert-content"><strong>Precio Gasolina Premium</strong><span class="alert-text">El indicador se ubica a 5.0 desviaciones estándar por encima de su promedio de 3 años (valor actual: 324.40).</span></div></div></div>
         </div>
@@ -425,10 +439,10 @@
                 </div>
             </div>
             <div class="filter-bar" role="group" aria-label="Filtrar indicadores por estado">
-                <button type="button" class="filter-chip active" data-filter="all" onclick="filterIndicators('all', this)">Todos (12)</button>
+                <button type="button" class="filter-chip active" data-filter="all" onclick="filterIndicators('all', this)">Todos (9)</button>
                 <button type="button" class="filter-chip" data-filter="stress" onclick="filterIndicators('stress', this)">Alerta (1)</button>
-                <button type="button" class="filter-chip" data-filter="watch" onclick="filterIndicators('watch', this)">Vigilancia (6)</button>
-                <button type="button" class="filter-chip" data-filter="normal" onclick="filterIndicators('normal', this)">Normal (5)</button>
+                <button type="button" class="filter-chip" data-filter="watch" onclick="filterIndicators('watch', this)">Vigilancia (4)</button>
+                <button type="button" class="filter-chip" data-filter="normal" onclick="filterIndicators('normal', this)">Normal (4)</button>
             </div>
             <div class="cards-grid">
         <div class="indicator-card interactive-card " data-status="normal" onclick="toggleAccordion(this)">
@@ -528,44 +542,6 @@
 
         <div class="indicator-card interactive-card " data-status="watch" onclick="toggleAccordion(this)">
             <div class="card-header">
-                <span class="card-label">Morosidad bancaria</span>
-                <div class="card-header-meta">
-                    <span class="status-badge status-watch">VIGILANCIA</span>
-                    <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
-                </div>
-            </div>
-            <div class="card-value">
-                <span class="value-number">1.89%</span>
-                <span class="value-arrow arrow-bad">&#8593;</span>
-            </div>
-            <div class="zscore-bar-container"><div class="zscore-bar" style="width:65.7%;background:var(--blue);"></div></div>
-            <div class="accordion-content">
-                <div class="zscore-label">Z-score: +0.94 &nbsp;|&nbsp; Peso: 10%</div>
-                <div class="card-desc" style="border-top:none;padding-top:0;">Porcentaje de préstamos en mora sobre la cartera total del sistema bancario. Un aumento indica deterioro en la capacidad de pago de hogares y empresas.</div>
-            </div>
-        </div>
-
-        <div class="indicator-card interactive-card " data-status="normal" onclick="toggleAccordion(this)">
-            <div class="card-header">
-                <span class="card-label">Solvencia bancaria</span>
-                <div class="card-header-meta">
-                    <span class="status-badge status-normal">NORMAL</span>
-                    <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
-                </div>
-            </div>
-            <div class="card-value">
-                <span class="value-number">18.55%</span>
-                <span class="value-arrow ">&#8211;</span>
-            </div>
-            <div class="zscore-bar-container"><div class="zscore-bar" style="width:26.8%;background:var(--gray-400);"></div></div>
-            <div class="accordion-content">
-                <div class="zscore-label">Z-score: +1.39 &nbsp;|&nbsp; Peso: 5%</div>
-                <div class="card-desc" style="border-top:none;padding-top:0;">Índice de adecuación de capital del sistema bancario. Refleja la capacidad del sistema financiero de absorber pérdidas. Valores altos son positivos.</div>
-            </div>
-        </div>
-
-        <div class="indicator-card interactive-card " data-status="watch" onclick="toggleAccordion(this)">
-            <div class="card-header">
                 <span class="card-label">Desempleo en EE.UU.</span>
                 <div class="card-header-meta">
                     <span class="status-badge status-watch">VIGILANCIA</span>
@@ -599,25 +575,6 @@
             <div class="accordion-content">
                 <div class="zscore-label">Z-score: -1.56 &nbsp;|&nbsp; Peso: 5%</div>
                 <div class="card-desc" style="border-top:none;padding-top:0;">Índice de confianza del consumidor estadounidense (Universidad de Michigan). Una caída anticipa menor gasto en turismo hacia el Caribe, incluyendo la República Dominicana.</div>
-            </div>
-        </div>
-
-        <div class="indicator-card interactive-card " data-status="normal" onclick="toggleAccordion(this)">
-            <div class="card-header">
-                <span class="card-label">Tasa de Interés Activa</span>
-                <div class="card-header-meta">
-                    <span class="status-badge status-normal">NORMAL</span>
-                    <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
-                </div>
-            </div>
-            <div class="card-value">
-                <span class="value-number">15.47%</span>
-                <span class="value-arrow ">&#8211;</span>
-            </div>
-            <div class="zscore-bar-container"><div class="zscore-bar" style="width:41.7%;background:var(--gray-400);"></div></div>
-            <div class="accordion-content">
-                <div class="zscore-label">Z-score: -0.50 &nbsp;|&nbsp; Peso: 5%</div>
-                <div class="card-desc" style="border-top:none;padding-top:0;">Tasa de interés promedio ponderada cobrada por los bancos en préstamos. Un aumento encarece el crédito, frena el consumo y aumenta la carga financiera de hogares y empresas.</div>
             </div>
         </div>
 
@@ -685,7 +642,7 @@
             <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) · Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
             El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
         </div>
-        <div class="footer-run">Actualizado: 15/06/2026 a las 15:58</div>
+        <div class="footer-run">Actualizado: 15/06/2026 a las 16:58</div>
     </div>
 </footer>
 
@@ -765,18 +722,6 @@ function toggleAccordion(element) {
     });
 }
 
-function scrollToAlerts() {
-    const target = document.getElementById('panel-indicadores');
-    if (target) {
-        window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
-        setTimeout(() => {
-            document.querySelectorAll('.card-stress').forEach(card => {
-                card.classList.remove('blink-alert'); void card.offsetWidth; card.classList.add('blink-alert');
-            });
-        }, 500);
-    }
-}
-
 function filterIndicators(status, btn) {
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     if (btn) { btn.classList.add('active'); }
@@ -788,28 +733,97 @@ function filterIndicators(status, btn) {
 }
 
 function jumpFilter(status) {
-    const panel = document.getElementById('panel-indicadores');
-    if (panel) { window.scrollTo({ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }); }
     filterIndicators(status);
+    const panel = document.getElementById('panel-indicadores');
+    if (panel) {
+        const targetY = panel.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
+    if (status === 'stress') {
+        setTimeout(() => {
+            document.querySelectorAll('.card-stress').forEach(card => {
+                card.classList.remove('blink-alert');
+                void card.offsetWidth;
+                card.classList.add('blink-alert');
+            });
+        }, 1000);
+    }
 }
 
 // Main history chart
-const chartData = {"labels": ["Enero 2012", "Febrero 2012", "Marzo 2012", "Abril 2012", "Mayo 2012", "Junio 2012", "Julio 2012", "Agosto 2012", "Septiembre 2012", "Octubre 2012", "Noviembre 2012", "Diciembre 2012", "Enero 2013", "Febrero 2013", "Marzo 2013", "Abril 2013", "Mayo 2013", "Junio 2013", "Julio 2013", "Agosto 2013", "Septiembre 2013", "Octubre 2013", "Noviembre 2013", "Diciembre 2013", "Enero 2014", "Febrero 2014", "Marzo 2014", "Abril 2014", "Mayo 2014", "Junio 2014", "Julio 2014", "Agosto 2014", "Septiembre 2014", "Octubre 2014", "Noviembre 2014", "Diciembre 2014", "Enero 2015", "Febrero 2015", "Marzo 2015", "Abril 2015", "Mayo 2015", "Junio 2015", "Julio 2015", "Agosto 2015", "Septiembre 2015", "Octubre 2015", "Noviembre 2015", "Diciembre 2015", "Enero 2016", "Febrero 2016", "Marzo 2016", "Abril 2016", "Mayo 2016", "Junio 2016", "Julio 2016", "Agosto 2016", "Septiembre 2016", "Octubre 2016", "Noviembre 2016", "Diciembre 2016", "Enero 2017", "Febrero 2017", "Marzo 2017", "Abril 2017", "Mayo 2017", "Junio 2017", "Julio 2017", "Agosto 2017", "Septiembre 2017", "Octubre 2017", "Noviembre 2017", "Diciembre 2017", "Enero 2018", "Febrero 2018", "Marzo 2018", "Abril 2018", "Mayo 2018", "Junio 2018", "Julio 2018", "Agosto 2018", "Septiembre 2018", "Octubre 2018", "Noviembre 2018", "Diciembre 2018", "Enero 2019", "Febrero 2019", "Marzo 2019", "Abril 2019", "Mayo 2019", "Junio 2019", "Julio 2019", "Septiembre 2019", "Octubre 2019", "Noviembre 2019", "Diciembre 2019", "Enero 2020", "Febrero 2020", "Marzo 2020", "Abril 2020", "Mayo 2020", "Junio 2020", "Julio 2020", "Agosto 2020", "Septiembre 2020", "Octubre 2020", "Noviembre 2020", "Diciembre 2020", "Enero 2021", "Febrero 2021", "Marzo 2021", "Abril 2021", "Mayo 2021", "Junio 2021", "Julio 2021", "Agosto 2021", "Septiembre 2021", "Octubre 2021", "Noviembre 2021", "Diciembre 2021", "Enero 2022", "Febrero 2022", "Febrero 2023", "Marzo 2023", "Abril 2023", "Mayo 2023", "Junio 2023", "Julio 2023", "Agosto 2023", "Septiembre 2023", "Octubre 2023", "Noviembre 2023", "Diciembre 2023", "Enero 2024", "Febrero 2024", "Marzo 2024", "Abril 2024", "Mayo 2024", "Junio 2024", "Julio 2024", "Agosto 2024", "Septiembre 2024", "Octubre 2024", "Noviembre 2024", "Diciembre 2024", "Enero 2025", "Febrero 2025", "Marzo 2025", "Abril 2025", "Mayo 2025", "Junio 2025", "Julio 2025", "Agosto 2025", "Septiembre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026", "Abril 2026", "Mayo 2026"], "values": [35.5, 31.8, 29.2, 32.8, 32.3, 33.4, 32.5, 32.0, 36.1, 37.4, 35.7, 44.8, 45.2, 41.2, 36.9, 41.5, 40.1, 40.0, 41.1, 41.3, 47.8, 42.0, 43.0, 34.0, 40.2, 40.5, 36.8, 36.3, 38.3, 40.3, 38.8, 39.7, 43.6, 39.3, 40.0, 36.5, 37.7, 36.5, 33.7, 35.7, 37.2, 37.2, 38.2, 38.2, 41.1, 41.9, 43.9, 38.5, 40.7, 39.6, 39.0, 40.9, 42.2, 41.4, 41.2, 41.9, 48.7, 45.3, 43.5, 37.6, 39.1, 42.0, 36.9, 43.4, 43.6, 42.0, 43.1, 44.8, 47.6, 45.2, 47.0, 39.9, 44.4, 41.3, 42.4, 43.2, 43.3, 45.3, 42.3, 43.3, 47.6, 46.5, 48.2, 37.2, 42.5, 42.9, 40.1, 44.7, 44.8, 38.7, 41.0, 48.2, 50.2, 52.9, 44.0, 52.5, 52.2, 62.3, 67.1, 61.1, 62.7, 62.9, 60.8, 53.6, 53.7, 55.1, 50.0, 51.4, 53.9, 50.3, 51.9, 51.6, 50.7, 51.1, 52.3, 52.1, 52.5, 53.0, 49.5, 48.2, 47.6, 45.1, 42.8, 45.7, 44.3, 44.1, 44.6, 46.4, 48.1, 49.5, 49.9, 43.4, 44.5, 45.5, 46.3, 48.6, 47.6, 53.8, 50.8, 52.3, 55.9, 56.8, 59.7, 53.1, 55.6, 55.4, 54.7, 54.9, 52.6, 52.0, 53.0, 58.4, 61.9, 61.9, 54.3, 56.3, 52.9, 48.6, 51.8, 51.5], "colors": ["rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(206,17,38,0.8)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)"]};
+const chartData = {"labels": ["Enero 2010", "Febrero 2010", "Marzo 2010", "Abril 2010", "Mayo 2010", "Junio 2010", "Julio 2010", "Agosto 2010", "Septiembre 2010", "Octubre 2010", "Noviembre 2010", "Diciembre 2010", "Enero 2011", "Febrero 2011", "Marzo 2011", "Abril 2011", "Mayo 2011", "Junio 2011", "Julio 2011", "Agosto 2011", "Septiembre 2011", "Octubre 2011", "Noviembre 2011", "Diciembre 2011", "Enero 2012", "Febrero 2012", "Marzo 2012", "Abril 2012", "Mayo 2012", "Junio 2012", "Julio 2012", "Agosto 2012", "Septiembre 2012", "Octubre 2012", "Noviembre 2012", "Diciembre 2012", "Enero 2013", "Febrero 2013", "Marzo 2013", "Abril 2013", "Mayo 2013", "Junio 2013", "Julio 2013", "Agosto 2013", "Septiembre 2013", "Octubre 2013", "Noviembre 2013", "Diciembre 2013", "Enero 2014", "Febrero 2014", "Marzo 2014", "Abril 2014", "Mayo 2014", "Junio 2014", "Julio 2014", "Agosto 2014", "Septiembre 2014", "Octubre 2014", "Noviembre 2014", "Diciembre 2014", "Enero 2015", "Febrero 2015", "Marzo 2015", "Abril 2015", "Mayo 2015", "Junio 2015", "Julio 2015", "Agosto 2015", "Septiembre 2015", "Octubre 2015", "Noviembre 2015", "Diciembre 2015", "Enero 2016", "Febrero 2016", "Marzo 2016", "Abril 2016", "Mayo 2016", "Junio 2016", "Julio 2016", "Agosto 2016", "Septiembre 2016", "Octubre 2016", "Noviembre 2016", "Diciembre 2016", "Enero 2017", "Febrero 2017", "Marzo 2017", "Abril 2017", "Mayo 2017", "Junio 2017", "Julio 2017", "Agosto 2017", "Septiembre 2017", "Octubre 2017", "Noviembre 2017", "Diciembre 2017", "Enero 2018", "Febrero 2018", "Marzo 2018", "Abril 2018", "Mayo 2018", "Junio 2018", "Julio 2018", "Agosto 2018", "Septiembre 2018", "Octubre 2018", "Noviembre 2018", "Diciembre 2018", "Enero 2019", "Febrero 2019", "Marzo 2019", "Abril 2019", "Mayo 2019", "Junio 2019", "Julio 2019", "Septiembre 2019", "Octubre 2019", "Noviembre 2019", "Diciembre 2019", "Enero 2020", "Febrero 2020", "Marzo 2020", "Abril 2020", "Mayo 2020", "Junio 2020", "Julio 2020", "Agosto 2020", "Septiembre 2020", "Octubre 2020", "Noviembre 2020", "Diciembre 2020", "Enero 2021", "Febrero 2021", "Marzo 2021", "Abril 2021", "Mayo 2021", "Junio 2021", "Julio 2021", "Agosto 2021", "Septiembre 2021", "Octubre 2021", "Noviembre 2021", "Diciembre 2021", "Enero 2022", "Febrero 2022", "Febrero 2023", "Marzo 2023", "Abril 2023", "Mayo 2023", "Junio 2023", "Julio 2023", "Agosto 2023", "Septiembre 2023", "Octubre 2023", "Noviembre 2023", "Diciembre 2023", "Enero 2024", "Febrero 2024", "Marzo 2024", "Abril 2024", "Mayo 2024", "Junio 2024", "Julio 2024", "Agosto 2024", "Septiembre 2024", "Octubre 2024", "Noviembre 2024", "Diciembre 2024", "Enero 2025", "Febrero 2025", "Marzo 2025", "Abril 2025", "Mayo 2025", "Junio 2025", "Julio 2025", "Agosto 2025", "Septiembre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026", "Abril 2026", "Mayo 2026"], "values": [34.7, 35.0, 40.5, 40.8, 38.1, 34.3, 35.8, 36.5, 38.2, 37.1, 34.3, 37.4, 38.8, 42.4, 41.9, 44.0, 42.9, 44.7, 40.0, 44.7, 48.1, 46.8, 44.2, 36.5, 35.5, 31.8, 29.2, 32.8, 32.3, 33.4, 32.5, 32.0, 36.1, 37.4, 35.7, 37.2, 37.6, 35.6, 30.4, 35.1, 33.3, 35.5, 33.9, 36.4, 43.0, 36.6, 37.2, 28.3, 34.9, 34.8, 31.3, 29.8, 31.4, 33.6, 32.7, 33.0, 37.4, 32.0, 32.2, 28.7, 30.3, 28.5, 26.3, 28.4, 29.0, 29.4, 30.1, 29.7, 33.0, 32.8, 34.3, 29.0, 31.4, 29.9, 30.5, 31.9, 32.8, 32.3, 31.7, 31.8, 38.0, 33.2, 31.6, 27.9, 27.8, 30.5, 26.3, 31.6, 30.7, 31.2, 31.4, 32.6, 36.8, 35.1, 36.4, 32.8, 37.4, 33.2, 34.5, 35.7, 35.8, 38.4, 35.8, 36.9, 39.8, 38.4, 41.1, 31.5, 36.8, 36.5, 33.8, 38.0, 37.9, 32.4, 33.8, 39.4, 41.0, 43.1, 35.8, 43.7, 41.8, 50.9, 54.6, 48.9, 51.8, 53.7, 52.5, 45.8, 45.7, 46.8, 43.3, 44.4, 46.7, 43.4, 44.7, 44.7, 45.5, 46.2, 46.6, 46.5, 46.8, 47.2, 44.3, 42.9, 41.4, 34.3, 32.1, 34.8, 33.2, 33.3, 33.4, 35.0, 36.5, 37.9, 38.3, 32.5, 33.4, 34.4, 35.2, 37.1, 35.5, 41.2, 38.1, 38.9, 41.7, 42.4, 45.3, 39.2, 42.0, 41.3, 41.5, 41.8, 39.0, 38.7, 39.1, 43.9, 47.6, 48.5, 42.2, 45.0, 42.1, 38.5, 41.8, 41.5], "colors": ["rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.6)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)", "rgba(0,45,98,0.3)"], "provisional": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true]};
 const ctx = document.getElementById('scoreChart').getContext('2d');
+
+// Split data into confirmed and provisional segments for dashed rendering
+function buildChartDatasets(labels, values, colors, provisional) {
+    // Find the index where provisional starts (first True)
+    const splitIdx = provisional.indexOf(true);
+    if (splitIdx === -1) {
+        // No provisional data — single solid dataset
+        return [{
+            label: 'Índice de Vulnerabilidad',
+            data: values,
+            borderColor: '#002D62',
+            backgroundColor: 'rgba(0,45,98,0.06)',
+            borderWidth: 2,
+            pointBackgroundColor: colors,
+            pointBorderColor: colors,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.3
+        }];
+    }
+    // Confirmed segment: solid line up to and including the last confirmed point
+    const confirmedValues = values.map((v, i) => i <= splitIdx ? v : null);
+    // Provisional segment: dashed line from the last confirmed point onward
+    const provisionalValues = values.map((v, i) => i >= splitIdx ? v : null);
+    return [
+        {
+            label: 'Índice de Vulnerabilidad',
+            data: confirmedValues,
+            borderColor: '#002D62',
+            backgroundColor: 'rgba(0,45,98,0.06)',
+            borderWidth: 2,
+            pointBackgroundColor: colors,
+            pointBorderColor: colors,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.3,
+            borderDash: []
+        },
+        {
+            label: 'Avance Estimado',
+            data: provisionalValues,
+            borderColor: '#002D62',
+            backgroundColor: 'rgba(0,45,98,0.03)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointBackgroundColor: colors.map((c, i) => i >= splitIdx ? c : 'transparent'),
+            pointBorderColor: colors.map((c, i) => i >= splitIdx ? c : 'transparent'),
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.3
+        }
+    ];
+}
+
 const scoreChart = new Chart(ctx, {
     type: 'line',
-    data: { labels: chartData.labels, datasets: [{ label: 'Índice de Vulnerabilidad', data: chartData.values, borderColor: '#002D62', backgroundColor: 'rgba(0,45,98,0.06)', borderWidth: 2, pointBackgroundColor: chartData.colors, pointBorderColor: chartData.colors, pointRadius: 3, pointHoverRadius: 6, fill: true, tension: 0.3 }] },
+    data: { labels: chartData.labels, datasets: buildChartDatasets(chartData.labels, chartData.values, chartData.colors, chartData.provisional || []) },
     options: {
         responsive: true, maintainAspectRatio: false,
         interaction: { intersect: false, mode: 'index' },
         plugins: {
             legend: { display: false },
-            tooltip: { backgroundColor: '#0A0A0A', titleColor: '#fff', bodyColor: '#ccc', padding: 12, displayColors: false, callbacks: { label: c => `Índice: ${c.parsed.y} / 100` } },
+            tooltip: { backgroundColor: '#0A0A0A', titleColor: '#fff', bodyColor: '#ccc', padding: 12, displayColors: false, callbacks: { label: c => c.dataset.label === 'Avance Estimado' ? `Índice: ${c.parsed.y} / 100 (estimado)` : `Índice: ${c.parsed.y} / 100` } },
             zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, pan: { enabled: true, mode: 'x' } }
         },
         scales: {
-            x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'Haffer', size: 11 }, color: '#555555', maxTicksLimit: 14, maxRotation: 45 } },
-            y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'Haffer', size: 11 }, color: '#555555', stepSize: 25, callback: v => v + '/100' } }
+            x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'IBM Plex Mono', size: 11 }, color: '#555555', maxTicksLimit: 14, maxRotation: 45 } },
+            y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'IBM Plex Mono', size: 11 }, color: '#555555', stepSize: 25, callback: v => v + '/100' } }
         }
     }
 });
@@ -823,7 +837,7 @@ scoreChart.draw = function() {
     c2.save(); c2.beginPath();
     c2.moveTo(scoreChart.scales.x.left, y); c2.lineTo(scoreChart.scales.x.right, y);
     c2.strokeStyle = 'rgba(206,17,38,0.4)'; c2.lineWidth = 1; c2.setLineDash([5,5]); c2.stroke();
-    c2.setLineDash([]); c2.fillStyle = 'rgba(206,17,38,0.85)'; c2.font = '600 10px "Haffer", sans-serif';
+    c2.setLineDash([]); c2.fillStyle = 'rgba(206,17,38,0.85)'; c2.font = '600 10px "IBM Plex Mono", monospace';
     c2.textAlign = 'right'; c2.fillText('Umbral de alerta (65.0)', scoreChart.scales.x.right - 6, y - 6);
     c2.restore();
 };
@@ -833,10 +847,12 @@ function applyRange(months, btn) {
     if (btn) btn.classList.add('active');
     if (scoreChart.resetZoom) scoreChart.resetZoom();
     const n = months || chartData.labels.length;
-    scoreChart.data.labels = chartData.labels.slice(-n);
-    scoreChart.data.datasets[0].data = chartData.values.slice(-n);
-    scoreChart.data.datasets[0].pointBackgroundColor = chartData.colors.slice(-n);
-    scoreChart.data.datasets[0].pointBorderColor = chartData.colors.slice(-n);
+    const slicedLabels = chartData.labels.slice(-n);
+    const slicedValues = chartData.values.slice(-n);
+    const slicedColors = chartData.colors.slice(-n);
+    const slicedProv   = (chartData.provisional || []).slice(-n);
+    scoreChart.data.labels = slicedLabels;
+    scoreChart.data.datasets = buildChartDatasets(slicedLabels, slicedValues, slicedColors, slicedProv);
     scoreChart.update();
 }
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
