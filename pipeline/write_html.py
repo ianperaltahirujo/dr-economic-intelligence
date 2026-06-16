@@ -591,8 +591,7 @@ def build_html(results: dict) -> str:
         .nav-link--clima {{ font-weight: 600; position: relative; padding: 4px 16px; border-radius: 999px; background: transparent; border: 1px solid var(--gray-200); color: var(--gray-600); overflow: hidden; }}
         .nav-link--clima svg {{ position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; fill: none; }}
         .nav-link--clima:hover {{ color: var(--black) !important; border-color: transparent; }}
-        .nav-link--clima #climaRect {{ stroke: url(#climaGrad); stroke-width: 2; stroke-dasharray: 80 400; stroke-dashoffset: 80; transition: stroke-dashoffset .9s ease-in-out; }}
-        .nav-link--clima:hover #climaRect {{ stroke-dashoffset: -400; }}
+        .nav-link--clima #climaRect {{ stroke: url(#climaGrad); stroke-width: 2; stroke-linecap: round; }}
         .clima-teaser {{ display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 40px 48px; border: var(--border); border-radius: var(--radius); background: var(--white); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; transition: box-shadow .25s var(--ease), transform .25s var(--ease); }}
         .clima-teaser:hover {{ box-shadow: var(--shadow-lg); transform: translateY(-3px); outline: 2px solid #F97316; }}
         .clima-teaser:hover .clima-arrow {{ background: linear-gradient(90deg, #F97316, #EC4899); color: var(--white); border-color: transparent; }}
@@ -814,7 +813,7 @@ def build_html(results: dict) -> str:
             <a href="#historial-indice" class="nav-link">Historial</a>
         </nav>
         <a href="#clima-social-entry" class="nav-link nav-link--clima">
-            <svg aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none"><defs><linearGradient id="climaGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F97316"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs><rect id="climaRect" x="1" y="1" rx="14" fill="none" stroke="url(#climaGrad)" stroke-width="2" stroke-dasharray="80 400" stroke-dashoffset="80" style="transition:stroke-dashoffset .9s ease-in-out"/></svg>
+            <svg aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none"><defs><linearGradient id="climaGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F97316"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs><path id="climaRect" fill="none" stroke="url(#climaGrad)" stroke-width="2" stroke-linecap="round"/></svg>
             Clima Social
         </a>
     </div>
@@ -1171,28 +1170,60 @@ function applyRange(months, btn) {{
 }}
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
 (function() {{ const def = document.querySelector('.chart-btn[data-range="36"]'); applyRange(36, def); }})();
-// ── CLIMA BUTTON SVG RECT ──
+
+// ── CLIMA BUTTON SVG PATH ──
 (function() {{
     var btn = document.querySelector('.nav-link--clima');
-    var rect = document.getElementById('climaRect');
-    if (!btn || !rect) return;
-    function sizeRect() {{
-        rect.setAttribute('width', btn.offsetWidth - 2);
-        rect.setAttribute('height', btn.offsetHeight - 2);
-        var perimeter = 2 * ((btn.offsetWidth - 2) + (btn.offsetHeight - 2));
-        var dash = Math.round(perimeter * 0.22);
-        var gap = perimeter + 10;
-        rect.setAttribute('stroke-dasharray', dash + ' ' + gap);
-        rect.setAttribute('stroke-dashoffset', dash);
-        btn.addEventListener('mouseenter', function() {{
-            rect.style.strokeDashoffset = -(perimeter);
-        }});
-        btn.addEventListener('mouseleave', function() {{
-            rect.style.strokeDashoffset = dash;
-        }});
+    var path = document.getElementById('climaRect');
+    if (!btn || !path) return;
+    function sizePath() {{
+        var w = btn.offsetWidth;
+        var h = btn.offsetHeight;
+        var r = 14; 
+        
+        // Draw open path matching the pill shape. Doesn't close (no Z), preventing dash wrapping.
+        var d = 'M ' + (r+1) + ',1 ' +
+                'H ' + (w-r-1) + ' ' +
+                'A ' + r + ',' + r + ' 0 0 1 ' + (w-1) + ',' + (r+1) + ' ' +
+                'V ' + (h-r-1) + ' ' +
+                'A ' + r + ',' + r + ' 0 0 1 ' + (w-r-1) + ',' + (h-1) + ' ' +
+                'H ' + (r+1) + ' ' +
+                'A ' + r + ',' + r + ' 0 0 1 1,' + (h-r-1) + ' ' +
+                'V ' + (r+1) + ' ' +
+                'A ' + r + ',' + r + ' 0 0 1 ' + (r+1) + ',1';
+        
+        path.setAttribute('d', d);
+        
+        var length = path.getTotalLength();
+        if (!length) length = 2 * (w + h);
+        
+        var dash = 80;
+        var gap = length + 20;
+        
+        path.setAttribute('stroke-dasharray', dash + ' ' + gap);
+        
+        var offsetHidden = dash + 2;
+        var offsetHover = -(length + 2);
+        
+        // Disable transition briefly to avoid sweep-in animation on load
+        path.style.transition = 'none';
+        path.style.strokeDashoffset = offsetHidden;
+        
+        // Force reflow
+        path.getBoundingClientRect();
+        
+        // Restore transition
+        path.style.transition = 'stroke-dashoffset .9s ease-in-out';
+        
+        btn.onmouseenter = function() {{
+            path.style.strokeDashoffset = offsetHover;
+        }};
+        btn.onmouseleave = function() {{
+            path.style.strokeDashoffset = offsetHidden;
+        }};
     }}
-    setTimeout(sizeRect, 100);
-    window.addEventListener('resize', sizeRect);
+    setTimeout(sizePath, 50);
+    window.addEventListener('resize', sizePath);
 }})();
 
 // ── NAV PROGRESS LINE ──
