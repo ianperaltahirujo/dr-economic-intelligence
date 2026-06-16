@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Clima Social Dominicano — Ola 7 — Abril 2026. Análisis de percepción ciudadana por La Sociedad.">
+    <title>Clima Social Dominicano — Ola 7 — La Sociedad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        @font-face{font-family:'Haffer';src:url('fonts/Haffer-TRIAL-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+        @font-face{font-family:'Haffer';src:url('fonts/Haffer-TRIAL-Bold.otf') format('opentype');font-weight:700;font-display:swap}
+        @font-face{font-family:'Reckless';src:url('fonts/RecklessStandardXL-TRIAL-Regular.otf') format('opentype');font-weight:400;font-display:swap}
+        @font-face{font-family:'Reckless';src:url('fonts/RecklessStandardM-TRIAL-Bold.otf') format('opentype');font-weight:700;font-display:swap}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --blue:#002D62;--red:#CE1126;--black:#0A0A0A;--white:#FFFFFF;
+            --gray-50:#F9F9F9;--gray-100:#F0F0F0;--gray-200:#E0E0E0;--gray-400:#999;--gray-600:#555;
+            --cs-a:#F97316;--cs-b:#EC4899;
+            --font-sans:'Haffer',system-ui,sans-serif;
+            --font-display:'Reckless',Georgia,serif;
+            --font-mono:'IBM Plex Mono',monospace;
+            --maxw:1140px;--radius:14px;--radius-sm:9px;
+            --border:1px solid var(--gray-200);
+            --shadow-sm:0 1px 2px rgba(10,10,10,.04),0 2px 6px rgba(10,10,10,.05);
+            --shadow-md:0 6px 18px rgba(10,10,10,.07);
+            --ease:cubic-bezier(.4,0,.2,1);
+            --header-h:64px;--nav-h:52px;
+        }
+        html{font-size:16px;scroll-behavior:smooth}
+        body{font-family:var(--font-sans);background:var(--white);color:var(--black);line-height:1.6;-webkit-font-smoothing:antialiased}
+        a{color:inherit}
+        ::selection{background:rgba(249,115,22,.14)}
+        :focus-visible{outline:2px solid var(--cs-a);outline-offset:3px;border-radius:4px}
+        ::-webkit-scrollbar{width:12px}
+        ::-webkit-scrollbar-track{background:var(--white)}
+        ::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:8px;border:3px solid var(--white)}
+
+        /* Motion */
+        .fade-in{opacity:0;transform:translateY(20px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+        .fade-in.visible{opacity:1;transform:none}
+        .accordion-content{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s var(--ease),opacity .35s var(--ease)}
+        .accordion-content.open{opacity:1}
+        .dropdown-arrow{font-size:10px;color:var(--gray-400);transition:transform .3s var(--ease);user-select:none}
+        .interactive-card.active .dropdown-arrow{transform:rotate(180deg)}
+
+        /* Top accent */
+        .top-accent{height:4px;background:linear-gradient(90deg,#F97316,#EC4899)}
+
+        /* Header */
+        .site-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(12px);border-bottom:var(--border)}
+        .header-inner{max-width:var(--maxw);margin:0 auto;padding:0 40px;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:24px}
+        .header-back{font-family:var(--font-mono);font-size:12px;color:var(--gray-600);text-decoration:none;display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;border:var(--border);transition:background .2s,color .2s;white-space:nowrap}
+        .header-back:hover{background:var(--gray-100);color:var(--black)}
+        .header-badge{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.06em;padding:4px 12px;border-radius:999px;background:linear-gradient(90deg,#F97316,#EC4899);color:var(--white);white-space:nowrap}
+
+        /* Page nav with SVG path below */
+        .page-nav-wrap{position:sticky;top:var(--header-h);z-index:40;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:var(--border)}
+        .page-nav-inner{max-width:var(--maxw);margin:0 auto;padding:0 40px;display:flex;justify-content:center;align-items:center;gap:4px;height:var(--nav-h);position:relative}
+        .page-nav-link{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;color:var(--gray-400);padding:5px 14px;border-radius:999px;white-space:nowrap;transition:color .2s,background .2s;position:relative;z-index:10;background:transparent;text-shadow:0 0 8px rgba(255,255,255,1),0 0 4px rgba(255,255,255,1)}
+        .page-nav-link:hover{color:var(--cs-a);background:transparent}
+        .page-nav-link.active{color:var(--white)}
+        .page-nav-link.active::before{content:'';position:absolute;inset:0;border-radius:999px;background:linear-gradient(90deg,#F97316,#EC4899);z-index:-1}
+        /* Horizontal progress line through buttons */
+        .nav-line-track{position:absolute;top:50%;height:1px;background:var(--gray-200);transform:translateY(-50%);z-index:1;pointer-events:none}
+        .nav-line-fill{position:absolute;top:50%;height:1px;background:linear-gradient(90deg,#F97316,#EC4899);transform:translateY(-50%);z-index:2;pointer-events:none;transition:width .15s linear}
+
+        /* SVG progress path bar */
+
+        /* Layout */
+        .container{max-width:var(--maxw);margin:0 auto;padding:0 40px}
+        main>section{padding:72px 0;border-bottom:var(--border)}
+        main>section:last-child{border-bottom:none}
+        section[id]{scroll-margin-top:calc(var(--header-h) + var(--nav-h) + 16px)}
+        .section-head{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+        .section-label{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--black);letter-spacing:-.01em;position:relative;padding-left:14px}
+        .section-label::before{content:'';position:absolute;left:0;top:.14em;bottom:.14em;width:4px;border-radius:2px;background:linear-gradient(180deg,#F97316,#EC4899)}
+        .section-rule{flex:1;height:1px;background:linear-gradient(90deg,var(--gray-200),transparent)}
+        .section-intro{font-size:15px;color:var(--gray-600);max-width:760px;margin-bottom:30px;line-height:1.7}
+
+        /* Hero */
+        .cs-hero{padding:72px 0 56px}
+        .cs-hero-tag{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(90deg,#F97316,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:18px}
+        .cs-hero-title{font-family:var(--font-display);font-size:clamp(38px,6vw,80px);font-weight:700;line-height:1.05;letter-spacing:-.02em;color:var(--black);margin-bottom:12px}
+        .cs-hero-subtitle{font-family:var(--font-display);font-size:clamp(16px,2.5vw,22px);font-weight:400;color:var(--gray-600);margin-bottom:32px;font-style:italic}
+        .cs-hero-meta{font-family:var(--font-mono);font-size:12px;color:var(--gray-400);display:flex;gap:20px;flex-wrap:wrap}
+        .cs-hero-meta span::before{content:'·';margin-right:20px}
+        .cs-hero-meta span:first-child::before{display:none}
+        .hero-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px}
+        .hero-stat{padding:20px;border:var(--border);border-radius:var(--radius-sm);background:var(--gray-50)}
+        .hero-stat-num{font-family:var(--font-mono);font-size:40px;font-weight:600;line-height:1;letter-spacing:-2px;background:linear-gradient(90deg,#F97316,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+        .hero-stat-label{font-size:13px;color:var(--gray-600);line-height:1.4}
+        .hero-stat-delta{font-family:var(--font-mono);font-size:11px;color:#B45309;margin-top:4px}
+
+        /* Tesis */
+        .tesis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+        .tesis-card{padding:28px;border:var(--border);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+        .tesis-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#F97316,#EC4899)}
+        .tesis-num{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--cs-a);text-transform:uppercase;margin-bottom:10px}
+        .tesis-text{font-size:15px;line-height:1.65;color:var(--black)}
+        .tesis-data{font-family:var(--font-mono);font-size:11px;color:var(--gray-400);margin-top:14px}
+
+        /* Chart cards */
+        .chart-card{background:var(--white);border:var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow-sm)}
+        .chart-title{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--black);margin-bottom:4px}
+        .chart-subtitle{font-size:12px;color:var(--gray-400);font-family:var(--font-mono);margin-bottom:20px}
+        .chart-wrap{position:relative;height:260px}
+        .chart-wrap-tall{position:relative;height:320px}
+        .chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        .chart-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+
+        /* Stat cards */
+        .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+        .stat-card{padding:28px 24px;border:var(--border);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow-sm)}
+        .stat-number{font-family:var(--font-mono);font-size:52px;font-weight:600;line-height:1;letter-spacing:-2px;background:linear-gradient(90deg,#F97316,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+        .stat-label{font-size:14px;color:var(--black);font-weight:600;line-height:1.4;margin-bottom:6px}
+        .stat-delta{font-family:var(--font-mono);font-size:11px;color:#B45309}
+
+        /* Bloque cards */
+        .bloque-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+        .bloque-card{padding:28px;border:var(--border);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow-sm);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:box-shadow .25s,transform .25s}
+        .bloque-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+        .bloque-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+        .bloque-card-label{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--cs-a);margin-bottom:6px}
+        .bloque-card-title{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--black);line-height:1.3}
+        .bloque-insight{font-size:13px;font-weight:600;color:var(--black);font-style:italic;padding:12px 16px;background:var(--gray-50);border-left:3px solid #F97316;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:16px;line-height:1.5}
+        .bloque-data-row{display:flex;align-items:baseline;gap:12px;padding:10px 0;border-bottom:var(--border)}
+        .bloque-data-row:last-child{border-bottom:none}
+        .bloque-pct{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--black);white-space:nowrap;min-width:60px}
+        .bloque-pct-label{font-size:13.5px;color:var(--gray-600);line-height:1.4}
+        .bloque-pct-delta{font-family:var(--font-mono);font-size:11px;color:#B45309;margin-left:auto;white-space:nowrap}
+        .bloque-detail{font-size:13.5px;color:var(--gray-600);line-height:1.7;margin-top:16px}
+
+        /* Paradox */
+        .paradox-box{display:grid;grid-template-columns:1fr 1fr;border:var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+        .paradox-side{padding:36px 40px}
+        .paradox-side--a{background:var(--gray-50);border-right:var(--border)}
+        .paradox-pct{font-family:var(--font-mono);font-size:64px;font-weight:600;line-height:1;letter-spacing:-3px;margin-bottom:12px}
+        .paradox-pct--a{background:linear-gradient(90deg,#F97316,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .paradox-pct--b{color:var(--blue)}
+        .paradox-label{font-size:15px;color:var(--black);font-weight:600;margin-bottom:8px}
+        .paradox-desc{font-size:14px;color:var(--gray-600);line-height:1.6}
+        .paradox-connector{display:flex;align-items:center;justify-content:center;background:var(--white);border-top:var(--border);padding:20px 40px;font-size:14px;color:var(--gray-600);font-style:italic;text-align:center;grid-column:1/-1}
+
+        /* Protagonist */
+        .protagonist-box{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+        .protagonist-profile{padding:32px;border:var(--border);border-radius:var(--radius);background:var(--gray-50)}
+        .protagonist-label{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--cs-a);margin-bottom:14px}
+        .protagonist-title{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--black);margin-bottom:16px;line-height:1.3}
+        .protagonist-traits{display:flex;flex-direction:column;gap:10px}
+        .protagonist-trait{font-size:14px;color:var(--gray-600);padding-left:16px;position:relative;line-height:1.5}
+        .protagonist-trait::before{content:'—';position:absolute;left:0;color:var(--cs-a)}
+        .protagonist-contract{padding:32px;border:var(--border);border-radius:var(--radius);background:var(--white);display:flex;flex-direction:column;justify-content:center}
+        .protagonist-quote{font-family:var(--font-display);font-size:22px;font-style:italic;color:var(--black);line-height:1.5;margin-bottom:16px}
+        .protagonist-quote-meta{font-family:var(--font-mono);font-size:12px;color:var(--gray-400)}
+
+        /* Tracking table */
+        .tracking-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:16px}
+        .tracking-table th{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--gray-400);text-align:left;padding:10px 16px;border-bottom:2px solid var(--gray-200);white-space:nowrap}
+        .tracking-table td{padding:14px 16px;border-bottom:var(--border);color:var(--black);vertical-align:middle}
+        .tracking-table tr:last-child td{border-bottom:none}
+        .tracking-table tr.ola7 td{background:rgba(249,115,22,.05);font-weight:600}
+        .tracking-table .pct-cell{font-family:var(--font-mono);font-size:15px;font-weight:600}
+        .tracking-table .pct-cell.highlight{background:linear-gradient(90deg,#F97316,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+        /* Demo grid */
+        .demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+        .demo-card{padding:20px;border:var(--border);border-radius:var(--radius-sm);background:var(--white)}
+        .demo-label{font-family:var(--font-mono);font-size:10px;color:var(--gray-400);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+        .demo-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:var(--border);font-size:13px}
+        .demo-row:last-child{border-bottom:none}
+        .demo-row-label{color:var(--gray-600)}
+        .demo-row-val{font-family:var(--font-mono);font-weight:600;color:var(--black)}
+
+        /* Footer */
+        .site-footer{padding:44px 0;background:var(--gray-50);border-top:var(--border)}
+        .footer-inner{max-width:var(--maxw);margin:0 auto;padding:0 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+        .footer-sources{font-size:13px;color:var(--gray-600);line-height:1.7;max-width:640px}
+        .footer-sources strong{font-weight:600;color:var(--black)}
+        .footer-run{font-family:var(--font-mono);font-size:11px;color:var(--gray-400);white-space:nowrap}
+
+        /* Back to top */
+        .back-to-top{position:fixed;right:24px;bottom:24px;width:46px;height:46px;border-radius:50%;border:none;background:linear-gradient(90deg,#F97316,#EC4899);color:var(--white);font-size:20px;cursor:pointer;box-shadow:0 6px 18px rgba(10,10,10,.12);opacity:0;visibility:hidden;transform:translateY(10px);transition:all .3s var(--ease);z-index:40}
+        .back-to-top.show{opacity:1;visibility:visible;transform:none}
+
+        /* Responsive */
+        @media(max-width:980px){
+            .tesis-grid,.stat-grid,.chart-grid-3{grid-template-columns:repeat(2,1fr)}
+            .bloque-grid,.paradox-box,.protagonist-box,.chart-grid-2{grid-template-columns:1fr}
+            .paradox-side--a{border-right:none;border-bottom:var(--border)}
+            .hero-stats-row{grid-template-columns:repeat(2,1fr)}
+            .page-nav-inner{justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+            .page-nav-inner::-webkit-scrollbar{display:none}
+        }
+        @media(max-width:640px){
+            .container,.header-inner,.footer-inner{padding-left:20px;padding-right:20px}
+            main>section{padding:48px 0}
+            .tesis-grid,.stat-grid,.hero-stats-row,.chart-grid-3{grid-template-columns:1fr}
+            .demo-grid{grid-template-columns:1fr}
+            .page-nav-inner{padding:0 20px}
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-accent" id="top"></div>
+
+<header class="site-header">
+    <div class="header-inner">
+        <a href="index.html" class="header-back">&#8592; Volver al índice</a>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--gray-400)">Clima Social Dominicano</span>
+        <span class="header-badge">Ola 7 · Abril 2026</span>
+    </div>
+</header>
+
+<!-- PAGE NAV + SVG PATH BAR -->
+<div class="page-nav-wrap">
+    <div class="page-nav-inner" id="pageNav">
+        <span class="nav-line-track" id="navLineTrack"></span>
+        <span class="nav-line-fill" id="navLineFill"></span>
+        <a href="#tesis" class="page-nav-link" data-section="tesis">Tesis</a>
+        <a href="#datos-clave" class="page-nav-link" data-section="datos-clave">Datos Clave</a>
+        <a href="#clima-emocional" class="page-nav-link" data-section="clima-emocional">Clima</a>
+        <a href="#evaluacion-gobierno" class="page-nav-link" data-section="evaluacion-gobierno">Gobierno</a>
+        <a href="#economia-personal" class="page-nav-link" data-section="economia-personal">Economía</a>
+        <a href="#animo-economico" class="page-nav-link" data-section="animo-economico">Ánimo</a>
+        <a href="#infraestructura-confianza" class="page-nav-link" data-section="infraestructura-confianza">Confianza</a>
+        <a href="#otros-indicadores" class="page-nav-link" data-section="otros-indicadores">Otros</a>
+        <a href="#protagonista" class="page-nav-link" data-section="protagonista">Protagonista</a>
+    </div>
+</div>
+
+<main>
+
+    <!-- HERO -->
+    <section class="cs-hero fade-in">
+        <div class="container">
+            <div class="cs-hero-tag">Clima Social Dominicano &nbsp;·&nbsp; Ola 7</div>
+            <div class="cs-hero-title">El dinero quieto</div>
+            <div class="cs-hero-subtitle">Aguantando solos: cuando el esfuerzo ya no se siente suficiente</div>
+            <div class="cs-hero-meta">
+                <span>n=808 entrevistas</span>
+                <span>Levantamiento abril 2026</span>
+                <span>LS Consulting / La Sociedad</span>
+                <span>7ma ola del tracking</span>
+            </div>
+            <div class="hero-stats-row">
+                <div class="hero-stat"><div class="hero-stat-num">56%</div><div class="hero-stat-label">peor que el año pasado</div><div class="hero-stat-delta">+18pts vs Ola 6</div></div>
+                <div class="hero-stat"><div class="hero-stat-num">79%</div><div class="hero-stat-label">dirección incorrecta</div><div class="hero-stat-delta">Máximo histórico</div></div>
+                <div class="hero-stat"><div class="hero-stat-num">75%</div><div class="hero-stat-label">se endeudó para cubrir básicos</div><div class="hero-stat-delta">+15pts vs Ola 6</div></div>
+                <div class="hero-stat"><div class="hero-stat-num">72%</div><div class="hero-stat-label">confianza perdida o irrecuperable</div><div class="hero-stat-delta">Deterioro masivo</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESIS -->
+    <section id="tesis" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Las 6 tesis del informe</h2><span class="section-rule"></span></div>
+            <p class="section-intro">El relato de la Ola 7 se articula en seis argumentos que explican cómo el dominicano llegó al modo supervivencia.</p>
+            <div class="tesis-grid">
+                <div class="tesis-card"><div class="tesis-num">Tesis 1</div><div class="tesis-text">El aguante cambió de naturaleza. Ya no se siente como sacrificio temporal. Se siente como condición permanente.</div><div class="tesis-data">63% en modo resistencia · P5</div></div>
+                <div class="tesis-card"><div class="tesis-num">Tesis 2</div><div class="tesis-text">La economía se vive, no se lee. El dominicano evalúa el país en el colmado, la gasolinera y la farmacia.</div><div class="tesis-data">96% siente el alza · 75% endeudado para básicos</div></div>
+                <div class="tesis-card"><div class="tesis-num">Tesis 3</div><div class="tesis-text">El esfuerzo ya no garantiza recompensa. El contrato meritocrático dominicano está roto.</div><div class="tesis-data">86% cree que el esfuerzo no alcanza · P27</div></div>
+                <div class="tesis-card"><div class="tesis-num">Tesis 4</div><div class="tesis-text">El gobierno se evalúa desde el bolsillo. La aprobación se construye en la experiencia económica diaria.</div><div class="tesis-data">79% dirección incorrecta · máximo histórico · P7</div></div>
+                <div class="tesis-card"><div class="tesis-num">Tesis 5</div><div class="tesis-text">La hipocresía percibida es el mayor destructor de confianza. El gobierno pide lo que no practica.</div><div class="tesis-data">78% dice que el gobierno no da el ejemplo · P33</div></div>
+                <div class="tesis-card"><div class="tesis-num">Tesis 6</div><div class="tesis-text">El riesgo es la resignación, no la explosión. El país está al borde del "ya no importa".</div><div class="tesis-data">Solo 8% mantiene confianza en el gobierno · P40</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DATOS CLAVE -->
+    <section id="datos-clave" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Datos clave — Ola 7</h2><span class="section-rule"></span></div>
+            <div class="stat-grid" style="margin-bottom:40px">
+                <div class="stat-card"><div class="stat-number">56%</div><div class="stat-label">dice estar peor que el año pasado</div><div class="stat-delta">+18pts vs Ola 6 (38%)</div></div>
+                <div class="stat-card"><div class="stat-number">79%</div><div class="stat-label">cree que el país va en dirección incorrecta</div><div class="stat-delta">Máximo histórico del tracking</div></div>
+                <div class="stat-card"><div class="stat-number">75%</div><div class="stat-label">se endeudó para cubrir gastos básicos</div><div class="stat-delta">+15pts vs Ola 6 (60%)</div></div>
+                <div class="stat-card"><div class="stat-number">96%</div><div class="stat-label">percibe aumento de precios</div><div class="stat-delta">Universal · máximo histórico</div></div>
+                <div class="stat-card"><div class="stat-number">86%</div><div class="stat-label">cree que el esfuerzo no alcanza para progresar</div><div class="stat-delta">Sube vs Ola 6</div></div>
+                <div class="stat-card"><div class="stat-number">84%</div><div class="stat-label">no siente el crecimiento económico</div><div class="stat-delta">+8pts vs Ola 6</div></div>
+                <div class="stat-card"><div class="stat-number">72%</div><div class="stat-label">confianza en el gobierno perdida</div><div class="stat-delta">Deterioro masivo</div></div>
+                <div class="stat-card"><div class="stat-number">55%</div><div class="stat-label">califica gestión presidencial 1-3 sobre 10</div><div class="stat-delta">+11pts vs Ola 6 (44%)</div></div>
+            </div>
+            <div class="chart-grid-2" style="margin-bottom:24px">
+                <div class="chart-card">
+                    <div class="chart-title">Tracking: dirección incorrecta del país</div>
+                    <div class="chart-subtitle">Ola 1 (oct 2024) — Ola 7 (abr 2026)</div>
+                    <div class="chart-wrap"><canvas id="chartTracking"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Tracking: legado — dejará el país peor</div>
+                    <div class="chart-subtitle">Evolución a través de las olas</div>
+                    <div class="chart-wrap"><canvas id="chartLegado"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-grid-3">
+                <div class="chart-card">
+                    <div class="chart-title">Frase vital: ¿cómo se siente?</div>
+                    <div class="chart-subtitle">Distribución total · P5</div>
+                    <div class="chart-wrap"><canvas id="chartFraseVital"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Mapa emocional general</div>
+                    <div class="chart-subtitle">Emoción dominante al pensar en el año · P6</div>
+                    <div class="chart-wrap"><canvas id="chartEmociones"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Optimismo personal vs. pesimismo país</div>
+                    <div class="chart-subtitle">La paradoja central</div>
+                    <div class="chart-wrap"><canvas id="chartParadoja"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CLIMA EMOCIONAL -->
+    <section id="clima-emocional" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Estado de ánimo y clima social</h2><span class="section-rule"></span></div>
+            <p class="section-intro">Cómo se siente la gente y cuánta esperanza — o agotamiento — tiene al cerrar este período.</p>
+            <div class="bloque-grid" style="margin-bottom:32px">
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Situación personal</div><div class="bloque-card-title">Un año que cierra peor de lo que empezó</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"El deterioro no es gradual. Es un salto."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">56%</span><span class="bloque-pct-label">dice estar peor que el año pasado</span><span class="bloque-pct-delta">+18pts</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">28%</span><span class="bloque-pct-label">igual que el año pasado</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">17%</span><span class="bloque-pct-label">mejor que el año pasado</span></div>
+                    <div class="accordion-content"><div class="bloque-detail">El grupo más golpeado es el de 46 a 55 años, donde 69% dice estar peor. La clase trabajadora madura absorbe el impacto más concentrado.</div>
+                    <div class="demo-grid"><div class="demo-card"><div class="demo-label">Por género</div><div class="demo-row"><span class="demo-row-label">Hombres</span><span class="demo-row-val">62%</span></div><div class="demo-row"><span class="demo-row-label">Mujeres</span><span class="demo-row-val">50%</span></div></div><div class="demo-card"><div class="demo-label">Por edad</div><div class="demo-row"><span class="demo-row-label">46-55 años</span><span class="demo-row-val">69%</span></div><div class="demo-row"><span class="demo-row-label">36-45 años</span><span class="demo-row-val">62%</span></div><div class="demo-row"><span class="demo-row-label">18-25 años</span><span class="demo-row-val">41%</span></div></div><div class="demo-card"><div class="demo-label">Por zona</div><div class="demo-row"><span class="demo-row-label">Metro</span><span class="demo-row-val">59%</span></div><div class="demo-row"><span class="demo-row-label">Norte</span><span class="demo-row-val">52%</span></div></div></div></div>
+                </div>
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Contrato meritocrático</div><div class="bloque-card-title">El esfuerzo que ya no garantiza nada</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"Trabajo, me sacrifico… y aun así no se siente suficiente."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">86%</span><span class="bloque-pct-label">cree que es muy difícil progresar aunque trabaje</span><span class="bloque-pct-delta">Sube</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">70%</span><span class="bloque-pct-label">muy de acuerdo con que el esfuerzo no alcanza</span></div>
+                    <div class="accordion-content"><div class="bloque-detail">El grupo más convencido son los de 36-45 años (74%). Mujeres (74%) más pesimistas que hombres (66%). NSE Medio 72%.</div></div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Emociones generales vs. emociones económicas</div>
+                <div class="chart-subtitle">Cuando la pregunta es el bolsillo, las emociones negativas se concentran · P6 vs P15</div>
+                <div class="chart-wrap-tall"><canvas id="chartEmocionesComp"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVALUACIÓN GOBIERNO -->
+    <section id="evaluacion-gobierno" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Percepción del país y del gobierno</h2><span class="section-rule"></span></div>
+            <p class="section-intro">Dirección consolidada, aprobación en caída y un legado que se lee en clave de fracaso.</p>
+            <div class="chart-grid-2" style="margin-bottom:32px">
+                <div class="chart-card">
+                    <div class="chart-title">Preocupaciones nacionales más mencionadas</div>
+                    <div class="chart-subtitle">% que menciona entre sus top 3 · P8</div>
+                    <div class="chart-wrap-tall"><canvas id="chartPreocupaciones"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Calificación de la gestión presidencial (1-10)</div>
+                    <div class="chart-subtitle">Distribución de calificaciones · P9</div>
+                    <div class="chart-wrap-tall"><canvas id="chartAprobacion"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-card" style="margin-bottom:32px">
+                <div class="chart-title">Atribuciones del legado del gobierno</div>
+                <div class="chart-subtitle">% que menciona cada atribución · P11</div>
+                <div class="chart-wrap"><canvas id="chartLegadoAtrib"></canvas></div>
+            </div>
+            <div class="bloque-grid">
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Dirección del país</div><div class="bloque-card-title">79% en dirección incorrecta — máximo histórico</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"La aprobación no se construye en discursos. Se construye en el bolsillo."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">79%</span><span class="bloque-pct-label">dirección incorrecta</span><span class="bloque-pct-delta">+8pts</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">16%</span><span class="bloque-pct-label">dirección correcta</span></div>
+                    <div class="accordion-content"><div class="bloque-detail">Desde la Ola 1 en octubre 2024 (56%) escala ola a ola sin señales de reversa. Sin diferencia de clase: NSE Alto 77%, Bajo 78%.</div></div>
+                </div>
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Legado</div><div class="bloque-card-title">Dos tercios dicen que el país quedará peor</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"El legado se lee en clave de fallas estructurales."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">66%</span><span class="bloque-pct-label">cree que dejará el país peor</span><span class="bloque-pct-delta">+12pts</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">67%</span><span class="bloque-pct-label">atribuye aumento de deuda al legado</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">15%</span><span class="bloque-pct-label">menciona obras como legado positivo</span></div>
+                    <div class="accordion-content">
+                        <table class="tracking-table">
+                            <thead><tr><th>¿Cómo quedará el país?</th><th>Ola 3</th><th>Ola 5</th><th>Ola 6</th><th>Ola 7</th></tr></thead>
+                            <tbody>
+                                <tr><td>Mejor</td><td class="pct-cell">32%</td><td class="pct-cell">21%</td><td class="pct-cell">21%</td><td class="pct-cell">13%</td></tr>
+                                <tr><td>Igual</td><td class="pct-cell">24%</td><td class="pct-cell">19%</td><td class="pct-cell">25%</td><td class="pct-cell">21%</td></tr>
+                                <tr class="ola7"><td>Peor</td><td class="pct-cell">44%</td><td class="pct-cell">60%</td><td class="pct-cell">54%</td><td class="pct-cell highlight">66%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ECONOMÍA PERSONAL -->
+    <section id="economia-personal" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Economía cotidiana</h2><span class="section-rule"></span></div>
+            <p class="section-intro">El ajuste que no para — deuda, recortes y un hogar que opera en modo supervivencia.</p>
+            <div class="chart-grid-2" style="margin-bottom:32px">
+                <div class="chart-card">
+                    <div class="chart-title">Productos con mayor alza de precios percibida</div>
+                    <div class="chart-subtitle">% que menciona cada categoría · P17</div>
+                    <div class="chart-wrap-tall"><canvas id="chartPrecios"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Recortes realizados en el hogar</div>
+                    <div class="chart-subtitle">% que reporta haber recortado en cada categoría · P13</div>
+                    <div class="chart-wrap-tall"><canvas id="chartRecortes"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-grid-2" style="margin-bottom:32px">
+                <div class="chart-card">
+                    <div class="chart-title">Endeudamiento para básicos por nivel socioeconómico</div>
+                    <div class="chart-subtitle">% que se endeudó para cubrir gastos del hogar · P12</div>
+                    <div class="chart-wrap"><canvas id="chartDeudaNSE"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Lo que más duele del ajuste</div>
+                    <div class="chart-subtitle">Principal costo emocional · P21</div>
+                    <div class="chart-wrap"><canvas id="chartDolor"></canvas></div>
+                </div>
+            </div>
+            <div class="bloque-grid">
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Deuda del hogar</div><div class="bloque-card-title">75% se endeudó para llegar a fin de mes</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"Ya no se ahorra para el futuro. Se debe para llegar al presente."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">75%</span><span class="bloque-pct-label">se endeudó por insuficiencia de ingresos</span><span class="bloque-pct-delta">+15pts</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">12%</span><span class="bloque-pct-label">cubre gastos sin endeudarse</span></div>
+                    <div class="accordion-content"><div class="bloque-detail">NSE Bajo: 82% vs Alto: 59%. El ajuste no es solo de los vulnerables — es sistémico.</div></div>
+                </div>
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Margen económico</div><div class="bloque-card-title">77% sin margen para absorber más</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"El próximo shock no tiene dónde caer."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">47%</span><span class="bloque-pct-label">nada preparado para más alzas</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">30%</span><span class="bloque-pct-label">poco preparado</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">7%</span><span class="bloque-pct-label">muy preparado</span></div>
+                    <div class="accordion-content"><div class="bloque-detail">NSE Bajo: 54% nada preparado. Metro: 51%.</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ÁNIMO ECONÓMICO -->
+    <section id="animo-economico" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Ánimo económico y perspectiva</h2><span class="section-rule"></span></div>
+            <p class="section-intro">La paradoja central del país: pesimismo colectivo y optimismo individual conviven en el mismo dominicano.</p>
+            <div class="paradox-box" style="margin-bottom:32px">
+                <div class="paradox-side paradox-side--a">
+                    <div class="paradox-pct paradox-pct--a">71%</div>
+                    <div class="paradox-label">espera que su situación económica personal mejore</div>
+                    <div class="paradox-desc">NSE Bajo el más optimista (77%) — cuando partes del piso, cualquier dirección es hacia arriba.</div>
+                </div>
+                <div class="paradox-side">
+                    <div class="paradox-pct paradox-pct--b">79%</div>
+                    <div class="paradox-label">cree que el país va en dirección incorrecta</div>
+                    <div class="paradox-desc">El pesimismo colectivo alcanza máximo histórico. Metro: 86%.</div>
+                </div>
+                <div class="paradox-connector">La esperanza se privatizó. El dominicano ya no apuesta al sistema — apuesta a sí mismo. Esa brecha de 8 puntos entre el yo y el nosotros es el termómetro para la Ola 8.</div>
+            </div>
+            <div class="chart-grid-2">
+                <div class="chart-card">
+                    <div class="chart-title">¿A quién beneficia el crecimiento económico?</div>
+                    <div class="chart-subtitle">84% dice que a políticos y funcionarios · P29</div>
+                    <div class="chart-wrap"><canvas id="chartBeneficia"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Cambios en ingresos por tipo de empleo</div>
+                    <div class="chart-subtitle">Últimos 6 meses · P25</div>
+                    <div class="chart-wrap"><canvas id="chartIngresos"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INFRAESTRUCTURA Y CONFIANZA -->
+    <section id="infraestructura-confianza" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Infraestructura, energía y confianza</h2><span class="section-rule"></span></div>
+            <p class="section-intro">Donde la economía personal y la evaluación política se fusionan de manera más directa.</p>
+            <div class="chart-grid-3" style="margin-bottom:32px">
+                <div class="chart-card">
+                    <div class="chart-title">Gestión eléctrica</div>
+                    <div class="chart-subtitle">Evaluación ciudadana · P38</div>
+                    <div class="chart-wrap"><canvas id="chartElectrica"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Confianza en el gobierno</div>
+                    <div class="chart-subtitle">Estado y recuperabilidad · P40</div>
+                    <div class="chart-wrap"><canvas id="chartConfianza"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Imagen del gobierno</div>
+                    <div class="chart-subtitle">Atributos más mencionados · P34</div>
+                    <div class="chart-wrap"><canvas id="chartImagen"></canvas></div>
+                </div>
+            </div>
+            <div class="bloque-grid">
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Seguridad ciudadana</div><div class="bloque-card-title">49% siente su barrio menos seguro</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"La inseguridad avanza en todas las regiones y todos los NSE."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">49%</span><span class="bloque-pct-label">siente su barrio menos seguro que hace un año</span><span class="bloque-pct-delta">Sube</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">22%</span><span class="bloque-pct-label">más seguro</span></div>
+                    <div class="accordion-content"><div class="bloque-detail">NSE Alto 48% — la inseguridad ya no es solo del vulnerable. Es transversal.</div></div>
+                </div>
+                <div class="bloque-card interactive-card" onclick="toggleAccordion(this)">
+                    <div class="bloque-card-header"><div><div class="bloque-card-label">Tolerancia fiscal</div><div class="bloque-card-title">Solo 16% pagaría más impuestos sin condiciones</div></div><span class="dropdown-arrow">&#9660;</span></div>
+                    <div class="bloque-insight">"El umbral de tolerancia fiscal está roto."</div>
+                    <div class="bloque-data-row"><span class="bloque-pct">61%</span><span class="bloque-pct-label">se niega bajo cualquier condición</span></div>
+                    <div class="bloque-data-row"><span class="bloque-pct">23%</span><span class="bloque-pct-label">aceptaría solo con transparencia garantizada</span></div>
+                    <div class="accordion-content"><div class="bloque-detail">La pérdida de confianza tiene consecuencias fiscales concretas.</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- OTROS INDICADORES -->
+    <section id="otros-indicadores" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">Otros indicadores</h2><span class="section-rule"></span></div>
+            <div class="chart-grid-3">
+                <div class="chart-card">
+                    <div class="chart-title">Adopción de IA en RD</div>
+                    <div class="chart-subtitle">Frecuencia de uso de asistentes de texto · P52</div>
+                    <div class="chart-wrap"><canvas id="chartIA"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Disposición ambiental</div>
+                    <div class="chart-subtitle">Disposición a adoptar hábitos sostenibles · P54</div>
+                    <div class="chart-wrap"><canvas id="chartAmbiental"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Impacto de las lluvias</div>
+                    <div class="chart-subtitle">Consecuencias reportadas · P58</div>
+                    <div class="chart-wrap"><canvas id="chartLluvias"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROTAGONISTA -->
+    <section id="protagonista" class="fade-in">
+        <div class="container">
+            <div class="section-head"><h2 class="section-label">El protagonista del relato</h2><span class="section-rule"></span></div>
+            <p class="section-intro">Hay un dominicano que concentra el impacto más agudo de la Ola 7.</p>
+            <div class="protagonist-box">
+                <div class="protagonist-profile">
+                    <div class="protagonist-label">Perfil</div>
+                    <div class="protagonist-title">Tiene entre 36 y 55 años. Trabaja, tiene hijos, y siente que el contrato se rompió en sus manos.</div>
+                    <div class="protagonist-traits">
+                        <div class="protagonist-trait">Trabaja de forma independiente o formal con ingresos variables</div>
+                        <div class="protagonist-trait">Tiene hijos en edad escolar o universitaria</div>
+                        <div class="protagonist-trait">Su mayor dolor: no poder darle a sus hijos lo que necesitan (47% en 36-45 años)</div>
+                        <div class="protagonist-trait">Se endeudó para básicos (78% en 36-45 años)</div>
+                        <div class="protagonist-trait">Sus ingresos bajaron (42% en 36-45, 49% en 46-55)</div>
+                        <div class="protagonist-trait">Siente la mayor impotencia de todos los grupos (34% en 46-55)</div>
+                    </div>
+                </div>
+                <div class="protagonist-contract">
+                    <div class="protagonist-quote">"Me sacrifico hoy para que mis hijos estén mejor mañana."</div>
+                    <div class="protagonist-quote-meta">Ese fue el contrato generacional dominicano. En 2026, ese contrato se rompió en sus manos. No por falta de esfuerzo — por falta de sistema que lo respalde.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-sources"><strong>Fuente:</strong> Clima Social Dominicano — Ola 7, Abril 2026 · LS Consulting / La Sociedad<br>n=808 entrevistas. Datos reequilibrados por ponderación aplicada.</div>
+        <div class="footer-run"><a href="index.html" style="color:inherit;text-decoration:underline">&#8592; Volver al índice económico</a></div>
+    </div>
+</footer>
+
+<button id="backToTop" class="back-to-top" aria-label="Volver al inicio" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+<script>
+// ── CHART DEFAULTS ──
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.color = '#555';
+const CS_A = '#F97316', CS_B = '#EC4899', BLUE = '#002D62';
+const CS_COLORS = [CS_A, CS_B, '#BE185D', '#9D174D', '#002D62', '#1D4ED8', '#E5E7EB'];
+
+// ── TRACKING: dirección incorrecta ──
+new Chart(document.getElementById('chartTracking'), {
+    type: 'line',
+    data: {
+        labels: ['Ola 1\nOct 24','Ola 2\nDic 24','Ola 3\nEne 25','Ola 4\nMar 25','Ola 5\nJun 25','Ola 6\nEne 26','Ola 7\nAbr 26'],
+        datasets: [{
+            label: 'Dirección incorrecta',
+            data: [56, 62, 66, 70, 73, 71, 79],
+            borderColor: CS_A, backgroundColor: 'rgba(249,115,22,.08)',
+            borderWidth: 2.5, pointBackgroundColor: CS_A, pointRadius: 5,
+            pointHoverRadius: 7, fill: true, tension: .35
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '%' } } },
+        scales: { y: { min: 40, max: 90, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
+    }
+});
+
+// ── TRACKING: legado peor ──
+new Chart(document.getElementById('chartLegado'), {
+    type: 'line',
+    data: {
+        labels: ['Ola 3', 'Ola 4', 'Ola 5', 'Ola 6', 'Ola 7'],
+        datasets: [
+            { label: 'Peor', data: [44, 52, 60, 54, 66], borderColor: CS_A, backgroundColor: 'rgba(249,115,22,.08)', borderWidth: 2.5, pointBackgroundColor: CS_A, pointRadius: 5, fill: true, tension: .35 },
+            { label: 'Mejor', data: [32, 24, 21, 21, 13], borderColor: BLUE, backgroundColor: 'rgba(0,45,98,.05)', borderWidth: 2, pointBackgroundColor: BLUE, pointRadius: 4, fill: true, tension: .35 }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.y + '%' } } },
+        scales: { y: { min: 0, max: 80, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
+    }
+});
+
+// ── FRASE VITAL ──
+new Chart(document.getElementById('chartFraseVital'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Con dificultad', 'Estancado', 'Retrocediendo', 'Sin definir', 'Avanzando'],
+        datasets: [{ data: [34, 15, 14, 31, 6], backgroundColor: [CS_A, CS_B, '#BE185D', '#E5E7EB', BLUE], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
+    }
+});
+
+// ── EMOCIONES GENERALES ──
+new Chart(document.getElementById('chartEmociones'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Preocupación', 'Esperanza', 'Ansiedad', 'Impotencia', 'Inseguridad', 'Frustración', 'Otras'],
+        datasets: [{ data: [31, 24, 20, 20, 20, 19, 16], backgroundColor: [CS_A, BLUE, CS_B, '#BE185D', '#9D174D', '#F59E0B', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
+    }
+});
+
+// ── PARADOJA ──
+new Chart(document.getElementById('chartParadoja'), {
+    type: 'bar',
+    data: {
+        labels: ['Optimismo personal', 'Pesimismo país'],
+        datasets: [{ data: [71, 79], backgroundColor: [CS_A, BLUE], borderRadius: 8, borderSkipped: false }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false } } }
+    }
+});
+
+// ── EMOCIONES COMPARADAS ──
+new Chart(document.getElementById('chartEmocionesComp'), {
+    type: 'bar',
+    data: {
+        labels: ['Preocupación', 'Ansiedad', 'Esperanza', 'Impotencia', 'Estrés', 'Frustración'],
+        datasets: [
+            { label: 'General (P6)', data: [31, 20, 24, 20, null, 19], backgroundColor: 'rgba(0,45,98,.7)', borderRadius: 4 },
+            { label: 'Económica (P15)', data: [31, 29, 6, null, 11, null], backgroundColor: 'rgba(249,115,22,.8)', borderRadius: 4 }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } },
+            tooltip: { callbacks: { label: c => c.parsed.y != null ? c.dataset.label + ': ' + c.parsed.y + '%' : null }, filter: i => i.parsed.y != null }
+        },
+        scales: { y: { ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
+    }
+});
+
+// ── PREOCUPACIONES ──
+new Chart(document.getElementById('chartPreocupaciones'), {
+    type: 'bar',
+    data: {
+        labels: ['Costo de la vida', 'Corrupción', 'Delincuencia', 'Inmigración', 'Desempleo', 'Pobreza'],
+        datasets: [{ data: [62, 60, 53, 43, 37, 37], backgroundColor: [CS_A, CS_A, CS_B, CS_B, CS_B, CS_B], borderRadius: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 75, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false } } }
+    }
+});
+
+// ── APROBACIÓN ──
+new Chart(document.getElementById('chartAprobacion'), {
+    type: 'bar',
+    data: {
+        labels: ['1 - Pésimo', '2', '3', '4', '5', '6', '7', '8', '9', '10 - Excelente'],
+        datasets: [{ data: [37, 10, 8, 9, 10, 8, 8, 5, 3, 2], backgroundColor: ['#CE1126','#DC2626','#EF4444','#F97316','#FB923C','#FCA5A5','#FDBA74','#002D62','#1D4ED8','#3B82F6'], borderRadius: 4 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '%' } } },
+        scales: { y: { ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
+    }
+});
+
+// ── LEGADO ATRIBUCIONES ──
+new Chart(document.getElementById('chartLegadoAtrib'), {
+    type: 'bar',
+    data: {
+        labels: ['Aumento deuda', 'Costo de vida', 'Incumplimiento promesas', 'Aumento corrupción', 'Obras realizadas (positivo)'],
+        datasets: [{ data: [67, 67, 56, 56, 15], backgroundColor: [CS_A, CS_A, CS_B, CS_B, BLUE], borderRadius: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 80, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false } } }
+    }
+});
+
+// ── PRECIOS ──
+new Chart(document.getElementById('chartPrecios'), {
+    type: 'bar',
+    data: {
+        labels: ['Alimentos básicos', 'Combustible', 'Electricidad', 'Medicamentos', 'Gas propano', 'Transporte', 'Prod. limpieza', 'Educación'],
+        datasets: [{ data: [85, 65, 53, 51, 29, 23, 22, 19], backgroundColor: [CS_A, CS_A, CS_B, CS_B, CS_B, '#E5E7EB', '#E5E7EB', '#E5E7EB'], borderRadius: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+    }
+});
+
+// ── RECORTES ──
+new Chart(document.getElementById('chartRecortes'), {
+    type: 'bar',
+    data: {
+        labels: ['Ropa y calzado', 'Ahorro suspendido', 'Apoyo a familiares', 'Alimentación', 'Compras no esenciales', 'Salud', 'Educación'],
+        datasets: [{ data: [51, 50, 45, 44, 46, 32, 18], backgroundColor: [CS_A, CS_A, CS_A, CS_A, CS_B, CS_B, CS_B], borderRadius: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 65, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+    }
+});
+
+// ── DEUDA POR NSE ──
+new Chart(document.getElementById('chartDeudaNSE'), {
+    type: 'bar',
+    data: {
+        labels: ['NSE Bajo', 'NSE Medio', 'NSE Alto'],
+        datasets: [{ data: [82, 75, 59], backgroundColor: [CS_A, CS_B, 'rgba(249,115,22,.45)'], borderRadius: 8 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '%' } } },
+        scales: { y: { min: 40, max: 95, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
+    }
+});
+
+// ── DOLOR ──
+new Chart(document.getElementById('chartDolor'), {
+    type: 'doughnut',
+    data: {
+        labels: ['No dar a los hijos', 'Sentir que retrocede', 'Dejar de disfrutar', 'No poder ahorrar', 'Depender de otros', 'Otros'],
+        datasets: [{ data: [38, 18, 17, 9, 9, 9], backgroundColor: [CS_A, CS_B, '#BE185D', BLUE, '#1D4ED8', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '55%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
+    }
+});
+
+// ── BENEFICIA ──
+new Chart(document.getElementById('chartBeneficia'), {
+    type: 'bar',
+    data: {
+        labels: ['Políticos', 'Empresarios', 'Extranjeros', 'Sector turismo', 'Clase media', 'Vulnerables'],
+        datasets: [{ data: [84, 64, 34, 28, 7, 4], backgroundColor: [CS_A, CS_A, CS_B, CS_B, BLUE, BLUE], borderRadius: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false } } }
+    }
+});
+
+// ── INGRESOS POR TIPO EMPLEO ──
+new Chart(document.getElementById('chartIngresos'), {
+    type: 'bar',
+    data: {
+        labels: ['Empleado formal', 'Dueño negocio', 'Independiente'],
+        datasets: [
+            { label: 'Bajaron', data: [26, 58, 61], backgroundColor: CS_A, borderRadius: 4 },
+            { label: 'Se mantuvieron', data: [46, 22, 25], backgroundColor: 'rgba(0,0,0,.12)', borderRadius: 0 },
+            { label: 'Aumentaron', data: [20, 14, 10], backgroundColor: BLUE, borderRadius: 4 }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.y + '%' } } },
+        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } } }
+    }
+});
+
+// ── GESTIÓN ELÉCTRICA ──
+new Chart(document.getElementById('chartElectrica'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Muy mala', 'Mala', 'Regular', 'Buena', 'Muy buena'],
+        datasets: [{ data: [32, 21, 26, 14, 7], backgroundColor: ['#CE1126', CS_A, '#E5E7EB', '#1D4ED8', BLUE], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
+    }
+});
+
+// ── CONFIANZA ──
+new Chart(document.getElementById('chartConfianza'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Perdida definitivamente', 'Muy difícil recuperar', 'Puede recuperar', 'Se mantiene'],
+        datasets: [{ data: [33, 39, 19, 8], backgroundColor: ['#CE1126', CS_A, '#FCA5A5', BLUE], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
+    }
+});
+
+// ── IMAGEN GOBIERNO ──
+new Chart(document.getElementById('chartImagen'), {
+    type: 'bar',
+    data: {
+        labels: ['Negligente', 'Desorientado', 'Reactivo', 'Indiferente', 'Oportunista', 'Responsable'],
+        datasets: [{ data: [54, 44, 43, 40, 28, 7], backgroundColor: [CS_A, CS_A, CS_B, CS_B, CS_B, BLUE], borderRadius: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 65, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+    }
+});
+
+// ── IA ──
+new Chart(document.getElementById('chartIA'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Diariamente', 'Semanalmente', 'Mensualmente', 'Raramente', 'No usa/conoce'],
+        datasets: [{ data: [25, 24, 12, 10, 29], backgroundColor: [CS_A, CS_B, '#BE185D', '#9D174D', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
+    }
+});
+
+// ── AMBIENTAL ──
+new Chart(document.getElementById('chartAmbiental'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Muy dispuesto', 'Bastante dispuesto', 'Poco dispuesto', 'Nada dispuesto'],
+        datasets: [{ data: [44, 46, 7, 3], backgroundColor: [BLUE, '#1D4ED8', '#9CA3AF', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
+    }
+});
+
+// ── LLUVIAS ──
+new Chart(document.getElementById('chartLluvias'), {
+    type: 'bar',
+    data: {
+        labels: ['Sale igual aunque tarde', 'No pudo ir al trabajo', 'Home office', 'Usó delivery', 'No pudo llevar hijos', 'Daños en casa'],
+        datasets: [{ data: [40, 33, 32, 14, 13, 17], backgroundColor: [BLUE, CS_A, CS_B, CS_B, CS_B, CS_A], borderRadius: 6 }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
+        scales: { x: { min: 0, max: 55, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+    }
+});
+
+// ── NAV PROGRESS LINE THROUGH BUTTONS ──
+(function() {
+    var track = document.getElementById('navLineTrack');
+    var fill = document.getElementById('navLineFill');
+    var nav = document.getElementById('pageNav');
+    var links = Array.from(document.querySelectorAll('.page-nav-link'));
+    var sections = Array.from(document.querySelectorAll('section[id]'));
+    if (!track || !fill || !nav || !links.length) return;
+
+    function centerOf(link) {
+        var navRect = nav.getBoundingClientRect();
+        var linkRect = link.getBoundingClientRect();
+        return linkRect.left - navRect.left + linkRect.width / 2;
+    }
+
+    function layoutLine() {
+        var firstC = centerOf(links[0]);
+        var lastC = centerOf(links[links.length - 1]);
+        // Track runs from center of first to center of last — continuous, no gaps
+        track.style.left = firstC + 'px';
+        track.style.width = (lastC - firstC) + 'px';
+        fill.style.left = firstC + 'px';
+        fill.style.width = '0px';
+        fill.dataset.first = firstC;
+        fill.dataset.last = lastC;
+    }
+
+    function update() {
+        var scrollY = window.scrollY;
+        var docH = document.documentElement.scrollHeight - window.innerHeight;
+        var n = sections.length;
+        var firstC = parseFloat(fill.dataset.first || 0);
+        var lastC = parseFloat(fill.dataset.last || 0);
+
+        // Find which two sections we're between and interpolate
+        var activeIdx = 0;
+        for (var i = 0; i < n; i++) {
+            if (sections[i].offsetTop - window.innerHeight * 0.3 <= scrollY) activeIdx = i;
+        }
+
+        var targetX;
+        if (activeIdx >= n - 1) {
+            targetX = lastC;
+        } else {
+            var secTop = sections[activeIdx].offsetTop - window.innerHeight * 0.3;
+            var nextTop = sections[activeIdx + 1].offsetTop - window.innerHeight * 0.3;
+            var progress = Math.max(0, Math.min(1, (scrollY - secTop) / (nextTop - secTop)));
+            var fromX = centerOf(links[activeIdx]);
+            var toX = centerOf(links[activeIdx + 1]);
+            targetX = fromX + (toX - fromX) * progress;
+        }
+
+        fill.style.transition = 'none';
+        fill.style.width = Math.max(0, targetX - firstC) + 'px';
+
+        links.forEach(function(link, i) {
+            link.classList.toggle('active', i === activeIdx);
+        });
+    }
+
+    function refresh() { layoutLine(); update(); }
+
+    // Wait for fonts/layout to settle so offsetLeft is accurate
+    setTimeout(refresh, 150);
+    window.addEventListener('load', refresh);
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', refresh, { passive: true });
+})();
+
+// ── FADE IN ──
+(function() {
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.07 });
+    document.querySelectorAll('.fade-in').forEach(function(el) { obs.observe(el); });
+})();
+
+// ── BACK TO TOP ──
+(function() {
+    var btn = document.getElementById('backToTop');
+    if (!btn) return;
+    window.addEventListener('scroll', function() {
+        btn.classList.toggle('show', window.scrollY > 600);
+    }, { passive: true });
+})();
+
+function toggleAccordion(el) {
+    var open = !el.classList.contains('active');
+    el.classList.toggle('active', open);
+    var content = el.querySelector('.accordion-content');
+    if (content) {
+        content.classList.toggle('open', open);
+        content.style.maxHeight = open ? content.scrollHeight + 'px' : null;
+    }
+}
+</script>
+</body>
+</html>

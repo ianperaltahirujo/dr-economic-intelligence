@@ -91,14 +91,31 @@
         .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-mono); font-size: 13px; letter-spacing: .02em; color: var(--black); white-space: nowrap; }
         .brand-mark { width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--blue) 0 50%, var(--red) 50% 100%); box-shadow: var(--shadow-sm); flex-shrink: 0; }
         .brand-text strong { color: var(--blue); font-weight: 600; }
-        .header-nav { display: flex; gap: 40px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+        .header-nav { display: flex; gap: 40px; align-items: center; overflow-x: auto; scrollbar-width: none; position: relative; }
         .header-nav::-webkit-scrollbar { display: none; }
-        .nav-link { font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 4px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease), background .2s var(--ease); }
-        .nav-link:hover { color: var(--blue); background: var(--blue-tint); }
-        .nav-link.active { color: var(--white); background: var(--blue); }
+        .nav-line-track { position: absolute; top: 50%; height: 1px; background: var(--gray-200); transform: translateY(-50%); pointer-events: none; z-index: 1; }
+        .nav-line-fill { position: absolute; top: 50%; height: 1px; background: linear-gradient(90deg, var(--blue), #4A90D9); transform: translateY(-50%); pointer-events: none; z-index: 2; }
+        .nav-link { font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 4px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease); position: relative; z-index: 10; background: transparent; text-shadow: 0 0 8px rgba(255,255,255,1), 0 0 4px rgba(255,255,255,1); }
+        .nav-link:hover { color: var(--blue); background: transparent; }
+        .nav-link.active { color: var(--white); background: transparent; }
+        .nav-link.active::before { content: ''; position: absolute; inset: 0; border-radius: 999px; background: var(--blue); z-index: -1; }
         .header-inner--centered { justify-content: center; }
         .nav-link--source { color: var(--gray-400); font-size: 13px; }
         .nav-link--source:hover { color: var(--blue); background: var(--blue-tint); }
+        .nav-link--clima { font-weight: 600; position: relative; padding: 4px 16px; border-radius: 999px; background: transparent; border: 1px solid var(--gray-200); color: var(--gray-600); overflow: hidden; }
+        .nav-link--clima svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; fill: none; }
+        .nav-link--clima:hover { color: var(--black) !important; border-color: transparent; }
+        .nav-link--clima #climaRect { stroke: url(#climaGrad); stroke-width: 2; stroke-dasharray: 80 400; stroke-dashoffset: 80; transition: stroke-dashoffset .9s ease-in-out; }
+        .nav-link--clima:hover #climaRect { stroke-dashoffset: -400; }
+        .clima-teaser { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 40px 48px; border: var(--border); border-radius: var(--radius); background: var(--white); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; transition: box-shadow .25s var(--ease), transform .25s var(--ease); }
+        .clima-teaser:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); outline: 2px solid #F97316; }
+        .clima-teaser:hover .clima-arrow { background: linear-gradient(90deg, #F97316, #EC4899); color: var(--white); border-color: transparent; }
+        .clima-teaser-left { flex: 1; }
+        .clima-teaser-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; background: linear-gradient(90deg, #F97316, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }
+        .clima-teaser-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--black); margin-bottom: 10px; line-height: 1.2; }
+        .clima-teaser-desc { font-size: 15px; color: var(--gray-600); line-height: 1.7; max-width: 580px; }
+        .clima-teaser-meta { font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 14px; }
+        .clima-arrow { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--gray-400); flex-shrink: 0; transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease); }
 
         /* Layout */
         .container { max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }
@@ -302,12 +319,18 @@
 
 <header class="site-header">
     <div class="header-inner header-inner--centered">
-        <nav class="header-nav" aria-label="Secciones del informe">
+        <nav class="header-nav" id="mainNav" aria-label="Secciones del informe">
+            <span class="nav-line-track" id="mainNavTrack"></span>
+            <span class="nav-line-fill" id="mainNavFill"></span>
             <a href="#contexto-macro" class="nav-link">Contexto</a>
             <a href="#indicadores-seguimiento" class="nav-link">Indicadores</a>
             <a href="#panel-indicadores" class="nav-link">Panel</a>
             <a href="#historial-indice" class="nav-link">Historial</a>
         </nav>
+        <a href="#clima-social-entry" class="nav-link nav-link--clima">
+            <svg aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none"><defs><linearGradient id="climaGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F97316"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs><rect id="climaRect" x="1" y="1" rx="14" fill="none" stroke="url(#climaGrad)" stroke-width="2" stroke-dasharray="80 400" stroke-dashoffset="80" style="transition:stroke-dashoffset .9s ease-in-out"/></svg>
+            Clima Social
+        </a>
     </div>
 </header>
 
@@ -749,13 +772,28 @@
 
 </main>
 
+<section id="clima-social-entry" style="padding: 72px 0; border-top: var(--border);">
+    <div class="container">
+        <div class="section-head"><h2 class="section-label">Más de La Sociedad</h2><span class="section-rule"></span></div>
+        <a href="clima-social.html" class="clima-teaser">
+            <div class="clima-teaser-left">
+                <div class="clima-teaser-tag">Informe · Ola 7 · Abril 2026</div>
+                <div class="clima-teaser-title">Clima Social Dominicano</div>
+                <div class="clima-teaser-desc">Un análisis del estado de ánimo, la economía cotidiana y la percepción ciudadana de la República Dominicana. Basado en 808 entrevistas realizadas en abril de 2026.</div>
+                <div class="clima-teaser-meta">n=808 &nbsp;·&nbsp; Levantamiento abril 2026 &nbsp;·&nbsp; LS Consulting / La Sociedad</div>
+            </div>
+            <div class="clima-arrow">&#8599;</div>
+        </a>
+    </div>
+</section>
+
 <footer class="site-footer">
     <div class="footer-inner">
         <div class="footer-sources">
             <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) · Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
             El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
         </div>
-        <div class="footer-run">Actualizado: 16/06/2026 a las 11:11 &nbsp;·&nbsp; <a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Ver código fuente &#8599;</a></div>
+        <div class="footer-run"><a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Ver código fuente &#8599;</a></div>
     </div>
 </footer>
 
@@ -971,6 +1009,91 @@ function applyRange(months, btn) {
 }
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
 (function() { const def = document.querySelector('.chart-btn[data-range="36"]'); applyRange(36, def); })();
+// ── CLIMA BUTTON SVG RECT ──
+(function() {
+    var btn = document.querySelector('.nav-link--clima');
+    var rect = document.getElementById('climaRect');
+    if (!btn || !rect) return;
+    function sizeRect() {
+        rect.setAttribute('width', btn.offsetWidth - 2);
+        rect.setAttribute('height', btn.offsetHeight - 2);
+        var perimeter = 2 * ((btn.offsetWidth - 2) + (btn.offsetHeight - 2));
+        var dash = Math.round(perimeter * 0.22);
+        var gap = perimeter + 10;
+        rect.setAttribute('stroke-dasharray', dash + ' ' + gap);
+        rect.setAttribute('stroke-dashoffset', dash);
+        btn.addEventListener('mouseenter', function() {
+            rect.style.strokeDashoffset = -(perimeter);
+        });
+        btn.addEventListener('mouseleave', function() {
+            rect.style.strokeDashoffset = dash;
+        });
+    }
+    setTimeout(sizeRect, 100);
+    window.addEventListener('resize', sizeRect);
+})();
+
+// ── NAV PROGRESS LINE ──
+(function() {
+    var track = document.getElementById('mainNavTrack');
+    var fill = document.getElementById('mainNavFill');
+    var nav = document.getElementById('mainNav');
+    var links = Array.from(nav ? nav.querySelectorAll('.nav-link') : []);
+    var sections = Array.from(document.querySelectorAll('section[id]'));
+    if (!track || !fill || !nav || !links.length) return;
+
+    function centerOf(link) {
+        var navRect = nav.getBoundingClientRect();
+        var linkRect = link.getBoundingClientRect();
+        return linkRect.left - navRect.left + linkRect.width / 2;
+    }
+
+    function layoutLine() {
+        var firstC = centerOf(links[0]);
+        var lastC = centerOf(links[links.length - 1]);
+        track.style.left = firstC + 'px';
+        track.style.width = (lastC - firstC) + 'px';
+        fill.style.left = firstC + 'px';
+        fill.style.width = '0px';
+        fill.dataset.first = firstC;
+        fill.dataset.last = lastC;
+    }
+
+    function update() {
+        var scrollY = window.scrollY;
+        var n = sections.length;
+        var firstC = parseFloat(fill.dataset.first || 0);
+        var lastC = parseFloat(fill.dataset.last || 0);
+        var activeIdx = 0;
+        for (var i = 0; i < n; i++) {
+            if (sections[i].offsetTop - window.innerHeight * 0.3 <= scrollY) activeIdx = i;
+        }
+        var targetX;
+        if (activeIdx >= n - 1) {
+            targetX = lastC;
+        } else {
+            var secTop = sections[activeIdx].offsetTop - window.innerHeight * 0.3;
+            var nextTop = sections[activeIdx + 1].offsetTop - window.innerHeight * 0.3;
+            var progress = Math.max(0, Math.min(1, (scrollY - secTop) / (nextTop - secTop)));
+            var fromX = centerOf(links[Math.min(activeIdx, links.length - 1)]);
+            var toX = centerOf(links[Math.min(activeIdx + 1, links.length - 1)]);
+            targetX = fromX + (toX - fromX) * progress;
+        }
+        fill.style.transition = 'none';
+        fill.style.width = Math.max(0, targetX - firstC) + 'px';
+        links.forEach(function(link, i) {
+            if (!link.classList.contains('nav-link--clima')) {
+                link.classList.toggle('active', i === activeIdx);
+            }
+        });
+    }
+
+    function refresh() { layoutLine(); update(); }
+    setTimeout(refresh, 150);
+    window.addEventListener('load', refresh);
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', refresh, { passive: true });
+})();
 </script>
 
 </body>
