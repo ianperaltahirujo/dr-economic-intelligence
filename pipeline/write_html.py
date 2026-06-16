@@ -465,11 +465,10 @@ def build_html(results: dict) -> str:
     total_n = stress_n + watch_n + normal_n
 
     alert_count  = len(alerts) if alerts is not None and not alerts.empty else 0
-    stress_count = int(alerts["is_stress"].sum()) if alert_count > 0 else 0
 
     alert_box_html = f'''
-    <div class="alert-count {'interactive-alert' if stress_count > 0 else ''}" {f'onclick="jumpFilter(\'stress\')"' if stress_count > 0 else ''}>
-        {f'&#9888; {stress_count} indicador{"es" if stress_count != 1 else ""} en zona de alerta <span class="alert-arrow">&#8595;</span>' if stress_count > 0 else '&#10003; Sin alertas activas'}
+    <div class="alert-count {'interactive-alert' if stress_n > 0 else ''}" {f'onclick="jumpFilter(\'stress\')"' if stress_n > 0 else ''}>
+        {f'&#9888; {stress_n} indicador{"es" if stress_n != 1 else ""} en zona de alerta <span class="alert-arrow">&#8595;</span>' if stress_n > 0 else '&#10003; Sin alertas activas'}
     </div>'''
 
     context_section_html = ""
@@ -578,11 +577,14 @@ def build_html(results: dict) -> str:
         .brand {{ display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-mono); font-size: 13px; letter-spacing: .02em; color: var(--black); white-space: nowrap; }}
         .brand-mark {{ width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--blue) 0 50%, var(--red) 50% 100%); box-shadow: var(--shadow-sm); flex-shrink: 0; }}
         .brand-text strong {{ color: var(--blue); font-weight: 600; }}
-        .header-nav {{ display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: none; }}
+        .header-nav {{ display: flex; gap: 40px; align-items: center; overflow-x: auto; scrollbar-width: none; }}
         .header-nav::-webkit-scrollbar {{ display: none; }}
-        .nav-link {{ font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 8px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease), background .2s var(--ease); }}
+        .nav-link {{ font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 4px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease), background .2s var(--ease); }}
         .nav-link:hover {{ color: var(--blue); background: var(--blue-tint); }}
         .nav-link.active {{ color: var(--white); background: var(--blue); }}
+        .header-inner--centered {{ justify-content: center; }}
+        .nav-link--source {{ color: var(--gray-400); font-size: 13px; }}
+        .nav-link--source:hover {{ color: var(--blue); background: var(--blue-tint); }}
 
         /* Layout */
         .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }}
@@ -630,8 +632,7 @@ def build_html(results: dict) -> str:
         .status-desc {{ font-size: 16px; color: var(--gray-600); max-width: 520px; line-height: 1.7; }}
 
         /* Alert button */
-        .alert-count {{ display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: {'var(--red-tint)' if stress_count > 0 else 'var(--gray-100)'}; border: 1px solid {'var(--red)' if stress_count > 0 else 'var(--gray-200)'}; font-size: 13px; color: {'var(--red)' if stress_count > 0 else 'var(--gray-600)'}; font-family: var(--font-mono); align-self: flex-start; }}
-        .interactive-alert {{ cursor: pointer; transition: all .2s var(--ease); }}
+.alert-count {{ display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: {'var(--red-tint)' if stress_n > 0 else 'var(--gray-100)'}; border: 1px solid {'var(--red)' if stress_n > 0 else 'var(--gray-200)'}; font-size: 13px; color: {'var(--red)' if stress_n > 0 else 'var(--gray-600)'}; font-family: var(--font-mono); align-self: flex-start; }}        .interactive-alert {{ cursor: pointer; transition: all .2s var(--ease); }}
         @keyframes alertPulse {{ 0%, 100% {{ background-color: var(--red-tint); border-color: var(--red); box-shadow: none; }} 50% {{ background-color: #ffd6d6; border-color: #ff0000; box-shadow: 0 0 14px rgba(206,17,38,0.55); }} }}
         .interactive-alert:hover {{ animation: alertPulse .9s ease-in-out infinite; }}
         .alert-arrow {{ margin-left: 6px; font-size: 12px; }}
@@ -786,11 +787,7 @@ def build_html(results: dict) -> str:
 <div class="top-accent" id="top"></div>
 
 <header class="site-header">
-    <div class="header-inner">
-        <a href="#top" class="brand" aria-label="Inicio">
-            <span class="brand-mark" aria-hidden="true"></span>
-            <span class="brand-text">Inteligencia Económica<strong> RD</strong></span>
-        </a>
+    <div class="header-inner header-inner--centered">
         <nav class="header-nav" aria-label="Secciones del informe">
             {context_nav}
             <a href="#indicadores-seguimiento" class="nav-link">Indicadores</a>
@@ -920,7 +917,7 @@ def build_html(results: dict) -> str:
             <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) · Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
             El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
         </div>
-        <div class="footer-run">Actualizado: {run_date}</div>
+        <div class="footer-run">Actualizado: {run_date} &nbsp;·&nbsp; <a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Ver código fuente &#8599;</a></div>
     </div>
 </footer>
 
