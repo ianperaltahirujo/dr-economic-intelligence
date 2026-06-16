@@ -496,7 +496,37 @@ def build_html(results: dict) -> str:
     <title>DR Economic Intelligence &#8212; La Sociedad</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        @font-face {{
+            font-family: 'Haffer';
+            src: url('fonts/Haffer-TRIAL-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }}
+        @font-face {{
+            font-family: 'Haffer';
+            src: url('fonts/Haffer-TRIAL-Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }}
+        @font-face {{
+            font-family: 'Reckless';
+            src: url('fonts/RecklessStandardXL-TRIAL-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }}
+        @font-face {{
+            font-family: 'Reckless';
+            src: url('fonts/RecklessStandardM-TRIAL-Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }}
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -507,7 +537,8 @@ def build_html(results: dict) -> str:
             --gray-50: #F9F9F9; --gray-100: #F0F0F0; --gray-200: #E0E0E0; --gray-300: #D2D2D2;
             --gray-400: #999999; --gray-600: #555555;
             --blue-tint: #EEF2F8; --blue-soft: #CDD9EA; --red-tint: #FDF0F2; --green: #2E7D32;
-            --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+            --font-sans: 'Haffer', system-ui, sans-serif;
+            --font-display: 'Reckless', Georgia, serif;
             --font-mono: 'IBM Plex Mono', monospace;
             --maxw: 1140px; --radius: 14px; --radius-sm: 9px;
             --border: 1px solid var(--gray-200);
@@ -560,7 +591,7 @@ def build_html(results: dict) -> str:
         section[id] {{ scroll-margin-top: 16px; }}
         .hero {{ padding-top: 48px; }}
         .section-head {{ display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }}
-        .section-label {{ font-size: 20px; font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
+        .section-label {{ font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
         .section-label::before {{ content: ''; position: absolute; left: 0; top: .14em; bottom: .14em; width: 4px; border-radius: 2px; background: var(--blue); }}
         .section-rule {{ flex: 1; height: 1px; background: linear-gradient(90deg, var(--gray-200), transparent); }}
         .section-intro {{ font-size: 15px; color: var(--gray-600); max-width: 760px; margin-bottom: 30px; line-height: 1.7; }}
@@ -967,18 +998,6 @@ function toggleAccordion(element) {{
             if (content) {{ content.classList.remove('open'); content.style.maxHeight = null; }}
         }}
     }});
-}}
-
-function scrollToAlerts() {{
-    const target = document.getElementById('panel-indicadores');
-    if (target) {{
-        window.scrollTo({{ top: target.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }});
-        setTimeout(() => {{
-            document.querySelectorAll('.card-stress').forEach(card => {{
-                card.classList.remove('blink-alert'); void card.offsetWidth; card.classList.add('blink-alert');
-            }});
-        }}, 500);
-    }}
 }}
 
 function filterIndicators(status, btn) {{
