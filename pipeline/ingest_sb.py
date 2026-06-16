@@ -411,6 +411,10 @@ def load_sb_all(
     Load all SB indicators and merge into a single monthly DataFrame.
     Mirrors the load_all() pattern from ingest_bcrd.py for consistency.
 
+    If the principales endpoint times out, falls back to the last known
+    values from data/processed/vulnerability_scored.csv so the pipeline
+    scores correctly rather than silently dropping 20% of indicator weight.
+
     Args:
         periodo_inicial: Earliest period to fetch (default '2010-01').
         periodo_final:   Latest period (default: current month).
@@ -420,6 +424,14 @@ def load_sb_all(
     """
     if periodo_final is None:
         periodo_final = pd.Timestamp.now().strftime("%Y-%m")
+
+    # Columns sourced exclusively from the principales endpoint.
+    # These are the ones we need to recover from cache if the API times out.
+    PRINCIPALES_COLS = [
+        "sb_solvencia_pct", "sb_morosidad_pct", "sb_tasa_activa_pct",
+        "sb_tasa_pasiva_pct", "sb_roa_pct", "sb_margen_pct",
+        "sb_activos", "sb_cartera_total",
+    ]
 
     loaders = {
         "principales":    lambda: load_principales_indicadores(periodo_inicial, periodo_final),
@@ -435,7 +447,31 @@ def load_sb_all(
                 frames[key] = df
         except Exception as e:
             print(f"  ERROR loading SB [{key}]: {e}")
-            # Non-fatal: skip this indicator and continue with the rest.
+
+            # Cache fallback for principales: the most important endpoint.
+            # If it times out, pull the last known values from the processed
+            # CSV so the pipeline scores on real data instead of dropping
+            # sb_morosidad_pct, sb_solvencia_pct, and sb_tasa_activa_pct.
+            if key == "principales":
+                cache_path = "data/processed/vulnerability_scored.csv"
+                try:
+                    cached = pd.read_csv(cache_path, index_col=0, parse_dates=True)
+                    available = [c for c in PRINCIPALES_COLS if c in cached.columns]
+                    if available:
+                        fallback = cached[available].dropna(how="all")
+                        if not fallback.empty:
+                            frames[key] = fallback
+                            print(f"  [FALLBACK] Using cached principales data "
+                                  f"through {fallback.index[-1].date()}")
+                        else:
+                            print(f"  [FALLBACK] Cache found but no valid rows — skipping.")
+                    else:
+                        print(f"  [FALLBACK] Cache exists but principales columns not found.")
+                except FileNotFoundError:
+                    print(f"  [FALLBACK] No cache at {cache_path} — skipping principales.")
+                except Exception as ce:
+                    print(f"  [FALLBACK] Cache read failed: {ce}")
+
             continue
 
     if not frames:
