@@ -198,7 +198,13 @@ def build_chart_data(scored: pd.DataFrame) -> str:
             colors.append("rgba(0,45,98,0.6)")
         else:
             colors.append("rgba(0,45,98,0.3)")
-    return json.dumps({"labels": labels, "values": values, "colors": colors})
+    provisional = []
+    for idx in history.index:
+        if "is_provisional" in scored.columns:
+            provisional.append(bool(scored.loc[idx, "is_provisional"]))
+        else:
+            provisional.append(False)
+    return json.dumps({"labels": labels, "values": values, "colors": colors, "provisional": provisional})
 
 
 # ── Context Cards Builder ──────────────────────────────────────────────────────
@@ -438,6 +444,10 @@ def build_html(results: dict) -> str:
     else:
         trend_arrow, trend_class, trend_text = "", "trend-neutral", "Dato base"
 
+    is_provisional = False
+    if score_date is not None and "is_provisional" in scored.columns and score_date in scored.index:
+        is_provisional = bool(scored.loc[score_date, "is_provisional"])
+
     status_key   = "HIGH" if score >= HIGH_STRESS_THRESHOLD else ("MODERATE" if score >= MODERATE_SCORE_THRESHOLD else "LOW")
     status_label, status_desc = STATUS_TEXT_ES[status_key]
     score_color  = "#CE1126" if status_key == "HIGH" else "#002D62" if status_key == "MODERATE" else "#1A1A1A"
@@ -567,6 +577,8 @@ def build_html(results: dict) -> str:
         .trend-bad {{ color: var(--red); }} .trend-good {{ color: var(--green); }} .trend-neutral {{ color: var(--gray-400); }}
         .score-trend-text {{ font-size: 14px; font-weight: 600; margin-top: 14px; }}
         .score-date {{ font-size: 13px; color: var(--gray-400); margin-top: 4px; font-family: var(--font-mono); }}
+        .provisional-pill {{ display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: rgba(206,17,38,0.10); color: var(--red); border: 1px solid rgba(206,17,38,0.25); margin-left: 8px; vertical-align: middle; white-space: nowrap; }}
+        .provisional-note {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 6px; }}
 
         /* Score meter */
         .score-meter {{ margin-top: 26px; }}
@@ -764,13 +776,14 @@ def build_html(results: dict) -> str:
             <img src="{HERO_LOGO_SRC}" alt="La Sociedad — DR Economic Intelligence" class="hero-logo">
             <div class="score-hero">
                 <div class="panel score-panel">
-                    <div class="score-label">Nivel de Vulnerabilidad Económica</div>
+                    <div class="score-label">Índice de Vulnerabilidad Económica</div>
                     <div class="score-number">
                         {score:.1f}<span class="score-denom">/100</span>
                         <span class="score-main-arrow {trend_class}">{trend_arrow}</span>
                     </div>
                     <div class="score-trend-text {trend_class}">{trend_text}</div>
-                    <div class="score-date">{date_str}</div>
+                    <div class="score-date">{date_str}{"<span class='provisional-pill'>Avance Estimado</span>" if is_provisional else ""}</div>
+                    {"<div class='provisional-note'>* Gasto turístico proyectado. Se actualizará al publicarse el dato oficial del BCRD.</div>" if is_provisional else ""}
                     <div class="score-meter" role="img" aria-label="Puntuación {score:.1f} de 100">
                         <div class="meter-track"><div class="meter-marker" style="left:{meter_pos:.1f}%"></div></div>
                         <div class="meter-scale"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:65%">65</span><span style="left:100%">100</span></div>
@@ -998,16 +1011,71 @@ function jumpFilter(status) {{
 
 // Main history chart
 const chartData = {chart_data};
+
+// Split into confirmed (solid) and provisional (dashed) datasets.
+// They overlap by one point at the boundary so the line appears continuous.
+const confirmedValues = chartData.values.map((v, i) => chartData.provisional[i] ? null : v);
+const provisionalValues = chartData.values.map((v, i) => {{
+    if (chartData.provisional[i]) return v;
+    // Include the last confirmed point as the start of the dashed segment
+    if (i + 1 < chartData.provisional.length && chartData.provisional[i + 1]) return v;
+    return null;
+}});
+
 const ctx = document.getElementById('scoreChart').getContext('2d');
 const scoreChart = new Chart(ctx, {{
     type: 'line',
-    data: {{ labels: chartData.labels, datasets: [{{ label: 'Índice de Vulnerabilidad', data: chartData.values, borderColor: '#002D62', backgroundColor: 'rgba(0,45,98,0.06)', borderWidth: 2, pointBackgroundColor: chartData.colors, pointBorderColor: chartData.colors, pointRadius: 3, pointHoverRadius: 6, fill: true, tension: 0.3 }}] }},
+    data: {{
+        labels: chartData.labels,
+        datasets: [
+            {{
+                label: 'Índice de Vulnerabilidad',
+                data: confirmedValues,
+                borderColor: '#002D62',
+                backgroundColor: 'rgba(0,45,98,0.06)',
+                borderWidth: 2,
+                pointBackgroundColor: chartData.colors,
+                pointBorderColor: chartData.colors,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.3,
+                spanGaps: false
+            }},
+            {{
+                label: 'Avance Estimado',
+                data: provisionalValues,
+                borderColor: '#002D62',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderDash: [6, 4],
+                pointBackgroundColor: 'rgba(0,45,98,0.4)',
+                pointBorderColor: 'rgba(0,45,98,0.4)',
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                fill: false,
+                tension: 0.3,
+                spanGaps: false
+            }}
+        ]
+    }},
     options: {{
         responsive: true, maintainAspectRatio: false,
         interaction: {{ intersect: false, mode: 'index' }},
         plugins: {{
             legend: {{ display: false }},
-            tooltip: {{ backgroundColor: '#0A0A0A', titleColor: '#fff', bodyColor: '#ccc', padding: 12, displayColors: false, callbacks: {{ label: c => `Índice: ${{c.parsed.y}} / 100` }} }},
+            tooltip: {{
+                backgroundColor: '#0A0A0A', titleColor: '#fff', bodyColor: '#ccc', padding: 12, displayColors: false,
+                callbacks: {{
+                    label: c => {{
+                        const v = c.parsed.y;
+                        if (v === null) return null;
+                        const prov = chartData.provisional[c.dataIndex];
+                        return prov ? `Índice: ${{v}} / 100 (Avance Estimado)` : `Índice: ${{v}} / 100`;
+                    }},
+                    filter: item => item.parsed.y !== null
+                }}
+            }},
             zoom: {{ zoom: {{ wheel: {{ enabled: true }}, pinch: {{ enabled: true }}, mode: 'x' }}, pan: {{ enabled: true, mode: 'x' }} }}
         }},
         scales: {{
@@ -1036,10 +1104,15 @@ function applyRange(months, btn) {{
     if (btn) btn.classList.add('active');
     if (scoreChart.resetZoom) scoreChart.resetZoom();
     const n = months || chartData.labels.length;
-    scoreChart.data.labels = chartData.labels.slice(-n);
-    scoreChart.data.datasets[0].data = chartData.values.slice(-n);
-    scoreChart.data.datasets[0].pointBackgroundColor = chartData.colors.slice(-n);
-    scoreChart.data.datasets[0].pointBorderColor = chartData.colors.slice(-n);
+    const slicedLabels = chartData.labels.slice(-n);
+    const slicedConfirmed = confirmedValues.slice(-n);
+    const slicedProvisional = provisionalValues.slice(-n);
+    const slicedColors = chartData.colors.slice(-n);
+    scoreChart.data.labels = slicedLabels;
+    scoreChart.data.datasets[0].data = slicedConfirmed;
+    scoreChart.data.datasets[0].pointBackgroundColor = slicedColors;
+    scoreChart.data.datasets[0].pointBorderColor = slicedColors;
+    scoreChart.data.datasets[1].data = slicedProvisional;
     scoreChart.update();
 }}
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
