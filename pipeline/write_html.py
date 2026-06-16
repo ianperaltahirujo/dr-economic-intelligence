@@ -458,7 +458,7 @@ def build_html(results: dict) -> str:
     stress_count = int(alerts["is_stress"].sum()) if alert_count > 0 else 0
 
     alert_box_html = f'''
-    <div class="alert-count {'interactive-alert' if stress_count > 0 else ''}" {f'onclick="scrollToAlerts()"' if stress_count > 0 else ''}>
+    <div class="alert-count {'interactive-alert' if stress_count > 0 else ''}" {f'onclick="jumpFilter(\'stress\')"' if stress_count > 0 else ''}>
         {f'&#9888; {stress_count} indicador{"es" if stress_count != 1 else ""} en zona de alerta <span class="alert-arrow">&#8595;</span>' if stress_count > 0 else '&#10003; Sin alertas activas'}
     </div>'''
 
@@ -547,7 +547,7 @@ def build_html(results: dict) -> str:
         .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }}
         main > section {{ padding: 72px 0; border-bottom: var(--border); }}
         main > section:last-child {{ border-bottom: none; }}
-        section[id] {{ scroll-margin-top: 84px; }}
+        section[id] {{ scroll-margin-top: 16px; }}
         .hero {{ padding-top: 48px; }}
         .section-head {{ display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }}
         .section-label {{ font-size: 20px; font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
@@ -979,9 +979,21 @@ function filterIndicators(status, btn) {{
 }}
 
 function jumpFilter(status) {{
-    const panel = document.getElementById('panel-indicadores');
-    if (panel) {{ window.scrollTo({{ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' }}); }}
     filterIndicators(status);
+    const panel = document.getElementById('panel-indicadores');
+    if (panel) {{
+        const targetY = panel.getBoundingClientRect().top + window.scrollY - 16;
+        window.scrollTo({{ top: targetY, behavior: 'smooth' }});
+    }}
+    if (status === 'stress') {{
+        setTimeout(() => {{
+            document.querySelectorAll('.card-stress').forEach(card => {{
+                card.classList.remove('blink-alert');
+                void card.offsetWidth;
+                card.classList.add('blink-alert');
+            }});
+        }}, 1000);
+    }}
 }}
 
 // Main history chart
