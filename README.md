@@ -72,6 +72,8 @@ dr-economic-intelligence/
 │   └── write_html.py                # GitHub Pages site generator
 │
 ├── docs/
+│   ├── clima-social.html            # Static Clima Social page
+│   ├── fonts/                       # For loading necessary font files for both pages
 │   └── index.html                   # Auto-generated, do not edit manually
 │
 ├── data/
