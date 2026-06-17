@@ -553,7 +553,8 @@ def build_html(results: dict) -> str:
             --header-h: 64px;
         }}
         html {{ font-size: 16px; scroll-behavior: smooth; }}
-        body {{ font-family: var(--font-sans); background: var(--white); color: var(--black); line-height: 1.6; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }}
+        body {{ font-family: var(--font-sans); background: var(--white); color: var(--black); line-height: 1.6; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: hidden; }}
+        img, svg, canvas {{ max-width: 100%; }}
         a {{ color: inherit; }}
         ::selection {{ background: rgba(0,45,98,.14); }}
         :focus-visible {{ outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }}
@@ -578,14 +579,15 @@ def build_html(results: dict) -> str:
 
         /* Header */
         .site-header {{ position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.85); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: var(--border); }}
-        .header-inner {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 24px; }}
+        .header-inner {{ max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 40px); height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 16px; }}
         .brand {{ display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--font-mono); font-size: 13px; letter-spacing: .02em; color: var(--black); white-space: nowrap; }}
         .brand-mark {{ width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--blue) 0 50%, var(--red) 50% 100%); box-shadow: var(--shadow-sm); flex-shrink: 0; }}
         .brand-text strong {{ color: var(--blue); font-weight: 600; }}
-        .header-nav {{ display: flex; gap: 40px; align-items: center; overflow-x: auto; scrollbar-width: none; position: relative; }}
+        .header-nav {{ display: flex; gap: clamp(8px, 2.5vw, 40px); align-items: center; overflow-x: auto; scrollbar-width: none; position: relative; }}
         .header-nav::-webkit-scrollbar {{ display: none; }}
-        .nav-cluster {{ display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }}
-        .nav-labels {{ display: flex; align-items: center; gap: 24px; position: relative; z-index: 5; }}
+        .nav-cluster {{ display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; max-width: 100%; }}
+        .nav-labels {{ display: flex; align-items: center; gap: clamp(6px, 2vw, 24px); position: relative; z-index: 5; max-width: 100%; overflow-x: auto; scrollbar-width: none; }}
+        .nav-labels::-webkit-scrollbar {{ display: none; }}
         .nav-metro {{ width: 100%; height: 14px; overflow: visible; pointer-events: none; }}
         .nav-link {{ font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 4px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease), background .25s var(--ease); position: relative; z-index: 10; background: transparent; text-shadow: 0 0 6px rgba(255,255,255,.35); }}
         .nav-link:hover {{ color: var(--blue); background: transparent; }}
@@ -612,24 +614,24 @@ def build_html(results: dict) -> str:
         .clima-arrow::after {{ content: ''; display: block; width: 12px; height: 12px; border-top: 2.5px solid #fff; border-right: 2.5px solid #fff; transform: rotate(45deg) translate(-2px, 2px); }}
 
         /* Layout */
-        .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }}
-        main > section {{ padding: 72px 0; border-bottom: var(--border); }}
+        .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 40px); }}
+        main > section {{ padding: clamp(40px, 7vw, 72px) 0; border-bottom: var(--border); }}
         main > section:last-child {{ border-bottom: none; }}
         section[id] {{ scroll-margin-top: 16px; }}
-        .hero {{ padding-top: 48px; }}
+        .hero {{ padding-top: clamp(28px, 5vw, 48px); }}
         .section-head {{ display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }}
-        .section-label {{ font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
+        .section-label {{ font-family: var(--font-display); font-size: clamp(17px, 3.5vw, 20px); font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
         .section-label::before {{ content: ''; position: absolute; left: 0; top: .14em; bottom: .14em; width: 4px; border-radius: 2px; background: var(--blue); }}
         .section-rule {{ flex: 1; height: 1px; background: linear-gradient(90deg, var(--gray-200), transparent); }}
         .section-intro {{ font-size: 15px; color: var(--gray-600); max-width: 760px; margin-bottom: 30px; line-height: 1.7; }}
 
         /* Hero */
         .hero-logo {{ max-width: 520px; width: 100%; height: auto; margin-bottom: 44px; display: block; }}
-        .score-hero {{ display: grid; grid-template-columns: 1.05fr 1fr; gap: 24px; align-items: stretch; }}
+        .score-hero {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 24px; align-items: stretch; }}
         .panel {{ background: var(--white); border: var(--border); border-radius: var(--radius); padding: 30px 32px; box-shadow: var(--shadow-sm); }}
         .score-panel {{ border-top: 3px solid {score_color}; }}
         .score-label {{ font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; color: var(--gray-600); text-transform: uppercase; margin-bottom: 12px; }}
-        .score-number {{ font-family: var(--font-mono); font-size: 84px; font-weight: 600; line-height: 1; color: {score_color}; letter-spacing: -3px; display: flex; align-items: baseline; flex-wrap: wrap; }}
+        .score-number {{ font-family: var(--font-mono); font-size: clamp(46px, 13vw, 84px); font-weight: 600; line-height: 1; color: {score_color}; letter-spacing: -3px; display: flex; align-items: baseline; flex-wrap: wrap; }}
         .score-denom {{ font-family: var(--font-mono); font-size: 20px; color: var(--gray-400); margin-left: 6px; letter-spacing: 0; }}
         .score-main-arrow {{ font-size: 40px; margin-left: 14px; letter-spacing: 0; }}
         .trend-bad {{ color: var(--red); }} .trend-good {{ color: var(--green); }} .trend-neutral {{ color: var(--gray-400); }}
@@ -673,7 +675,7 @@ def build_html(results: dict) -> str:
         .chip-normal .chip-dot {{ background: var(--gray-400); }}
 
         /* Briefing */
-        .briefing-text {{ font-size: 19px; line-height: 1.85; color: var(--black); max-width: 860px; }}
+        .briefing-text {{ font-size: clamp(16px, 2.4vw, 19px); line-height: 1.85; color: var(--black); max-width: 860px; }}
         .briefing-text p {{ margin-bottom: 20px; }}
         .briefing-text p:last-child {{ margin-bottom: 0; color: var(--gray-600); font-size: 15px; line-height: 1.7; padding-top: 18px; border-top: var(--border); }}
         .briefing-text strong {{ color: var(--blue); font-weight: 600; }}
@@ -684,7 +686,7 @@ def build_html(results: dict) -> str:
         .card-desc {{ font-size: 13px; color: var(--gray-600); line-height: 1.65; }}
 
         /* Context cards */
-        .context-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }}
+        .context-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }}
         .context-card {{ padding: 24px; border: var(--border); background: var(--white); border-radius: var(--radius); display: flex; flex-direction: column; box-shadow: var(--shadow-sm); transition: box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s var(--ease); }}
         .context-card:hover {{ box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: var(--gray-300); }}
         .context-item {{ display: grid; grid-template-columns: 1fr 84px; gap: 16px; align-items: center; margin-top: 16px; padding-bottom: 14px; border-bottom: var(--border); }}
@@ -713,7 +715,7 @@ def build_html(results: dict) -> str:
 
         /* Panel legend + filters */
         .legend-intro {{ font-size: 13px; font-weight: 600; color: var(--gray-600); letter-spacing: .02em; margin-bottom: 14px; }}
-        .legend-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 36px; }}
+        .legend-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 14px; margin-bottom: 36px; }}
         .legend-item {{ padding: 18px 20px; background: var(--gray-50); border: var(--border); border-radius: var(--radius-sm); transition: background .2s var(--ease); }}
         .legend-item:hover {{ background: var(--gray-100); }}
         .legend-title {{ font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }}
@@ -725,8 +727,8 @@ def build_html(results: dict) -> str:
         .filter-chip.active {{ background: var(--blue); border-color: var(--blue); color: var(--white); }}
 
         /* Indicator cards */
-        .cards-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }}
-        .indicator-card {{ padding: 26px; border: var(--border); background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s var(--ease); }}
+        .cards-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }}
+        .indicator-card {{ padding: 26px; border: var(--border); background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s var(--ease); max-width: 460px; }}
         .indicator-card::before {{ content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gray-300); }}
         .indicator-card[data-status="watch"]::before {{ background: var(--blue); }}
         .indicator-card[data-status="stress"]::before {{ background: var(--red); }}
@@ -759,7 +761,7 @@ def build_html(results: dict) -> str:
 
         /* Footer */
         .site-footer {{ padding: 44px 0; background: var(--gray-50); border-top: var(--border); }}
-        .footer-inner {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }}
+        .footer-inner {{ max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 40px); display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }}
         .footer-sources {{ font-size: 13px; color: var(--gray-600); line-height: 1.7; max-width: 640px; }}
         .footer-sources strong {{ font-weight: 600; color: var(--black); }}
         .footer-run {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); white-space: nowrap; }}
@@ -771,25 +773,16 @@ def build_html(results: dict) -> str:
 
         /* Responsive */
         @media (max-width: 980px) {{
-            .score-hero {{ grid-template-columns: 1fr; gap: 20px; }}
-            .cards-grid, .context-grid, .legend-grid {{ grid-template-columns: repeat(2, 1fr); }}
-            .score-number {{ font-size: 68px; }}
             .hero-logo {{ max-width: 400px; }}
         }}
         @media (max-width: 640px) {{
-            .container, .header-inner, .footer-inner {{ padding-left: 20px; padding-right: 20px; }}
-            main > section {{ padding: 48px 0; }}
-            .cards-grid, .context-grid, .legend-grid {{ grid-template-columns: 1fr; }}
             .alert-item {{ grid-template-columns: 1fr; gap: 10px; }}
-            .score-number {{ font-size: 56px; }}
             .brand-text {{ display: none; }}
             .hero-logo {{ max-width: 240px; }}
             .panel {{ padding: 24px; }}
-            .briefing-text {{ font-size: 16px; }}
             .footer-inner {{ flex-direction: column; align-items: flex-start; }}
             .nav-cluster {{ align-items: flex-start; }}
-            .nav-labels {{ overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; gap: 6px; }}
-            .nav-labels::-webkit-scrollbar {{ display: none; }}
+            .nav-labels {{ padding-bottom: 2px; }}
             .nav-metro {{ display: none; }}
             .nav-link {{ padding: 8px 14px; }}
             .filter-chip, .chart-btn {{ min-height: 40px; }}
@@ -985,7 +978,7 @@ def build_html(results: dict) -> str:
     <div class="footer-inner">
         <div class="footer-sources">
             <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) · Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
-            El índice combina 12 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
+            El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
         </div>
         <div class="footer-run"><a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Ver código fuente &#8599;</a></div>
     </div>
