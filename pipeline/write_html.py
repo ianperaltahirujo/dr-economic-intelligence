@@ -787,6 +787,15 @@ def build_html(results: dict) -> str:
             .panel {{ padding: 24px; }}
             .briefing-text {{ font-size: 16px; }}
             .footer-inner {{ flex-direction: column; align-items: flex-start; }}
+            .nav-cluster {{ align-items: flex-start; }}
+            .nav-labels {{ overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; gap: 6px; }}
+            .nav-labels::-webkit-scrollbar {{ display: none; }}
+            .nav-metro {{ display: none; }}
+            .nav-link {{ padding: 8px 14px; }}
+            .filter-chip, .chart-btn {{ min-height: 40px; }}
+            .clima-teaser {{ flex-direction: column; align-items: flex-start; padding: 28px 24px; gap: 20px; }}
+            .clima-arrow {{ align-self: flex-end; }}
+            .chart-hint {{ font-size: 11px; }}
         }}
         @media (prefers-reduced-motion: reduce) {{
             * {{ animation: none !important; transition: none !important; scroll-behavior: auto !important; }}
@@ -976,7 +985,7 @@ def build_html(results: dict) -> str:
     <div class="footer-inner">
         <div class="footer-sources">
             <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) · Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
-            El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
+            El índice combina 12 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
         </div>
         <div class="footer-run"><a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Ver código fuente &#8599;</a></div>
     </div>
@@ -1141,10 +1150,10 @@ const scoreChart = new Chart(ctx, {{
                     filter: item => item.parsed.y !== null
                 }}
             }},
-            zoom: {{ zoom: {{ wheel: {{ enabled: true }}, pinch: {{ enabled: true }}, mode: 'x' }}, pan: {{ enabled: true, mode: 'x' }} }}
+            zoom: {{ zoom: {{ wheel: {{ enabled: true }}, pinch: {{ enabled: true }}, mode: 'x' }}, pan: {{ enabled: true, mode: 'x', touch: false }} }}
         }},
         scales: {{
-            x: {{ grid: {{ color: 'rgba(0,0,0,0.05)' }}, ticks: {{ font: {{ family: 'IBM Plex Mono', size: 11 }}, color: '#555555', maxTicksLimit: 14, maxRotation: 45 }} }},
+            x: {{ grid: {{ color: 'rgba(0,0,0,0.05)' }}, ticks: {{ font: {{ family: 'IBM Plex Mono', size: 11 }}, color: '#555555', maxTicksLimit: window.innerWidth < 640 ? 6 : 14, maxRotation: 45 }} }},
             y: {{ min: 0, max: 100, grid: {{ color: 'rgba(0,0,0,0.05)' }}, ticks: {{ font: {{ family: 'IBM Plex Mono', size: 11 }}, color: '#555555', stepSize: 25, callback: v => v + '/100' }} }}
         }}
     }}

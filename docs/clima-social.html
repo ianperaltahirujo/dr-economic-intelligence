@@ -74,6 +74,7 @@
         main>section{padding:72px 0;border-bottom:var(--border)}
         main>section:last-child{border-bottom:none}
         section[id]{scroll-margin-top:calc(var(--header-h) + var(--nav-h) + 16px)}
+        @media(max-width:640px){section[id]{scroll-margin-top:108px}}
         .section-head{display:flex;align-items:center;gap:16px;margin-bottom:18px}
         .section-label{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--black);letter-spacing:-.01em;position:relative;padding-left:14px}
         .section-label::before{content:'';position:absolute;left:0;top:.14em;bottom:.14em;width:4px;border-radius:2px;background:linear-gradient(180deg,#F97316,#EC4899)}
@@ -200,6 +201,19 @@
             .tesis-grid,.stat-grid,.hero-stats-row,.chart-grid-3{grid-template-columns:1fr}
             .demo-grid{grid-template-columns:1fr}
             .page-nav-inner{padding:0 20px}
+            /* Hide badge to save space, shrink header */
+            .header-badge{display:none}
+            .header-inner{height:52px}
+            /* Sub-nav: shorter, full-width scroll */
+            :root{--nav-h:40px;}
+            .page-nav-wrap{top:52px}
+            .page-nav-inner{height:40px;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;gap:2px}
+            .page-nav-inner::-webkit-scrollbar{display:none}
+            .page-nav-link{padding:7px 12px;font-size:10px;text-shadow:none}
+            /* Tap targets */
+            .header-back{min-height:40px;display:flex;align-items:center}
+            /* Footer */
+            .footer-inner{flex-direction:column;align-items:flex-start}
         }
     </style>
 </head>
