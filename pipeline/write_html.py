@@ -26,6 +26,7 @@ from pipeline.build_vulnerability import (
     VULNERABILITY_COMPONENTS,
     INDICATOR_LABELS,
     HIGH_STRESS_THRESHOLD,
+    classify_indicator,
 )
 
 # ── Hero logo ────────────────────────────────────────────────
@@ -186,25 +187,128 @@ def generate_briefing(results: dict, scored: pd.DataFrame) -> str:
 
 # ── Chart data builder ─────────────────────────────────────────────────────────
 
+MIN_ESTIMATE_COMPONENTS = 2  # at least this many indicators must be present;
+                              # a single indicator can swing the renormalized
+                              # score to 0 or 100 on its own, which is not a
+                              # meaningful reading, just division by a tiny
+                              # weight. Two or more indicators means the
+                              # score reflects at least some averaging.
+
+
+def _renormalized_estimate(row: pd.Series) -> tuple[float, float, int] | None:
+    """
+    Display-only partial-coverage score for the historical chart, used only
+    for months before full 12-indicator coverage exists. Sums
+    weighted_score across whichever components have both a value and a
+    z-score that month, then divides by the sum of weights actually in
+    play (not 1.0), keeping the result on a 0-100 scale. This number is
+    never written back into the scored DataFrame's vulnerability_score
+    and never feeds any other output; it exists solely to give the
+    "Historial completo del índice" chart a longer visual run, clearly
+    marked as estimated.
+
+    Renormalizing over a tiny available-weight subset is structurally
+    unstable: with only 1 indicator present, that single indicator
+    determines the entire renormalized score, since dividing its
+    weighted_score by its own weight just returns its raw contribution
+    (0 to 1) directly as the score. Confirmed on real data: a single
+    indicator hitting a level-threshold override produced a 100/100
+    reading driven by one input, with zero averaging from anything else.
+    Requiring at least MIN_ESTIMATE_COMPONENTS indicators ensures the
+    score reflects more than one input's behavior, even though the
+    weighting across those few indicators is still renormalized (and
+    therefore still more volatile than a full 12-indicator reading).
+
+    Returns (score, weight_available, n_components_available) or None if
+    fewer than MIN_ESTIMATE_COMPONENTS indicators are available that month.
+    """
+    total_weighted = 0.0
+    total_weight_available = 0.0
+    n_available = 0
+    for col, (weight, direction) in VULNERABILITY_COMPONENTS.items():
+        z_col = f"{col}_zscore"
+        if z_col in row.index and not pd.isna(row.get(z_col)) and not pd.isna(row.get(col)):
+            classification = classify_indicator(col, row[col], row[z_col])
+            total_weighted += classification["weighted_score"]
+            total_weight_available += weight
+            n_available += 1
+    if n_available < MIN_ESTIMATE_COMPONENTS:
+        return None
+    score = total_weighted / total_weight_available
+    return score, total_weight_available, n_available
+
+
 def build_chart_data(scored: pd.DataFrame) -> str:
-    history = scored[["vulnerability_score"]].dropna()
-    labels = [f"{MONTHS_ES[d.month].capitalize()} {d.year}" for d in history.index]
-    values = [round(v, 1) for v in history["vulnerability_score"].tolist()]
-    colors = []
-    for v in values:
+    real_history = scored[["vulnerability_score"]].dropna()
+
+    # Pre-coverage months: anything strictly before the first month with a
+    # real, full-coverage headline score. These get the renormalized
+    # estimate instead, purely for chart display.
+    estimated_rows = []
+    if not real_history.empty:
+        first_real_date = real_history.index[0]
+        pre_coverage_index = scored.index[scored.index < first_real_date]
+    else:
+        pre_coverage_index = scored.index
+
+    for idx in pre_coverage_index:
+        est = _renormalized_estimate(scored.loc[idx])
+        if est is not None:
+            score, weight_available, n_available = est
+            estimated_rows.append((idx, round(score, 1), weight_available, n_available))
+
+    labels, values, colors, provisional, estimated, coverage_n, point_alpha = [], [], [], [], [], [], []
+
+    # Confidence scaling: a month with full weight (1.0) renders at full
+    # opacity; a month with almost no weight available renders much
+    # lighter, so the chart visually communicates "this point is shakier"
+    # rather than asserting equal confidence across very different
+    # coverage levels. Floor kept above 0 so even the thinnest months
+    # remain visible rather than disappearing.
+    MIN_ALPHA, MAX_ALPHA = 0.25, 0.85
+
+    for idx, val, weight_available, n_available in estimated_rows:
+        labels.append(f"{MONTHS_ES[idx.month].capitalize()} {idx.year}")
+        values.append(val)
+        alpha = MIN_ALPHA + (MAX_ALPHA - MIN_ALPHA) * min(1.0, weight_available)
+        if val >= HIGH_STRESS_THRESHOLD:
+            colors.append(f"rgba(206,17,38,{alpha:.2f})")
+        elif val >= MODERATE_SCORE_THRESHOLD:
+            colors.append(f"rgba(0,45,98,{alpha:.2f})")
+        else:
+            colors.append(f"rgba(0,45,98,{alpha*0.6:.2f})")
+        provisional.append(False)
+        estimated.append(True)
+        coverage_n.append(n_available)
+        point_alpha.append(round(alpha, 2))
+
+    for idx in real_history.index:
+        labels.append(f"{MONTHS_ES[idx.month].capitalize()} {idx.year}")
+        v = round(real_history.loc[idx, "vulnerability_score"], 1)
+        values.append(v)
         if v >= HIGH_STRESS_THRESHOLD:
             colors.append("rgba(206,17,38,0.8)")
         elif v >= MODERATE_SCORE_THRESHOLD:
             colors.append("rgba(0,45,98,0.6)")
         else:
             colors.append("rgba(0,45,98,0.3)")
-    provisional = []
-    for idx in history.index:
         if "is_provisional" in scored.columns:
             provisional.append(bool(scored.loc[idx, "is_provisional"]))
         else:
             provisional.append(False)
-    return json.dumps({"labels": labels, "values": values, "colors": colors, "provisional": provisional})
+        estimated.append(False)
+        coverage_n.append(len(VULNERABILITY_COMPONENTS))
+        point_alpha.append(1.0)
+
+    return json.dumps({
+        "labels": labels,
+        "values": values,
+        "colors": colors,
+        "provisional": provisional,
+        "estimated": estimated,
+        "coverageN": coverage_n,
+        "pointAlpha": point_alpha,
+    })
 
 
 # ── Context Cards Builder ──────────────────────────────────────────────────────
@@ -765,6 +869,7 @@ def build_html(results: dict) -> str:
         .footer-sources {{ font-size: 13px; color: var(--gray-600); line-height: 1.7; max-width: 640px; }}
         .footer-sources strong {{ font-weight: 600; color: var(--black); }}
         .footer-run {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); white-space: nowrap; }}
+        .footer-run strong {{ font-weight: 600; color: var(--black); }}
 
         /* Back to top */
         .back-to-top {{ position: fixed; right: 24px; bottom: 24px; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--blue); color: var(--white); font-size: 20px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-md); opacity: 0; visibility: hidden; transform: translateY(10px); transition: all .3s var(--ease); z-index: 40; }}
@@ -978,9 +1083,8 @@ def build_html(results: dict) -> str:
     <div class="footer-inner">
         <div class="footer-sources">
             <strong>Fuentes:</strong> Banco Central de la República Dominicana (BCRD) · Superintendencia de Bancos (SB) · Reserva Federal de EE.UU. (FRED)<br>
-            El índice combina 9 indicadores macroeconómicos y financieros ponderados por su relevancia para la economía dominicana.
         </div>
-        <div class="footer-run"><a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Ver código fuente &#8599;</a></div>
+        <div class="footer-run"><a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;"><strong>Ver código fuente &#8599;</strong></a></div>
     </div>
 </footer>
 
@@ -1009,6 +1113,19 @@ document.addEventListener("DOMContentLoaded", function() {{
         el.addEventListener('keydown', e => {{
             if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); el.click(); }}
         }});
+    }});
+
+    // Panel de indicadores: the 6 legend items under "Cómo interpretar cada
+    // indicador" default open on load. Indicator cards themselves stay
+    // closed by default, matching the original behavior. State is set
+    // directly rather than via toggleAccordion(), since that function's
+    // group-toggle behavior (legend items share data-group in sets of 3)
+    // would flip-flop if called repeatedly across members of the same group.
+    document.querySelectorAll('#panel-indicadores .interactive-legend').forEach(el => {{
+        el.classList.add('active');
+        el.setAttribute('aria-expanded', 'true');
+        const content = el.querySelector('.accordion-content');
+        if (content) {{ content.classList.add('open'); content.style.maxHeight = content.scrollHeight + 'px'; }}
     }});
 
     // Reveal sections on scroll
@@ -1079,15 +1196,27 @@ function jumpFilter(status) {{
 // Main history chart
 const chartData = {chart_data};
 
-// Split into confirmed (solid) and provisional (dashed) datasets.
-// They overlap by one point at the boundary so the line appears continuous.
-const confirmedValues = chartData.values.map((v, i) => chartData.provisional[i] ? null : v);
+// Three-way split: confirmed (solid), provisional (dashed, Avance Estimado --
+// full coverage but tourism was forward-filled), and estimated (dashed,
+// Índice estimado -- pre-2012 renormalized partial-coverage display only).
+// Each pair overlaps by one point at its boundary so lines appear continuous.
+const confirmedValues = chartData.values.map((v, i) => (chartData.provisional[i] || chartData.estimated[i]) ? null : v);
 const provisionalValues = chartData.values.map((v, i) => {{
     if (chartData.provisional[i]) return v;
-    // Include the last confirmed point as the start of the dashed segment
     if (i + 1 < chartData.provisional.length && chartData.provisional[i + 1]) return v;
     return null;
 }});
+const estimatedValues = chartData.values.map((v, i) => {{
+    if (chartData.estimated[i]) return v;
+    // Include the first real/provisional point as the end of the dashed estimated segment
+    if (i - 1 >= 0 && chartData.estimated[i - 1]) return v;
+    return null;
+}});
+// Point radius scaled by coverage confidence: thin-coverage months render
+// as smaller points, alongside their already-lighter color, so visual
+// weight tracks how much of the index was actually available that month.
+const MIN_POINT_R = 1.5, MAX_POINT_R = 3;
+const estimatedRadii = chartData.pointAlpha.map(a => MIN_POINT_R + (MAX_POINT_R - MIN_POINT_R) * a);
 
 const ctx = document.getElementById('scoreChart').getContext('2d');
 const scoreChart = new Chart(ctx, {{
@@ -1123,6 +1252,21 @@ const scoreChart = new Chart(ctx, {{
                 fill: false,
                 tension: 0.3,
                 spanGaps: false
+            }},
+            {{
+                label: 'Índice Estimado (histórico)',
+                data: estimatedValues,
+                borderColor: '#002D62',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderDash: [3, 5],
+                pointBackgroundColor: chartData.colors,
+                pointBorderColor: chartData.colors,
+                pointRadius: estimatedRadii,
+                pointHoverRadius: 5,
+                fill: false,
+                tension: 0.3,
+                spanGaps: false
             }}
         ]
     }},
@@ -1137,8 +1281,14 @@ const scoreChart = new Chart(ctx, {{
                     label: c => {{
                         const v = c.parsed.y;
                         if (v === null) return null;
-                        const prov = chartData.provisional[c.dataIndex];
-                        return prov ? `Índice: ${{v}} / 100 (Avance Estimado)` : `Índice: ${{v}} / 100`;
+                        const isEstimated = chartData.estimated[c.dataIndex];
+                        const isProvisional = chartData.provisional[c.dataIndex];
+                        if (isEstimated) {{
+                            const n = chartData.coverageN[c.dataIndex];
+                            return `Índice estimado: ${{v}} / 100 (${{n}} de 12 indicadores)`;
+                        }}
+                        if (isProvisional) return `Índice: ${{v}} / 100 (Avance Estimado)`;
+                        return `Índice: ${{v}} / 100`;
                     }},
                     filter: item => item.parsed.y !== null
                 }}
@@ -1174,12 +1324,18 @@ function applyRange(months, btn) {{
     const slicedLabels = chartData.labels.slice(-n);
     const slicedConfirmed = confirmedValues.slice(-n);
     const slicedProvisional = provisionalValues.slice(-n);
+    const slicedEstimated = estimatedValues.slice(-n);
     const slicedColors = chartData.colors.slice(-n);
+    const slicedRadii = estimatedRadii.slice(-n);
     scoreChart.data.labels = slicedLabels;
     scoreChart.data.datasets[0].data = slicedConfirmed;
     scoreChart.data.datasets[0].pointBackgroundColor = slicedColors;
     scoreChart.data.datasets[0].pointBorderColor = slicedColors;
     scoreChart.data.datasets[1].data = slicedProvisional;
+    scoreChart.data.datasets[2].data = slicedEstimated;
+    scoreChart.data.datasets[2].pointBackgroundColor = slicedColors;
+    scoreChart.data.datasets[2].pointBorderColor = slicedColors;
+    scoreChart.data.datasets[2].pointRadius = slicedRadii;
     scoreChart.update();
 }}
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));

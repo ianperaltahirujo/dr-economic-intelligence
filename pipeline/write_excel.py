@@ -202,14 +202,15 @@ def _build_indicators(wb: Workbook, results: dict) -> None:
     for col, (weight, direction) in VULNERABILITY_COMPONENTS.items():
         if score_date not in scored.index or col not in scored.columns: continue
         val, zscore = scored.loc[score_date, col], scored.loc[score_date, f"{col}_zscore"]
-        if pd.isna(val): continue
+        if pd.isna(val) or pd.isna(zscore): continue
+        classification = classify_indicator(col, val, zscore)
         ws.cell(row=row, column=1, value=col)
         ws.cell(row=row, column=2, value=INDICATOR_LABELS.get(col, col))
         ws.cell(row=row, column=3, value=val)
         ws.cell(row=row, column=4, value=score_date.strftime("%Y-%m-%d"))
         ws.cell(row=row, column=5, value=zscore).number_format = "0.00"
         ws.cell(row=row, column=6, value=weight).number_format = "0%"
-        ws.cell(row=row, column=7, value=(zscore * weight if direction == "positive" else -zscore * weight)).number_format = "0.000"
+        ws.cell(row=row, column=7, value=classification["weighted_score"]).number_format = "0.000"
         row += 1
     for c in ["A", "B", "C", "D", "E", "F", "G"]: ws.column_dimensions[c].width = 20
     ws.column_dimensions["B"].width = 40
@@ -262,7 +263,7 @@ def _build_metadata(wb: Workbook, results: dict) -> None:
     r += 2
     ws.cell(row=r, column=2, value="Methodology Rules (Engine v4):").font = Font(bold=True)
     r += 1
-    ws.cell(row=r, column=2, value="• Score Coverage: Exige 12 de 12 indicadores. Sin embargo, realiza un *nowcast* proyectando hasta 2 meses hacia el futuro los datos rezagados para proveer reportes semanales oportunos. Cualquier mes que contenga proyecciones es marcado estrictamente como 'is_provisional = True'.")
+    ws.cell(row=r, column=2, value="• Score Coverage: Exige 12 de 12 indicadores. Los indicadores institucionales de publicación lenta (remesas, IMAE, banca, tasa activa, confianza del consumidor) permiten un relleno hacia adelante de hasta 2 meses sin marcar el mes como provisional, ya que este rezago es normal y esperado. El gasto turístico diario permite un relleno de hasta 6 meses, y cualquier mes que dependa de este relleno se marca estrictamente como 'is_provisional = True'.")
     r += 1
     ws.cell(row=r, column=2, value="• Z-Score Window: 36 meses móviles (60 meses para IPC y Tasa de Cambio). Exige un mínimo de 12 meses históricos.")
     r += 1
