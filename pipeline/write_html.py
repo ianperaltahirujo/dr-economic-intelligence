@@ -466,9 +466,14 @@ def build_html(results: dict) -> str:
 
     alert_count  = len(alerts) if alerts is not None and not alerts.empty else 0
 
+    _alert_class   = "interactive-alert" if stress_n > 0 else ""
+    _alert_onclick = 'onclick="jumpFilter(\'stress\')"' if stress_n > 0 else ""
+    _plural        = "es" if stress_n != 1 else ""
+    _alert_inner   = (f'&#9888; {stress_n} indicador{_plural} en zona de alerta <span class="alert-arrow">&#8595;</span>'
+                      if stress_n > 0 else '&#10003; Sin alertas activas')
     alert_box_html = f'''
-    <div class="alert-count {'interactive-alert' if stress_n > 0 else ''}" {f'onclick="jumpFilter(\'stress\')"' if stress_n > 0 else ''}>
-        {f'&#9888; {stress_n} indicador{"es" if stress_n != 1 else ""} en zona de alerta <span class="alert-arrow">&#8595;</span>' if stress_n > 0 else '&#10003; Sin alertas activas'}
+    <div class="alert-count {_alert_class}" {_alert_onclick}>
+        {_alert_inner}
     </div>'''
 
     context_section_html = ""
@@ -579,9 +584,10 @@ def build_html(results: dict) -> str:
         .brand-text strong {{ color: var(--blue); font-weight: 600; }}
         .header-nav {{ display: flex; gap: 40px; align-items: center; overflow-x: auto; scrollbar-width: none; position: relative; }}
         .header-nav::-webkit-scrollbar {{ display: none; }}
-        .nav-line-track {{ position: absolute; top: 50%; height: 1px; background: var(--gray-200); transform: translateY(-50%); pointer-events: none; z-index: 1; }}
-        .nav-line-fill {{ position: absolute; top: 50%; height: 1px; background: linear-gradient(90deg, var(--blue), #4A90D9); transform: translateY(-50%); pointer-events: none; z-index: 2; }}
-        .nav-link {{ font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 4px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease); position: relative; z-index: 10; background: transparent; text-shadow: 0 0 8px rgba(255,255,255,1), 0 0 4px rgba(255,255,255,1); }}
+        .nav-cluster {{ display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }}
+        .nav-labels {{ display: flex; align-items: center; gap: 24px; position: relative; z-index: 5; }}
+        .nav-metro {{ width: 100%; height: 14px; overflow: visible; pointer-events: none; }}
+        .nav-link {{ font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 4px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease), background .25s var(--ease); position: relative; z-index: 10; background: transparent; text-shadow: 0 0 6px rgba(255,255,255,.35); }}
         .nav-link:hover {{ color: var(--blue); background: transparent; }}
         .nav-link.active {{ color: var(--white); background: transparent; }}
         .nav-link.active::before {{ content: ''; position: absolute; inset: 0; border-radius: 999px; background: var(--blue); z-index: -1; }}
@@ -592,15 +598,18 @@ def build_html(results: dict) -> str:
         .nav-link--clima svg {{ position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; fill: none; }}
         .nav-link--clima:hover {{ color: var(--black) !important; border-color: transparent; }}
         .nav-link--clima #climaRect {{ stroke: url(#climaGrad); stroke-width: 2; stroke-linecap: round; }}
+        .nav-link--clima.active {{ border-color: transparent; }}
+        .nav-link--clima.active::before {{ background: linear-gradient(90deg, #F97316, #EC4899); }}
         .clima-teaser {{ display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 40px 48px; border: var(--border); border-radius: var(--radius); background: var(--white); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; transition: box-shadow .25s var(--ease), transform .25s var(--ease); }}
         .clima-teaser:hover {{ box-shadow: var(--shadow-lg); transform: translateY(-3px); outline: 2px solid #F97316; }}
-        .clima-teaser:hover .clima-arrow {{ background: linear-gradient(90deg, #F97316, #EC4899); color: var(--white); border-color: transparent; }}
+        .clima-teaser:hover .clima-arrow {{ background: linear-gradient(90deg, #F97316, #EC4899); }}
         .clima-teaser-left {{ flex: 1; }}
         .clima-teaser-tag {{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; background: linear-gradient(90deg, #F97316, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }}
         .clima-teaser-title {{ font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--black); margin-bottom: 10px; line-height: 1.2; }}
         .clima-teaser-desc {{ font-size: 15px; color: var(--gray-600); line-height: 1.7; max-width: 580px; }}
         .clima-teaser-meta {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 14px; }}
-        .clima-arrow {{ width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--gray-400); flex-shrink: 0; transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease); }}
+        .clima-arrow {{ width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(90deg, #F97316, #EC4899); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }}
+        .clima-arrow::after {{ content: ''; display: block; width: 12px; height: 12px; border-top: 2.5px solid #fff; border-right: 2.5px solid #fff; transform: rotate(45deg) translate(-2px, 2px); }}
 
         /* Layout */
         .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 40px; }}
@@ -804,18 +813,33 @@ def build_html(results: dict) -> str:
 
 <header class="site-header">
     <div class="header-inner header-inner--centered">
-        <nav class="header-nav" id="mainNav" aria-label="Secciones del informe">
-            <span class="nav-line-track" id="mainNavTrack"></span>
-            <span class="nav-line-fill" id="mainNavFill"></span>
-            {context_nav}
-            <a href="#indicadores-seguimiento" class="nav-link">Indicadores</a>
-            <a href="#panel-indicadores" class="nav-link">Panel</a>
-            <a href="#historial-indice" class="nav-link">Historial</a>
-        </nav>
-        <a href="#clima-social-entry" class="nav-link nav-link--clima">
-            <svg aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none"><defs><linearGradient id="climaGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F97316"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs><path id="climaRect" fill="none" stroke="url(#climaGrad)" stroke-width="2" stroke-linecap="round"/></svg>
-            Clima Social
-        </a>
+        <div class="nav-cluster" id="navCluster">
+            <div class="nav-labels">
+                <nav class="header-nav" id="mainNav" aria-label="Secciones del informe">
+                    {context_nav}
+                    <a href="#indicadores-seguimiento" class="nav-link">Indicadores</a>
+                    <a href="#panel-indicadores" class="nav-link">Panel</a>
+                    <a href="#historial-indice" class="nav-link">Historial</a>
+                </nav>
+                <a href="#clima-social-entry" class="nav-link nav-link--clima">
+                    <svg aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none"><defs><linearGradient id="climaGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F97316"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs><path id="climaRect" fill="none" stroke="url(#climaGrad)" stroke-width="2" stroke-linecap="round"/></svg>
+                    Clima Social
+                </a>
+            </div>
+            <svg class="nav-metro" id="navMetro" aria-hidden="true">
+                <defs>
+                    <linearGradient id="metroFill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0">
+                        <stop offset="0%" stop-color="#002D62"/>
+                        <stop offset="50%" stop-color="#4A90D9"/>
+                        <stop offset="78%" stop-color="#F97316"/>
+                        <stop offset="100%" stop-color="#EC4899"/>
+                    </linearGradient>
+                </defs>
+                <line id="metroTrack" x1="0" y1="7" x2="100" y2="7" stroke="#E0E0E0" stroke-width="1.5" stroke-linecap="round"/>
+                <line id="metroFillLine" x1="0" y1="7" x2="0" y2="7" stroke="url(#metroFill)" stroke-width="2" stroke-linecap="round"/>
+                <g id="metroNodes"></g>
+            </svg>
+        </div>
     </div>
 </header>
 
@@ -943,7 +967,7 @@ def build_html(results: dict) -> str:
                 <div class="clima-teaser-desc">Un análisis del estado de ánimo, la economía cotidiana y la percepción ciudadana de la República Dominicana. Basado en 808 entrevistas realizadas en abril de 2026.</div>
                 <div class="clima-teaser-meta">n=808 &nbsp;·&nbsp; Levantamiento abril 2026 &nbsp;·&nbsp; LS Consulting / La Sociedad</div>
             </div>
-            <div class="clima-arrow">&#8599;</div>
+            <div class="clima-arrow"></div>
         </a>
     </div>
 </section>
@@ -991,19 +1015,7 @@ document.addEventListener("DOMContentLoaded", function() {{
     }}, {{ threshold: 0.12 }});
     document.querySelectorAll('main > section').forEach(sec => {{ sec.classList.add('fade-in-section'); fadeObserver.observe(sec); }});
 
-    // Scroll-spy: highlight the nav link of the section in view
-    const navLinks = document.querySelectorAll('.header-nav .nav-link');
-    const spyMap = {{}};
-    navLinks.forEach(l => {{ const id = (l.getAttribute('href') || '').slice(1); if (id) spyMap[id] = l; }});
-    const spyObserver = new IntersectionObserver(entries => {{
-        entries.forEach(e => {{
-            if (e.isIntersecting && spyMap[e.target.id]) {{
-                navLinks.forEach(l => l.classList.remove('active'));
-                spyMap[e.target.id].classList.add('active');
-            }}
-        }});
-    }}, {{ rootMargin: '-45% 0px -50% 0px', threshold: 0 }});
-    Object.keys(spyMap).forEach(id => {{ const s = document.getElementById(id); if (s) spyObserver.observe(s); }});
+    // Scroll-spy handled by the NAV METRO LINE block below (single source of truth for .active)
 
     // Back-to-top visibility
     const btt = document.getElementById('backToTop');
@@ -1226,66 +1238,109 @@ document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click',
     window.addEventListener('resize', sizePath);
 }})();
 
-// ── NAV PROGRESS LINE ──
+// ── NAV METRO LINE ──
 (function() {{
-    var track = document.getElementById('mainNavTrack');
-    var fill = document.getElementById('mainNavFill');
-    var nav = document.getElementById('mainNav');
-    var links = Array.from(nav ? nav.querySelectorAll('.nav-link') : []);
-    var sections = Array.from(document.querySelectorAll('section[id]'));
-    if (!track || !fill || !nav || !links.length) return;
+    var cluster = document.getElementById('navCluster');
+    var svg = document.getElementById('navMetro');
+    var track = document.getElementById('metroTrack');
+    var fill = document.getElementById('metroFillLine');
+    var grad = document.getElementById('metroFill');
+    var nodeGroup = document.getElementById('metroNodes');
+    if (!cluster || !svg || !track || !fill || !nodeGroup) return;
 
-    function centerOf(link) {{
-        var navRect = nav.getBoundingClientRect();
-        var linkRect = link.getBoundingClientRect();
-        return linkRect.left - navRect.left + linkRect.width / 2;
+    var links = Array.from(cluster.querySelectorAll('.nav-link'));
+    var sections = links.map(function(l) {{
+        var id = (l.getAttribute('href') || '').slice(1);
+        return id ? document.getElementById(id) : null;
+    }});
+    if (!links.length) return;
+
+    var Y = 7, NODE_R = 3;
+    var isClima = links.map(function(l) {{ return l.classList.contains('nav-link--clima'); }});
+    var nodeEls = [];
+
+    function docTop(el) {{ return el.getBoundingClientRect().top + window.pageYOffset; }}
+    function centerOf(el) {{
+        var c = cluster.getBoundingClientRect();
+        var r = el.getBoundingClientRect();
+        return r.left - c.left + r.width / 2;
     }}
 
-    function layoutLine() {{
-        var firstC = centerOf(links[0]);
-        var lastC = centerOf(links[links.length - 1]);
-        track.style.left = firstC + 'px';
-        track.style.width = (lastC - firstC) + 'px';
-        fill.style.left = firstC + 'px';
-        fill.style.width = '0px';
-        fill.dataset.first = firstC;
-        fill.dataset.last = lastC;
+    function buildNodes() {{
+        nodeGroup.innerHTML = '';
+        nodeEls = [];
+        links.forEach(function() {{
+            var nd = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            nd.setAttribute('cy', Y);
+            nd.setAttribute('r', NODE_R);
+            nd.setAttribute('fill', '#fff');
+            nd.setAttribute('stroke', '#E0E0E0');
+            nd.setAttribute('stroke-width', 1.5);
+            nd.style.transition = 'fill .25s ease, stroke .25s ease, r .2s ease';
+            nodeGroup.appendChild(nd);
+            nodeEls.push(nd);
+        }});
+    }}
+
+    function layout() {{
+        var c = cluster.getBoundingClientRect();
+        svg.setAttribute('viewBox', '0 0 ' + c.width + ' 14');
+        var first = centerOf(links[0]);
+        var last = centerOf(links[links.length - 1]);
+        track.setAttribute('x1', first); track.setAttribute('x2', last);
+        grad.setAttribute('x1', first); grad.setAttribute('x2', last);
+        nodeEls.forEach(function(nd, i) {{ nd.setAttribute('cx', centerOf(links[i])); }});
     }}
 
     function update() {{
-        var scrollY = window.scrollY;
+        if (!nodeEls.length) return;
+        var scrollY = window.pageYOffset;
+        var trig = window.innerHeight * 0.3;
         var n = sections.length;
-        var firstC = parseFloat(fill.dataset.first || 0);
-        var lastC = parseFloat(fill.dataset.last || 0);
         var activeIdx = 0;
         for (var i = 0; i < n; i++) {{
-            if (sections[i].offsetTop - window.innerHeight * 0.3 <= scrollY) activeIdx = i;
+            if (sections[i] && (docTop(sections[i]) - trig) <= scrollY) activeIdx = i;
         }}
+        var first = centerOf(links[0]);
+        var last = centerOf(links[links.length - 1]);
         var targetX;
-        if (activeIdx >= n - 1) {{
-            targetX = lastC;
+        if (activeIdx >= n - 1 || !sections[activeIdx + 1]) {{
+            targetX = last;
         }} else {{
-            var secTop = sections[activeIdx].offsetTop - window.innerHeight * 0.3;
-            var nextTop = sections[activeIdx + 1].offsetTop - window.innerHeight * 0.3;
-            var progress = Math.max(0, Math.min(1, (scrollY - secTop) / (nextTop - secTop)));
-            var fromX = centerOf(links[Math.min(activeIdx, links.length - 1)]);
-            var toX = centerOf(links[Math.min(activeIdx + 1, links.length - 1)]);
-            targetX = fromX + (toX - fromX) * progress;
+            var a = docTop(sections[activeIdx]) - trig;
+            var b = docTop(sections[activeIdx + 1]) - trig;
+            var p = Math.max(0, Math.min(1, (scrollY - a) / Math.max(1, b - a)));
+            var fromX = centerOf(links[activeIdx]);
+            var toX = centerOf(links[activeIdx + 1]);
+            targetX = fromX + (toX - fromX) * p;
         }}
-        fill.style.transition = 'none';
-        fill.style.width = Math.max(0, targetX - firstC) + 'px';
+        fill.setAttribute('x1', first);
+        fill.setAttribute('x2', targetX);
         links.forEach(function(link, i) {{
-            if (!link.classList.contains('nav-link--clima')) {{
-                link.classList.toggle('active', i === activeIdx);
+            link.classList.toggle('active', i === activeIdx);
+            var nd = nodeEls[i];
+            if (!nd) return;
+            if (i < activeIdx) {{
+                nd.setAttribute('fill', isClima[i] ? '#F97316' : '#002D62');
+                nd.setAttribute('stroke', isClima[i] ? '#F97316' : '#002D62');
+                nd.setAttribute('r', NODE_R);
+            }} else if (i === activeIdx) {{
+                nd.setAttribute('fill', isClima[i] ? '#EC4899' : '#4A90D9');
+                nd.setAttribute('stroke', isClima[i] ? '#EC4899' : '#4A90D9');
+                nd.setAttribute('r', NODE_R + 1.5);
+            }} else {{
+                nd.setAttribute('fill', '#fff');
+                nd.setAttribute('stroke', '#E0E0E0');
+                nd.setAttribute('r', NODE_R);
             }}
         }});
     }}
 
-    function refresh() {{ layoutLine(); update(); }}
-    setTimeout(refresh, 150);
+    function refresh() {{ buildNodes(); layout(); update(); }}
+    setTimeout(refresh, 120);
     window.addEventListener('load', refresh);
     window.addEventListener('scroll', update, {{ passive: true }});
-    window.addEventListener('resize', refresh, {{ passive: true }});
+    window.addEventListener('resize', function() {{ layout(); update(); }}, {{ passive: true }});
 }})();
 </script>
 
