@@ -54,35 +54,42 @@ The headline score combines 12 indicators into a single 0–100 composite. Highe
 
 ```
 dr-economic-intelligence/
-├── run_pipeline.py                  # Main entry point
+├── run_pipeline.py                      # Main entry point
 ├── requirements.txt
 │
 ├── pipeline/
-│   ├── download_bcrd_files.py       # Downloads BCRD Excel files from CDN
-│   ├── download_context_files.py    # Downloads gas price and tourism context files
-│   ├── ingest_bcrd.py               # Parses BCRD Excel files into DataFrames
-│   ├── ingest_bcrd_api.py           # BCRD REST API client (IP-whitelisted endpoints)
-│   ├── ingest_sb.py                 # Superintendencia de Bancos API v2 client
-│   ├── ingest_fred_dr.py            # FRED API client for U.S. indicators
-│   ├── ingest_context.py            # Gas prices, tourism fiscal revenue, national debt
-│   ├── ingest_debt.py               # BCRD consolidated public debt (quarterly)
-│   ├── build_vulnerability.py       # Scoring engine, z-scores, weights, alerts
-│   ├── backtest_weights.py          # Weight optimizer against known stress periods
-│   ├── write_excel.py               # Excel workbook writer (6 sheets)
-│   └── write_html.py                # GitHub Pages site generator
+│   ├── download_bcrd_files.py           # Downloads BCRD Excel files from CDN
+│   ├── download_context_files.py        # Downloads gas price and tourism context files
+│   ├── ingest_bcrd.py                   # Parses BCRD Excel files into DataFrames
+│   ├── ingest_bcrd_api.py               # BCRD REST API client (IP-whitelisted endpoints)
+│   ├── ingest_sb.py                     # Superintendencia de Bancos API v2 client
+│   ├── ingest_fred_dr.py                # FRED API client for U.S. indicators
+│   ├── ingest_context.py                # Gas prices, tourism fiscal revenue, national debt
+│   ├── ingest_debt.py                   # BCRD consolidated public debt (quarterly)
+│   ├── build_vulnerability.py           # Scoring engine, z-scores, weights, alerts
+│   ├── backtest_weights.py              # Weight optimizer against known stress periods
+│   ├── write_excel.py                   # Excel workbook writer (6 sheets)
+│   └── write_html.py                    # GitHub Pages site generator
 │
 ├── docs/
-│   ├── clima-social.html            # Static Clima Social page
-│   ├── fonts/                       # For loading necessary font files for both pages
-│   └── index.html                   # Auto-generated, do not edit manually
+│   ├── clima-social.html                    # Static Clima Social page
+│   ├── fonts/                           # For loading necessary font files for both pages
+│   └── index.html                       # Auto-generated, do not edit manually
 │
 ├── data/
-│   ├── raw/                         # Downloaded source files (gitignored)
-│   ├── processed/                   # Intermediate CSVs (gitignored)
-│   └── output/                      # Final Excel workbook
+│   ├── raw/                             # Downloaded source files (gitignored)
+│   ├── processed/                       # Intermediate CSVs (gitignored)
+│   └── output/                          # Final Excel workbook
+|
+├── tests/
+│   ├── README.md                        # A short README note for the tests directory    
+│   ├── test_build_vulnerability.py
+│   └── test_regression_real_data.py
+│   └── fixtures/
+│        └── vulnerability_history.csv
 │
 └── .github/workflows/
-    └── weekly_pipeline.yml          # GitHub Actions workflow
+    └── weekly_pipeline.yml              # GitHub Actions workflow
 ```
 
 ---
@@ -270,4 +277,4 @@ B.S. Applied Data Sciences, The Pennsylvania State University
 
 ## Built with
 
-Python 3.11 · pandas · numpy · openpyxl · fredapi · requests · python-dotenv · scipy · Chart.js · IBM Plex Sans / IBM Plex Mono · GitHub Actions · GitHub Pages
+Python 3.11 · pandas · numpy · openpyxl · fredapi · requests · python-dotenv · scipy · Chart.js · GitHub Actions · GitHub Pages
