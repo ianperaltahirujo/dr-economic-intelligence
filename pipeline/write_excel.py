@@ -35,6 +35,8 @@ from pipeline.build_vulnerability import (
     VULNERABILITY_COMPONENTS,
     INDICATOR_LABELS,
     HIGH_STRESS_THRESHOLD,
+    MODERATE_STRESS_THRESHOLD,
+    GAS_MOM_THRESHOLD_DOP,
     classify_indicator
 )
 
@@ -72,6 +74,25 @@ def _style_header(cell, bg_color=NAVY, fg_color=WHITE) -> None:
     cell.alignment = Alignment(horizontal="center", vertical="center")
     _set_border(cell)
 
+def _gas_mom_for(scored: pd.DataFrame, date) -> float:
+    """
+    Month-over-month change in gas_premium_dop for a given date, used by
+    classify_indicator()'s absolute-change override. Falls back to None
+    (no override fires) if the column is missing or the prior month isn't
+    available, matching the behavior of the scoring engine itself.
+    """
+    if "gas_premium_dop" not in scored.columns or date not in scored.index:
+        return None
+    idx_pos = scored.index.get_loc(date)
+    if idx_pos == 0:
+        return None
+    prev_date = scored.index[idx_pos - 1]
+    cur = scored.loc[date, "gas_premium_dop"]
+    prev = scored.loc[prev_date, "gas_premium_dop"]
+    if pd.isna(cur) or pd.isna(prev):
+        return None
+    return cur - prev
+
 def _build_dashboard(wb: Workbook, results: dict) -> None:
     ws = wb.create_sheet("Dashboard", 0)
     ws.sheet_view.showGridLines = False
@@ -85,7 +106,7 @@ def _build_dashboard(wb: Workbook, results: dict) -> None:
         is_provisional = bool(scored.loc[score_date, "is_provisional"])
     
     if score >= HIGH_STRESS_THRESHOLD: status_text, status_color = "ESTRÉS ALTO", STRESS_RED
-    elif score >= 50: status_text, status_color = "ESTRÉS MODERADO", WATCH_ORG
+    elif score >= MODERATE_STRESS_THRESHOLD: status_text, status_color = "ESTRÉS MODERADO", WATCH_ORG
     else: status_text, status_color = "NORMAL", GOOD_GRN
 
     ws.cell(row=2, column=2, value="DR ECONOMIC VULNERABILITY INDEX").font = Font(size=18, bold=True, color=NAVY)
@@ -125,7 +146,8 @@ def _build_dashboard(wb: Workbook, results: dict) -> None:
         prev_idx = scored.index[scored.index < score_date]
         delta = value - scored.loc[prev_idx[-1], col] if not prev_idx.empty else 0
 
-        classification = classify_indicator(col, value, zscore)
+        mom = _gas_mom_for(scored, score_date) if col == "gas_premium_dop" else None
+        classification = classify_indicator(col, value, zscore, mom_delta=mom)
         if classification["is_stress"]: status, bg_color, text_color = "ALERTA", "FEE2E2", "991B1B"
         elif classification["is_watch"]: status, bg_color, text_color = "VIGILANCIA", "DBEAFE", "1E40AF"
         else: status, bg_color, text_color = "NORMAL", "F3F4F6", "374151"
@@ -203,7 +225,8 @@ def _build_indicators(wb: Workbook, results: dict) -> None:
         if score_date not in scored.index or col not in scored.columns: continue
         val, zscore = scored.loc[score_date, col], scored.loc[score_date, f"{col}_zscore"]
         if pd.isna(val) or pd.isna(zscore): continue
-        classification = classify_indicator(col, val, zscore)
+        mom = _gas_mom_for(scored, score_date) if col == "gas_premium_dop" else None
+        classification = classify_indicator(col, val, zscore, mom_delta=mom)
         ws.cell(row=row, column=1, value=col)
         ws.cell(row=row, column=2, value=INDICATOR_LABELS.get(col, col))
         ws.cell(row=row, column=3, value=val)
@@ -261,7 +284,7 @@ def _build_metadata(wb: Workbook, results: dict) -> None:
     sd_str = results.get("score_date").strftime('%Y-%m-%d') if results.get("score_date") else "None"
     ws.cell(row=r, column=2, value=f"Headline Score Date: {sd_str}")
     r += 2
-    ws.cell(row=r, column=2, value="Methodology Rules (Engine v4):").font = Font(bold=True)
+    ws.cell(row=r, column=2, value="Methodology Rules (Engine v5):").font = Font(bold=True)
     r += 1
     ws.cell(row=r, column=2, value="• Score Coverage: Exige 12 de 12 indicadores. Los indicadores institucionales de publicación lenta (remesas, IMAE, banca, tasa activa, confianza del consumidor) permiten un relleno hacia adelante de hasta 2 meses sin marcar el mes como provisional, ya que este rezago es normal y esperado. El gasto turístico diario permite un relleno de hasta 6 meses, y cualquier mes que dependa de este relleno se marca estrictamente como 'is_provisional = True'.")
     r += 1
@@ -269,7 +292,11 @@ def _build_metadata(wb: Workbook, results: dict) -> None:
     r += 1
     ws.cell(row=r, column=2, value="• Alert Thresholds: Flag de VIGILANCIA en |z| > 0.75 y ESTRÉS en |z| > 1.5 en dirección de riesgo económico.")
     r += 1
-    ws.cell(row=r, column=2, value="• Absolute Level Overrides: Rupturas de umbrales absolutos fuerzan automáticamente el estatus a ESTRÉS.")
+    ws.cell(row=r, column=2, value="• Absolute Level Overrides: Rupturas de umbrales absolutos fuerzan automáticamente el estatus a ESTRÉS (IPC ≥ 7.0%, DOP/USD ≥ 65.0, UMCSENT ≤ 60.0).")
+    r += 1
+    ws.cell(row=r, column=2, value=f"• Gasolina Premium — Regla de Cambio Absoluto: dado que es un precio administrado por el MICM que se mueve en escalones discretos en lugar de variar continuamente, el z-score móvil estándar no es confiable para este indicador (la varianza colapsa durante períodos de precio fijo, inflando artificialmente el z-score tras un ajuste real). Por ello, además del z-score, se aplica una regla de cambio mensual absoluto: cualquier variación mes a mes ≥ {GAS_MOM_THRESHOLD_DOP:.1f} DOP fuerza el estatus a ESTRÉS, independientemente del z-score. Este umbral corresponde al percentil 90 de las variaciones mensuales históricas desde 2010.")
+    r += 1
+    ws.cell(row=r, column=2, value=f"• Umbrales del Índice Compuesto: ESTRÉS MODERADO ≥ {MODERATE_STRESS_THRESHOLD:.1f}, ESTRÉS ALTO ≥ {HIGH_STRESS_THRESHOLD:.1f}. Estos umbrales se derivan de los percentiles 70 y 90 de la distribución real del índice (cobertura completa de 12 indicadores, 2012-12 a la fecha), no de cifras redondas arbitrarias. Se recalibran únicamente repitiendo este mismo cálculo de percentiles sobre datos reales, nunca por ajuste manual.")
 
 def write_workbook(results: dict, path: str = "data/output/vulnerability_report.xlsx") -> Path:
     output_path = Path(path)
