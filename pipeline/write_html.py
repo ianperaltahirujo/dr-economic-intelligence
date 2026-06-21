@@ -1235,6 +1235,11 @@ const estimatedValues = chartData.values.map((v, i) => {{
     if (_adjacent(chartData.estimated, i)) return v;
     return null;
 }});
+// These mirror the currently-visible slice so the tooltip callback always
+// reads the right element. applyRange keeps them in sync.
+let activeEstimated = chartData.estimated;
+let activeProvisional = chartData.provisional;
+let activeCoverageN = chartData.coverageN;
 // Point radius scaled by coverage confidence: thin-coverage months render
 // as smaller points, alongside their already-lighter color, so visual
 // weight tracks how much of the index was actually available that month.
@@ -1304,10 +1309,10 @@ const scoreChart = new Chart(ctx, {{
                     label: c => {{
                         const v = c.parsed.y;
                         if (v === null) return null;
-                        const isEstimated = chartData.estimated[c.dataIndex];
-                        const isProvisional = chartData.provisional[c.dataIndex];
+                        const isEstimated = activeEstimated[c.dataIndex];
+                        const isProvisional = activeProvisional[c.dataIndex];
                         if (isEstimated) {{
-                            const n = chartData.coverageN[c.dataIndex];
+                            const n = activeCoverageN[c.dataIndex];
                             return `Índice estimado: ${{v}} / 100 (${{n}} de 12 indicadores)`;
                         }}
                         if (isProvisional) return `Índice: ${{v}} / 100 (Avance Estimado)`;
@@ -1350,6 +1355,10 @@ function applyRange(months, btn) {{
     const slicedEstimated = estimatedValues.slice(-n);
     const slicedColors = chartData.colors.slice(-n);
     const slicedRadii = estimatedRadii.slice(-n);
+    // Keep tooltip lookup arrays aligned with the visible slice
+    activeEstimated = chartData.estimated.slice(-n);
+    activeProvisional = chartData.provisional.slice(-n);
+    activeCoverageN = chartData.coverageN.slice(-n);
     scoreChart.data.labels = slicedLabels;
     scoreChart.data.datasets[0].data = slicedConfirmed;
     scoreChart.data.datasets[0].pointBackgroundColor = slicedColors;
