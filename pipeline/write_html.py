@@ -239,41 +239,77 @@ def _renormalized_estimate(row: pd.Series) -> tuple[float, float, int] | None:
 
 
 def build_chart_data(scored: pd.DataFrame) -> str:
-    real_history = scored[["vulnerability_score"]].dropna()
+    """
+    Build the history-chart series in a single chronological pass, so the
+    line is never torn open by a month that merely lacks ONE indicator.
 
-    # Pre-coverage months: anything strictly before the first month with a
-    # real, full-coverage headline score. These get the renormalized
-    # estimate instead, purely for chart display.
-    estimated_rows = []
-    if not real_history.empty:
-        first_real_date = real_history.index[0]
-        pre_coverage_index = scored.index[scored.index < first_real_date]
-    else:
-        pre_coverage_index = scored.index
+    Each month is classified on its own:
+      * REAL (solid): has a full 12-indicator vulnerability_score. If that
+        score rode a forward-filled tourism value it is still real, just
+        flagged provisional so the UI dashes it ("Avance Estimado").
+      * ESTIMATED (dashed, lighter): no full-coverage score, but at least
+        MIN_ESTIMATE_COMPONENTS indicators are present that month. Shows the
+        renormalized partial estimate, tagged with how many indicators it
+        used. This now covers BOTH deep history (before all 12 series begin)
+        AND any later month where a single source lagged.
+      * SKIPPED: fewer than MIN_ESTIMATE_COMPONENTS indicators present.
 
-    for idx in pre_coverage_index:
-        est = _renormalized_estimate(scored.loc[idx])
-        if est is not None:
-            score, weight_available, n_available = est
-            estimated_rows.append((idx, round(score, 1), weight_available, n_available))
+    The previous version estimated ONLY months strictly before the first
+    real score, then dropped every later month without full coverage. A
+    single missing indicator therefore punched a hole in the line: dop_usd
+    absent in Ago 2019, imae_index absent across 2022, UNRATE absent in
+    Oct 2025 each erased an otherwise-11-of-12 month. Estimates here stay
+    display-only: never written to vulnerability_score, never fed to any
+    other output, always labeled with their real coverage count.
+    """
+    scored = scored.sort_index()
+    has_score_col = "vulnerability_score" in scored.columns
+    has_prov_col = "is_provisional" in scored.columns
+    full_n = len(VULNERABILITY_COMPONENTS)
 
     labels, values, colors, provisional, estimated, coverage_n, point_alpha = [], [], [], [], [], [], []
 
-    # Confidence scaling: a month with full weight (1.0) renders at full
-    # opacity; a month with almost no weight available renders much
-    # lighter, so the chart visually communicates "this point is shakier"
-    # rather than asserting equal confidence across very different
-    # coverage levels. Floor kept above 0 so even the thinnest months
-    # remain visible rather than disappearing.
+    # Confidence scaling for estimated points: a month with full available
+    # weight renders close to solid opacity; a sparse month renders much
+    # lighter, so visual weight tracks how much of the index was actually
+    # available rather than asserting equal confidence everywhere. Floor
+    # kept above 0 so even the thinnest months remain visible.
     MIN_ALPHA, MAX_ALPHA = 0.25, 0.85
 
-    for idx, val, weight_available, n_available in estimated_rows:
-        labels.append(f"{MONTHS_ES[idx.month].capitalize()} {idx.year}")
-        values.append(val)
+    for idx in scored.index:
+        row = scored.loc[idx]
+        label = f"{MONTHS_ES[idx.month].capitalize()} {idx.year}"
+        score_val = row["vulnerability_score"] if has_score_col else None
+
+        # ── Full-coverage real point ──────────────────────────────────────
+        if score_val is not None and pd.notna(score_val):
+            v = round(float(score_val), 1)
+            labels.append(label)
+            values.append(v)
+            if v >= HIGH_STRESS_THRESHOLD:
+                colors.append("rgba(206,17,38,0.8)")
+            elif v >= MODERATE_SCORE_THRESHOLD:
+                colors.append("rgba(0,45,98,0.6)")
+            else:
+                colors.append("rgba(0,45,98,0.3)")
+            provisional.append(bool(row["is_provisional"]) if has_prov_col else False)
+            estimated.append(False)
+            coverage_n.append(full_n)
+            point_alpha.append(1.0)
+            continue
+
+        # ── Partial-coverage estimated point (display-only) ───────────────
+        est = _renormalized_estimate(row)
+        if est is None:
+            continue  # fewer than MIN_ESTIMATE_COMPONENTS indicators -- skip
+        score, weight_available, n_available = est
+        v = round(score, 1)
         alpha = MIN_ALPHA + (MAX_ALPHA - MIN_ALPHA) * min(1.0, weight_available)
-        if val >= HIGH_STRESS_THRESHOLD:
+        labels.append(label)
+        values.append(v)
+        if v >= HIGH_STRESS_THRESHOLD:
             colors.append(f"rgba(206,17,38,{alpha:.2f})")
-        elif val >= MODERATE_SCORE_THRESHOLD:
+        elif v >= MODERATE_SCORE_THRESHOLD:
             colors.append(f"rgba(0,45,98,{alpha:.2f})")
         else:
             colors.append(f"rgba(0,45,98,{alpha*0.6:.2f})")
@@ -281,24 +317,6 @@ def build_chart_data(scored: pd.DataFrame) -> str:
         estimated.append(True)
         coverage_n.append(n_available)
         point_alpha.append(round(alpha, 2))
-
-    for idx in real_history.index:
-        labels.append(f"{MONTHS_ES[idx.month].capitalize()} {idx.year}")
-        v = round(real_history.loc[idx, "vulnerability_score"], 1)
-        values.append(v)
-        if v >= HIGH_STRESS_THRESHOLD:
-            colors.append("rgba(206,17,38,0.8)")
-        elif v >= MODERATE_SCORE_THRESHOLD:
-            colors.append("rgba(0,45,98,0.6)")
-        else:
-            colors.append("rgba(0,45,98,0.3)")
-        if "is_provisional" in scored.columns:
-            provisional.append(bool(scored.loc[idx, "is_provisional"]))
-        else:
-            provisional.append(False)
-        estimated.append(False)
-        coverage_n.append(len(VULNERABILITY_COMPONENTS))
-        point_alpha.append(1.0)
 
     return json.dumps({
         "labels": labels,
@@ -1198,18 +1216,23 @@ const chartData = {chart_data};
 
 // Three-way split: confirmed (solid), provisional (dashed, Avance Estimado --
 // full coverage but tourism was forward-filled), and estimated (dashed,
-// Índice estimado -- pre-2012 renormalized partial-coverage display only).
-// Each pair overlaps by one point at its boundary so lines appear continuous.
+// Índice estimado -- renormalized partial-coverage display, anywhere in the
+// series). A dashed point is drawn if it IS that type or sits next to one on
+// EITHER side, so every dashed run joins the solid line at both ends and an
+// estimated month wedged between two real months no longer leaves a hole.
+// The old estimated bridge looked only one step back, which is what tore the
+// line at single-indicator gaps like Ago 2019, all of 2022, and Oct 2025.
+const _adjacent = (flags, i) => (i - 1 >= 0 && flags[i - 1]) || (i + 1 < flags.length && flags[i + 1]);
 const confirmedValues = chartData.values.map((v, i) => (chartData.provisional[i] || chartData.estimated[i]) ? null : v);
 const provisionalValues = chartData.values.map((v, i) => {{
     if (chartData.provisional[i]) return v;
-    if (i + 1 < chartData.provisional.length && chartData.provisional[i + 1]) return v;
+    // bridge into adjacent provisional runs, but never claim an estimated point
+    if (!chartData.estimated[i] && _adjacent(chartData.provisional, i)) return v;
     return null;
 }});
 const estimatedValues = chartData.values.map((v, i) => {{
     if (chartData.estimated[i]) return v;
-    // Include the first real/provisional point as the end of the dashed estimated segment
-    if (i - 1 >= 0 && chartData.estimated[i - 1]) return v;
+    if (_adjacent(chartData.estimated, i)) return v;
     return null;
 }});
 // Point radius scaled by coverage confidence: thin-coverage months render
