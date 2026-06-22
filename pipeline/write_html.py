@@ -721,18 +721,18 @@ def build_html(results: dict) -> str:
         .nav-link--clima {{ font-weight: 600; position: relative; padding: 4px 16px; border-radius: 999px; background: transparent; border: 1px solid var(--gray-200); color: var(--gray-600); overflow: hidden; }}
         .nav-link--clima svg {{ position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; fill: none; }}
         .nav-link--clima:hover {{ color: var(--black) !important; border-color: transparent; }}
-        .nav-link--clima #climaRect {{ stroke: url(#climaGrad); stroke-width: 2; stroke-linecap: round; }}
+        .nav-link--clima #climaRect {{ stroke: #0373fc; stroke-width: 2; stroke-linecap: round; }}
         .nav-link--clima.active {{ border-color: transparent; }}
-        .nav-link--clima.active::before {{ background: linear-gradient(90deg, #F97316, #EC4899); }}
+        .nav-link--clima.active::before {{ background: #0373fc; }}
         .clima-teaser {{ display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 40px 48px; border: var(--border); border-radius: var(--radius); background: var(--white); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; transition: box-shadow .25s var(--ease), transform .25s var(--ease); }}
-        .clima-teaser:hover {{ box-shadow: var(--shadow-lg); transform: translateY(-3px); outline: 2px solid #F97316; }}
-        .clima-teaser:hover .clima-arrow {{ background: linear-gradient(90deg, #F97316, #EC4899); }}
+        .clima-teaser:hover {{ box-shadow: var(--shadow-lg); transform: translateY(-3px); outline: 2px solid #0373fc; }}
+        .clima-teaser:hover .clima-arrow {{ background: #0373fc; }}
         .clima-teaser-left {{ flex: 1; }}
-        .clima-teaser-tag {{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; background: linear-gradient(90deg, #F97316, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }}
+        .clima-teaser-tag {{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; background: #0373fc; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }}
         .clima-teaser-title {{ font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--black); margin-bottom: 10px; line-height: 1.2; }}
         .clima-teaser-desc {{ font-size: 15px; color: var(--gray-600); line-height: 1.7; max-width: 580px; }}
         .clima-teaser-meta {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 14px; }}
-        .clima-arrow {{ width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(90deg, #F97316, #EC4899); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }}
+        .clima-arrow {{ width: 52px; height: 52px; border-radius: 50%; background: #0373fc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }}
         .clima-arrow::after {{ content: ''; display: block; width: 12px; height: 12px; border-top: 2.5px solid #fff; border-right: 2.5px solid #fff; transform: rotate(45deg) translate(-2px, 2px); }}
 
         /* Layout */
@@ -947,7 +947,7 @@ def build_html(results: dict) -> str:
                     <a href="#historial-indice" class="nav-link">Historial</a>
                 </nav>
                 <a href="#clima-social-entry" class="nav-link nav-link--clima">
-                    <svg aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none"><defs><linearGradient id="climaGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F97316"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs><path id="climaRect" fill="none" stroke="url(#climaGrad)" stroke-width="2" stroke-linecap="round"/></svg>
+                    <svg aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none"><path id="climaRect" fill="none" stroke="#0373fc" stroke-width="2" stroke-linecap="round"/></svg>
                     Clima Social
                 </a>
             </div>
@@ -956,8 +956,8 @@ def build_html(results: dict) -> str:
                     <linearGradient id="metroFill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0">
                         <stop offset="0%" stop-color="#002D62"/>
                         <stop offset="50%" stop-color="#4A90D9"/>
-                        <stop offset="78%" stop-color="#F97316"/>
-                        <stop offset="100%" stop-color="#EC4899"/>
+                        <stop offset="78%" stop-color="#0373fc"/>
+                        <stop offset="100%" stop-color="#0373fc"/>
                     </linearGradient>
                 </defs>
                 <line id="metroTrack" x1="0" y1="7" x2="100" y2="7" stroke="#E0E0E0" stroke-width="1.5" stroke-linecap="round"/>
@@ -1511,12 +1511,12 @@ document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click',
             var nd = nodeEls[i];
             if (!nd) return;
             if (i < activeIdx) {{
-                nd.setAttribute('fill', isClima[i] ? '#F97316' : '#002D62');
-                nd.setAttribute('stroke', isClima[i] ? '#F97316' : '#002D62');
+                nd.setAttribute('fill', isClima[i] ? '#0373fc' : '#002D62');
+                nd.setAttribute('stroke', isClima[i] ? '#0373fc' : '#002D62');
                 nd.setAttribute('r', NODE_R);
             }} else if (i === activeIdx) {{
-                nd.setAttribute('fill', isClima[i] ? '#EC4899' : '#4A90D9');
-                nd.setAttribute('stroke', isClima[i] ? '#EC4899' : '#4A90D9');
+                nd.setAttribute('fill', isClima[i] ? '#0373fc' : '#4A90D9');
+                nd.setAttribute('stroke', isClima[i] ? '#0373fc' : '#4A90D9');
                 nd.setAttribute('r', NODE_R + 1.5);
             }} else {{
                 nd.setAttribute('fill', '#fff');

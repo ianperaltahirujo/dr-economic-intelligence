@@ -16,9 +16,9 @@
         @font-face{font-family:'Reckless';src:url('fonts/RecklessStandardM-TRIAL-Bold.otf') format('opentype');font-weight:700;font-display:swap}
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
-            --blue:#0642ff;--red:#CE1126;--black:#000000;--white:#FFFFFF;
+            --blue:#0373fc;--red:#CE1126;--black:#000000;--white:#FFFFFF;
             --gray-25:#f0efed;--gray-50:#f1e3cb;--gray-100:#F0F0F0;--gray-200:#E0E0E0;--gray-400:#999;--gray-600:#555;
-            --cs-a:#0642ff;--cs-b:#0642ff;
+            --cs-a:#0373fc;--cs-b:#0373fc;
             --font-sans:'Haffer',system-ui,sans-serif;
             --font-display:'Reckless',Georgia,serif;
             --font-mono:'IBM Plex Mono',monospace;
@@ -72,13 +72,13 @@
         section[id]{scroll-margin-top:16px}
         .section-head{display:flex;align-items:center;gap:16px;margin-bottom:18px}
         .section-label{font-family:var(--font-display);font-size:clamp(17px,3.5vw,20px);font-weight:700;color:var(--black);letter-spacing:-.01em;position:relative;padding-left:14px}
-        .section-label::before{content:'';position:absolute;left:0;top:.14em;bottom:.14em;width:4px;border-radius:2px;background:linear-gradient(180deg,#0642ff,#000000)}
+        .section-label::before{content:'';position:absolute;left:0;top:.14em;bottom:.14em;width:4px;border-radius:2px;background:#0373fc}
         .section-rule{flex:1;height:1px;background:linear-gradient(90deg,var(--gray-200),transparent)}
         .section-intro{font-size:15px;color:var(--gray-600);max-width:760px;margin-bottom:30px;line-height:1.7}
 
         /* Hero */
         .cs-hero{padding:clamp(40px,7vw,72px) 0 clamp(30px,5vw,56px)}
-        .cs-hero-tag{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(90deg,#0642ff,#000000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:18px}
+        .cs-hero-tag{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:#0373fc;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:18px}
         .cs-hero-title{font-family:var(--font-display);font-size:clamp(38px,6vw,80px);font-weight:700;line-height:1.05;letter-spacing:-.02em;color:var(--black);margin-bottom:12px}
         .cs-hero-subtitle{font-family:var(--font-display);font-size:clamp(16px,2.5vw,22px);font-weight:400;color:var(--gray-600);margin-bottom:32px;font-style:italic}
         .cs-hero-meta{font-family:var(--font-mono);font-size:12px;color:var(--gray-400);display:flex;gap:20px;flex-wrap:wrap}
@@ -86,14 +86,14 @@
         .cs-hero-meta span:first-child::before{display:none}
         .hero-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:16px;margin-top:48px}
         .hero-stat{padding:20px;border:var(--border);border-radius:var(--radius-sm);background:var(--gray-50)}
-        .hero-stat-num{font-family:var(--font-mono);font-size:clamp(28px,7vw,40px);font-weight:600;line-height:1;letter-spacing:-2px;background:linear-gradient(90deg,#0642ff,#000000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+        .hero-stat-num{font-family:var(--font-mono);font-size:clamp(28px,7vw,40px);font-weight:600;line-height:1;letter-spacing:-2px;background:#0373fc;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
         .hero-stat-label{font-size:13px;color:var(--gray-600);line-height:1.4}
-        .hero-stat-delta{font-family:var(--font-mono);font-size:11px;color:#0642ff;margin-top:4px}
+        .hero-stat-delta{font-family:var(--font-mono);font-size:11px;color:#0373fc;margin-top:4px}
 
         /* Tesis */
         .tesis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
         .tesis-card{padding:28px;border:var(--border);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
-        .tesis-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#0642ff,#000000)}
+        .tesis-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#0373fc}
         .tesis-num{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--cs-a);text-transform:uppercase;margin-bottom:10px}
         .tesis-text{font-size:15px;line-height:1.65;color:var(--black)}
         .tesis-data{font-family:var(--font-mono);font-size:11px;color:var(--gray-400);margin-top:14px}
@@ -110,9 +110,9 @@
         /* Stat cards */
         .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:20px}
         .stat-card{padding:28px 24px;border:var(--border);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow-sm)}
-        .stat-number{font-family:var(--font-mono);font-size:clamp(32px,8vw,52px);font-weight:600;line-height:1;letter-spacing:-2px;background:linear-gradient(90deg,#0642ff,#000000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+        .stat-number{font-family:var(--font-mono);font-size:clamp(32px,8vw,52px);font-weight:600;line-height:1;letter-spacing:-2px;background:#0373fc;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
         .stat-label{font-size:14px;color:var(--black);font-weight:600;line-height:1.4;margin-bottom:6px}
-        .stat-delta{font-family:var(--font-mono);font-size:11px;color:#0642ff}
+        .stat-delta{font-family:var(--font-mono);font-size:11px;color:#0373fc}
 
         /* Bloque cards */
         .bloque-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:20px}
@@ -121,12 +121,12 @@
         .bloque-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
         .bloque-card-label{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--cs-a);margin-bottom:6px}
         .bloque-card-title{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--black);line-height:1.3}
-        .bloque-insight{font-size:13px;font-weight:600;color:var(--black);font-style:italic;padding:12px 16px;background:var(--gray-25);border-left:3px solid #0642ff;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:16px;line-height:1.5}
+        .bloque-insight{font-size:13px;font-weight:600;color:var(--black);font-style:italic;padding:12px 16px;background:var(--gray-25);border-left:3px solid #0373fc;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:16px;line-height:1.5}
         .bloque-data-row{display:flex;align-items:baseline;gap:12px;padding:10px 0;border-bottom:var(--border)}
         .bloque-data-row:last-child{border-bottom:none}
         .bloque-pct{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--black);white-space:nowrap;min-width:60px}
         .bloque-pct-label{font-size:13.5px;color:var(--gray-600);line-height:1.4}
-        .bloque-pct-delta{font-family:var(--font-mono);font-size:11px;color:#0642ff;margin-left:auto;white-space:nowrap}
+        .bloque-pct-delta{font-family:var(--font-mono);font-size:11px;color:#0373fc;margin-left:auto;white-space:nowrap}
         .bloque-detail{font-size:13.5px;color:var(--gray-600);line-height:1.7;margin-top:16px}
 
         /* Paradox */
@@ -134,7 +134,7 @@
         .paradox-side{padding:36px 40px}
         .paradox-side--a{background:var(--white);border-right:var(--border)}
         .paradox-pct{font-family:var(--font-mono);font-size:clamp(40px,10vw,64px);font-weight:600;line-height:1;letter-spacing:-3px;margin-bottom:12px}
-        .paradox-pct--a{background:linear-gradient(90deg,#0642ff,#000000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .paradox-pct--a{background:#0373fc;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .paradox-pct--b{color:var(--blue)}
         .paradox-label{font-size:15px;color:var(--black);font-weight:600;margin-bottom:8px}
         .paradox-desc{font-size:14px;color:var(--gray-600);line-height:1.6}
@@ -159,7 +159,7 @@
         .tracking-table tr:last-child td{border-bottom:none}
         .tracking-table tr.ola7 td{background:rgba(54,162,235,.06);font-weight:600}
         .tracking-table .pct-cell{font-family:var(--font-mono);font-size:15px;font-weight:600}
-        .tracking-table .pct-cell.highlight{background:linear-gradient(90deg,#0642ff,#000000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .tracking-table .pct-cell.highlight{background:#0373fc;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
         /* Demo grid */
         .demo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;margin-top:16px}
@@ -224,9 +224,9 @@
             <svg class="nav-metro" id="navMetro" aria-hidden="true">
                 <defs>
                     <linearGradient id="metroFill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0">
-                        <stop offset="0%" stop-color="#0642ff"/>
-                        <stop offset="50%" stop-color="#4d7aff"/>
-                        <stop offset="100%" stop-color="#000000"/>
+                        <stop offset="0%" stop-color="#0373fc"/>
+                        <stop offset="50%" stop-color="#0373fc"/>
+                        <stop offset="100%" stop-color="#0373fc"/>
                     </linearGradient>
                 </defs>
                 <line id="metroTrack" x1="0" y1="7" x2="100" y2="7" stroke="#E0E0E0" stroke-width="1.5" stroke-linecap="round"/>
@@ -983,8 +983,8 @@ new Chart(document.getElementById('chartLluvias'), {
             var nd = nodeEls[i];
             if (!nd) return;
             if (i < activeIdx) {
-                nd.setAttribute('fill', '#0642ff');
-                nd.setAttribute('stroke', '#0642ff');
+                nd.setAttribute('fill', '#0373fc');
+                nd.setAttribute('stroke', '#0373fc');
                 nd.setAttribute('r', NODE_R);
             } else if (i === activeIdx) {
                 nd.setAttribute('fill', '#4d7aff');
