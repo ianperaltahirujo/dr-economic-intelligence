@@ -59,6 +59,8 @@
         .nav-cluster { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; max-width: 100%; }
         .nav-labels { display: flex; align-items: center; gap: clamp(6px, 2vw, 24px); position: relative; z-index: 5; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
         .nav-labels::-webkit-scrollbar { display: none; }
+        .header-nav { display: flex; gap: clamp(8px, 2.5vw, 40px); align-items: center; overflow-x: auto; scrollbar-width: none; position: relative; }
+        .header-nav::-webkit-scrollbar { display: none; }
         .nav-metro { width: 100%; height: 14px; overflow: visible; pointer-events: none; }
         .nav-link { font-size: 14px; font-weight: 500; color: var(--gray-600); text-decoration: none; padding: 4px 14px; border-radius: 999px; white-space: nowrap; transition: color .2s var(--ease), background .25s var(--ease); position: relative; z-index: 10; background: transparent; text-shadow: 0 0 6px rgba(255,255,255,.35); }
         .nav-link:hover { color: var(--blue); background: transparent; }
@@ -153,6 +155,8 @@
         .protagonist-quote-meta{font-family:var(--font-mono);font-size:12px;color:var(--gray-400)}
 
         /* Tracking table */
+        .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .table-hint{display:none}
         .tracking-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:16px}
         .tracking-table th{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--gray-400);text-align:left;padding:10px 16px;border-bottom:2px solid var(--gray-200);white-space:nowrap}
         .tracking-table td{padding:14px 16px;border-bottom:var(--border);color:var(--black);vertical-align:middle}
@@ -172,7 +176,7 @@
 
         /* Footer */
         .site-footer{padding:44px 0;background:var(--gray-50);border-top:var(--border)}
-        .footer-inner{max-width:var(--maxw);margin:0 auto;padding:0 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+        .footer-inner{max-width:var(--maxw);margin:0 auto;padding:0 clamp(16px,5vw,40px);display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
         .footer-sources{font-size:13px;color:var(--gray-600);line-height:1.7;max-width:640px}
         .footer-sources strong{font-weight:600;color:var(--black)}
         .footer-run{font-family:var(--font-mono);font-size:11px;color:var(--gray-400);white-space:nowrap}
@@ -195,6 +199,8 @@
             .nav-metro { display: none; }
             .nav-link { padding: 8px 14px; }
             .header-badge { display: none; }
+            .tracking-table { min-width: 520px; }
+            .table-hint { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 10px; }
         }
     </style>
 </head>
@@ -390,14 +396,17 @@
                     <div class="bloque-data-row"><span class="bloque-pct">67%</span><span class="bloque-pct-label">atribuye aumento de deuda al legado</span></div>
                     <div class="bloque-data-row"><span class="bloque-pct">15%</span><span class="bloque-pct-label">menciona obras como legado positivo</span></div>
                     <div class="accordion-content">
-                        <table class="tracking-table">
-                            <thead><tr><th>¿Cómo quedará el país?</th><th>Ola 3</th><th>Ola 5</th><th>Ola 6</th><th>Ola 7</th></tr></thead>
-                            <tbody>
-                                <tr><td>Mejor</td><td class="pct-cell">32%</td><td class="pct-cell">21%</td><td class="pct-cell">21%</td><td class="pct-cell">13%</td></tr>
-                                <tr><td>Igual</td><td class="pct-cell">24%</td><td class="pct-cell">19%</td><td class="pct-cell">25%</td><td class="pct-cell">21%</td></tr>
-                                <tr class="ola7"><td>Peor</td><td class="pct-cell">44%</td><td class="pct-cell">60%</td><td class="pct-cell">54%</td><td class="pct-cell highlight">66%</td></tr>
-                            </tbody>
-                        </table>
+                        <div class="table-scroll">
+                            <table class="tracking-table">
+                                <thead><tr><th>¿Cómo quedará el país?</th><th>Ola 3</th><th>Ola 5</th><th>Ola 6</th><th>Ola 7</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Mejor</td><td class="pct-cell">32%</td><td class="pct-cell">21%</td><td class="pct-cell">21%</td><td class="pct-cell">13%</td></tr>
+                                    <tr><td>Igual</td><td class="pct-cell">24%</td><td class="pct-cell">19%</td><td class="pct-cell">25%</td><td class="pct-cell">21%</td></tr>
+                                    <tr class="ola7"><td>Peor</td><td class="pct-cell">44%</td><td class="pct-cell">60%</td><td class="pct-cell">54%</td><td class="pct-cell highlight">66%</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-hint">Desliza la tabla &#8594;</div>
                     </div>
                 </div>
             </div>
@@ -900,6 +909,25 @@ new Chart(document.getElementById('chartLluvias'), {
         scales: { x: { min: 0, max: 55, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
     }
 });
+
+// ── REFIT CHARTS ONCE WEBFONT LOADS ──
+// Charts render before IBM Plex Mono finishes loading, so Chart.js measures
+// y-axis label widths with the fallback font and under-allocates space, clipping
+// the first character of long labels. Re-fitting after fonts.ready re-measures.
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function() {
+        document.querySelectorAll('canvas').forEach(function(cv) {
+            var ch = Chart.getChart(cv);
+            if (!ch) return;
+            Object.keys(ch.scales).forEach(function(k) {
+                var s = ch.scales[k];
+                s._longestTextCache = {};   // bust cached label-width measurement
+                s._labelSizes = null;
+            });
+            ch.update();
+        });
+    });
+}
 
 // ── NAV METRO LINE ──
 (function() {

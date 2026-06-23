@@ -1084,6 +1084,20 @@ function applyRange(months, btn) {
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
 (function() { const def = document.querySelector('.chart-btn[data-range="36"]'); applyRange(36, def); })();
 
+// Re-fit chart once the IBM Plex Mono webfont loads. Chart.js renders before the
+// font is ready, measures axis-label widths with the fallback font, under-allocates,
+// then clips the first character ("100/100" -> "00/100") when the wider font swaps in.
+// Busting the cached label measurements and updating forces a correct re-measure.
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function() {
+        Object.keys(scoreChart.scales).forEach(function(k) {
+            scoreChart.scales[k]._longestTextCache = {};
+            scoreChart.scales[k]._labelSizes = null;
+        });
+        scoreChart.update();
+    });
+}
+
 // ── CLIMA BUTTON SVG PATH ──
 (function() {
     var btn = document.querySelector('.nav-link--clima');
