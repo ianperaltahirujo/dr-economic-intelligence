@@ -26,18 +26,13 @@ from pipeline.build_vulnerability import (
     VULNERABILITY_COMPONENTS,
     INDICATOR_LABELS,
     HIGH_STRESS_THRESHOLD,
+    MODERATE_STRESS_THRESHOLD,
     classify_indicator,
+    gas_mom_for,
 )
 
 # ── Hero logo ────────────────────────────────────────────────
 HERO_LOGO_SRC = "hero_logo.png"
-
-# ── Classification thresholds (z-score magnitudes) ──────────────────────────────
-# Shared by the indicator cards and the summary counts so the panel and the
-# at-a-glance chips can never disagree.
-STRESS_Z_THRESHOLD = 1.5
-WATCH_Z_THRESHOLD = 0.75
-MODERATE_SCORE_THRESHOLD = 50  # score at/above this = moderate stress band
 
 # ── Spanish content ────────────────────────────────────────────────────────────
 
@@ -123,7 +118,7 @@ def generate_briefing(results: dict, scored: pd.DataFrame) -> str:
             f"{HIGH_STRESS_THRESHOLD} puntos. Este nivel refleja presiones simultáneas en múltiples "
             f"frentes que merecen atención prioritaria."
         )
-    elif score >= MODERATE_SCORE_THRESHOLD:
+    elif score >= MODERATE_STRESS_THRESHOLD:
         opening = (
             f"El Índice de Vulnerabilidad Económica de la República Dominicana se situó en "
             f"<strong>{score:.1f} puntos</strong> en {date_str}, indicando condiciones de estrés "
@@ -288,7 +283,7 @@ def build_chart_data(scored: pd.DataFrame) -> str:
             values.append(v)
             if v >= HIGH_STRESS_THRESHOLD:
                 colors.append("rgba(206,17,38,0.8)")
-            elif v >= MODERATE_SCORE_THRESHOLD:
+            elif v >= MODERATE_STRESS_THRESHOLD:
                 colors.append("rgba(0,45,98,0.6)")
             else:
                 colors.append("rgba(0,45,98,0.3)")
@@ -309,7 +304,7 @@ def build_chart_data(scored: pd.DataFrame) -> str:
         values.append(v)
         if v >= HIGH_STRESS_THRESHOLD:
             colors.append(f"rgba(206,17,38,{alpha:.2f})")
-        elif v >= MODERATE_SCORE_THRESHOLD:
+        elif v >= MODERATE_STRESS_THRESHOLD:
             colors.append(f"rgba(0,45,98,{alpha:.2f})")
         else:
             colors.append(f"rgba(0,45,98,{alpha*0.6:.2f})")
@@ -453,22 +448,24 @@ def build_context_cards(results: dict) -> str:
 # ── Indicator classification & cards ────────────────────────────────────────────
 
 def count_indicator_statuses(scored: pd.DataFrame):
-    """Count indicators in each status band using the same rules as the cards."""
+    """Count indicators in each status band by calling classify_indicator(),
+    the project's single source of truth, so this can never disagree with the
+    cards, the alerts, or the Excel sheets."""
     stress = watch = normal = 0
-    for col, (weight, direction) in VULNERABILITY_COMPONENTS.items():
+    for col in VULNERABILITY_COMPONENTS:
         zscore_col = f"{col}_zscore"
         if col not in scored.columns:
             continue
         recent = scored[[col, zscore_col]].dropna().tail(1)
         if recent.empty:
             continue
+        value = recent[col].iloc[0]
         zscore = recent[zscore_col].iloc[0]
-        is_stress = ((direction == "positive" and zscore > STRESS_Z_THRESHOLD) or
-                     (direction == "negative" and zscore < -STRESS_Z_THRESHOLD))
-        is_watch = abs(zscore) > WATCH_Z_THRESHOLD and not is_stress
-        if is_stress:
+        mom = gas_mom_for(scored, recent.index[0]) if col == "gas_premium_dop" else None
+        classification = classify_indicator(col, value, zscore, mom_delta=mom)
+        if classification["is_stress"]:
             stress += 1
-        elif is_watch:
+        elif classification["is_watch"]:
             watch += 1
         else:
             normal += 1
@@ -485,8 +482,9 @@ def build_indicator_cards(scored: pd.DataFrame) -> str:
         value  = recent[col].iloc[0]
         zscore = recent[zscore_col].iloc[0]
         es_label, es_desc = INDICATOR_DESCRIPTIONS_ES.get(col, (INDICATOR_LABELS.get(col, col), ""))
-        is_stress = ((direction == "positive" and zscore > STRESS_Z_THRESHOLD) or (direction == "negative" and zscore < -STRESS_Z_THRESHOLD))
-        is_watch  = abs(zscore) > WATCH_Z_THRESHOLD and not is_stress
+        mom = gas_mom_for(scored, recent.index[0]) if col == "gas_premium_dop" else None
+        classification = classify_indicator(col, value, zscore, mom_delta=mom)
+        is_stress, is_watch = classification["is_stress"], classification["is_watch"]
         if is_stress:   status_label, status_class, data_status = "ALERTA",    "status-stress", "stress"
         elif is_watch:  status_label, status_class, data_status = "VIGILANCIA","status-watch",  "watch"
         else:           status_label, status_class, data_status = "NORMAL",    "status-normal", "normal"
@@ -495,7 +493,7 @@ def build_indicator_cards(scored: pd.DataFrame) -> str:
         elif col in ["ipc_yoy_pct","sb_morosidad_pct","sb_solvencia_pct","UNRATE"]: value_str = f"{value:.2f}%"
         elif col == "UMCSENT": value_str = f"{value:.1f}"
         else: value_str = f"{value:.2f}"
-        bar_pct   = max(0, min(100, (zscore + 3) / 6 * 100))
+        bar_pct   = classification["contribution"] * 100
         bar_color = "var(--red)" if is_stress else ("var(--blue)" if is_watch else "var(--gray-400)")
         col_history = scored[col].dropna().tail(3)
         if len(col_history) >= 2:
@@ -552,30 +550,80 @@ def build_alert_items(alerts: pd.DataFrame) -> str:
 # ── Full HTML ──────────────────────────────────────────────────────────────────
 
 def build_html(results: dict) -> str:
-    scored     = results.get("scored", pd.DataFrame())
-    score      = results.get("current_score", 0) or 0
-    score_date = results.get("score_date")
-    alerts     = results.get("alerts", pd.DataFrame())
+    scored          = results.get("scored", pd.DataFrame())
+    confirmed_score = results.get("current_score", 0) or 0
+    confirmed_date  = results.get("score_date")
+    alerts          = results.get("alerts", pd.DataFrame())
 
-    score_history = scored["vulnerability_score"].dropna().tail(2)
-    if len(score_history) >= 2:
-        delta = score - score_history.iloc[-2]
-        if delta > 0.05:    trend_arrow, trend_class, trend_text = "&#8593;", "trend-bad",     f"+{delta:.1f} pts vs semana anterior"
-        elif delta < -0.05: trend_arrow, trend_class, trend_text = "&#8595;", "trend-good",    f"{delta:.1f} pts vs semana anterior"
-        else:               trend_arrow, trend_class, trend_text = "&#8211;","trend-neutral",  "Sin cambios vs semana anterior"
+    # The hero shows the current in-progress calendar month (averaged from
+    # this month's weekly pipeline runs) when one is available, falling
+    # back to the last fully-confirmed month exactly as before this
+    # feature existed if it isn't. See current_month_tracker.py /
+    # build_vulnerability.estimate_current_month() for why this is
+    # explicitly separate from the strict historical score.
+    current_estimate = results.get("current_month_estimate")
+    if current_estimate is not None:
+        score          = current_estimate["averaged_score"]
+        score_date     = current_estimate["date"]
+        week_of_month  = current_estimate["week_of_month"]
+        weeks_recorded = current_estimate["weeks_recorded"]
     else:
+        score          = confirmed_score
+        score_date     = confirmed_date
+        week_of_month  = None
+        weeks_recorded = 0
+
+    # Trend: a genuine week-over-week comparison once this month has at
+    # least two recorded weekly snapshots. On the first week of a new
+    # month's estimate there is no prior week yet, so compare against the
+    # last confirmed month instead -- and say so explicitly, rather than
+    # mislabeling a vs-last-month comparison as "vs semana anterior".
+    # Without an active estimate, fall back to the original month-over-
+    # month comparison against confirmed history, unchanged.
+    delta = None
+    compare_label = "vs semana anterior"
+    if current_estimate is not None:
+        if weeks_recorded >= 2 and current_estimate.get("prior_week_score") is not None:
+            delta = current_estimate["this_week_score"] - current_estimate["prior_week_score"]
+        elif confirmed_date is not None:
+            delta = current_estimate["this_week_score"] - confirmed_score
+            compare_label = f"vs {MONTHS_ES[confirmed_date.month].capitalize()} confirmado"
+    else:
+        score_history = scored["vulnerability_score"].dropna().tail(2)
+        if len(score_history) >= 2:
+            delta = score - score_history.iloc[-2]
+
+    if delta is None:
         trend_arrow, trend_class, trend_text = "", "trend-neutral", "Dato base"
+    elif delta > 0.05:    trend_arrow, trend_class, trend_text = "&#8593;", "trend-bad",     f"+{delta:.1f} pts {compare_label}"
+    elif delta < -0.05:   trend_arrow, trend_class, trend_text = "&#8595;", "trend-good",    f"{delta:.1f} pts {compare_label}"
+    else:                 trend_arrow, trend_class, trend_text = "&#8211;","trend-neutral",  f"Sin cambios {compare_label}"
 
     is_provisional = False
-    if score_date is not None and "is_provisional" in scored.columns and score_date in scored.index:
+    if current_estimate is None and score_date is not None and "is_provisional" in scored.columns and score_date in scored.index:
         is_provisional = bool(scored.loc[score_date, "is_provisional"])
 
-    status_key   = "HIGH" if score >= HIGH_STRESS_THRESHOLD else ("MODERATE" if score >= MODERATE_SCORE_THRESHOLD else "LOW")
+    status_key   = "HIGH" if score >= HIGH_STRESS_THRESHOLD else ("MODERATE" if score >= MODERATE_STRESS_THRESHOLD else "LOW")
     status_label, status_desc = STATUS_TEXT_ES[status_key]
     score_color  = "#CE1126" if status_key == "HIGH" else "#002D62" if status_key == "MODERATE" else "#1A1A1A"
     date_str     = f"{MONTHS_ES[score_date.month].capitalize()} de {score_date.year}" if score_date else ""
     run_date     = datetime.now().strftime("%d/%m/%Y a las %H:%M")
     meter_pos    = max(0.0, min(100.0, float(score)))
+
+    week_label_html = f" &middot; Semana {week_of_month}" if week_of_month else ""
+    estimate_note_html = ""
+    confirmed_note_html = ""
+    if current_estimate is not None:
+        estimate_note_html = (
+            '<div class="estimate-note">Estimación del mes en curso &mdash; '
+            'promedio de las lecturas semanales registradas.</div>'
+        )
+        if confirmed_date is not None:
+            confirmed_date_str = f"{MONTHS_ES[confirmed_date.month].capitalize()} de {confirmed_date.year}"
+            confirmed_note_html = (
+                f'<div class="confirmed-note">Último mes confirmado: {confirmed_date_str} '
+                f'&middot; {confirmed_score:.1f}/100</div>'
+            )
 
     briefing      = generate_briefing(results, scored)
     chart_data    = build_chart_data(scored)
@@ -761,15 +809,22 @@ def build_html(results: dict) -> str:
         .score-date {{ font-size: 13px; color: var(--gray-400); margin-top: 4px; font-family: var(--font-mono); }}
         .provisional-pill {{ display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: rgba(206,17,38,0.10); color: var(--red); border: 1px solid rgba(206,17,38,0.25); margin-left: 8px; vertical-align: middle; white-space: nowrap; }}
         .provisional-note {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 6px; }}
+        .estimate-note {{ font-size: 11.5px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 6px; }}
+        .confirmed-note {{ font-size: 11.5px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 2px; }}
 
         /* Score meter */
         .score-meter {{ margin-top: 26px; }}
-        .meter-track {{ position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-soft) 0 50%, var(--blue) 50% 65%, var(--red) 65% 100%); box-shadow: inset 0 1px 2px rgba(10,10,10,.14); }}
+        .meter-track {{ position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-soft) 0 {MODERATE_STRESS_THRESHOLD:.1f}%, var(--blue) {MODERATE_STRESS_THRESHOLD:.1f}% {HIGH_STRESS_THRESHOLD:.1f}%, var(--red) {HIGH_STRESS_THRESHOLD:.1f}% 100%); box-shadow: inset 0 1px 2px rgba(10,10,10,.14); }}
         .meter-marker {{ position: absolute; top: 50%; width: 18px; height: 18px; transform: translate(-50%,-50%) rotate(45deg); background: {score_color}; border: 2px solid var(--white); box-shadow: var(--shadow-sm); }}
         .meter-scale {{ position: relative; height: 16px; margin-top: 9px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-400); }}
         .meter-scale span {{ position: absolute; top: 0; transform: translateX(-50%); }}
         .meter-scale span:first-child {{ transform: none; }}
         .meter-scale span:last-child {{ transform: translateX(-100%); }}
+        /* The moderate/high threshold ticks sit close together (4.4 pts apart on a
+           0-100 scale); centering both on their position collides the labels, so
+           point them away from each other instead. */
+        .meter-scale span:nth-child(2) {{ transform: translateX(-100%); padding-right: 4px; }}
+        .meter-scale span:nth-child(3) {{ transform: translateX(0); padding-left: 4px; }}
         .meter-caption {{ margin-top: 10px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: var(--gray-600); }}
         .zone-key {{ display: inline-flex; align-items: center; gap: 6px; }}
         .zone-swatch {{ width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }}
@@ -981,15 +1036,17 @@ def build_html(results: dict) -> str:
                         <span class="score-main-arrow {trend_class}">{trend_arrow}</span>
                     </div>
                     <div class="score-trend-text {trend_class}">{trend_text}</div>
-                    <div class="score-date">{date_str}{"<span class='provisional-pill'>Avance Estimado</span>" if is_provisional else ""}</div>
+                    <div class="score-date">{date_str}{week_label_html}{"<span class='provisional-pill'>Avance Estimado</span>" if is_provisional else ""}</div>
                     {"<div class='provisional-note'>* Gasto turístico proyectado. Se actualizará al publicarse el dato oficial del BCRD.</div>" if is_provisional else ""}
+                    {estimate_note_html}
+                    {confirmed_note_html}
                     <div class="score-meter" role="img" aria-label="Puntuación {score:.1f} de 100">
                         <div class="meter-track"><div class="meter-marker" style="left:{meter_pos:.1f}%"></div></div>
-                        <div class="meter-scale"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:65%">65</span><span style="left:100%">100</span></div>
+                        <div class="meter-scale"><span style="left:0">0</span><span style="left:{MODERATE_STRESS_THRESHOLD:.1f}%">{MODERATE_STRESS_THRESHOLD:.1f}</span><span style="left:{HIGH_STRESS_THRESHOLD:.1f}%">{HIGH_STRESS_THRESHOLD:.1f}</span><span style="left:100%">100</span></div>
                         <div class="meter-caption">
                             <span class="zone-key"><span class="zone-swatch" style="background:var(--blue-soft)"></span>Normal</span>
-                            <span class="zone-key"><span class="zone-swatch" style="background:var(--blue)"></span>Moderado (50+)</span>
-                            <span class="zone-key"><span class="zone-swatch" style="background:var(--red)"></span>Alerta (65+)</span>
+                            <span class="zone-key"><span class="zone-swatch" style="background:var(--blue)"></span>Moderado ({MODERATE_STRESS_THRESHOLD:.1f}+)</span>
+                            <span class="zone-key"><span class="zone-swatch" style="background:var(--red)"></span>Alerta ({HIGH_STRESS_THRESHOLD:.1f}+)</span>
                         </div>
                     </div>
                 </div>

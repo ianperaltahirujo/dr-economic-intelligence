@@ -156,6 +156,52 @@ def load_exchange_rate(path: str) -> pd.DataFrame:
     return df
 
 
+def load_exchange_rate_mtd(path: str, as_of: "pd.Timestamp | None" = None) -> float:
+    """
+    Month-to-date average DOP/USD (sell rate) for the current, still-open
+    calendar month, computed from the 'Diaria' (daily) sheet.
+
+    This is intentionally separate from load_exchange_rate(), which uses
+    BCRD's own 'PromMensual' sheet and is the only source ever used for
+    confirmed historical months -- that average is BCRD's authoritative
+    figure, not something we should approximate ourselves. This function
+    exists solely to give the current in-progress month a real, honest
+    average instead of flat-filling last month's value, for months where
+    BCRD hasn't yet published an official monthly average.
+
+    Returns None if the 'Diaria' sheet is missing, unreadable, or has no
+    rows for the target month -- callers should fall back to a flat fill.
+    """
+    as_of = as_of or pd.Timestamp.now()
+    target_year, target_month = as_of.year, as_of.month
+
+    try:
+        raw = pd.read_excel(path, sheet_name='Diaria', header=None)
+    except (ValueError, FileNotFoundError):
+        return None
+
+    data = raw.iloc[3:, :5].copy()
+    data.columns = ['year', 'month', 'day', 'compra', 'venta']
+    data['year'] = pd.to_numeric(data['year'], errors='coerce')
+
+    ventas = []
+    for _, row in data.iterrows():
+        year = row['year']
+        month_num = MONTH_MAP_SHORT.get(str(row['month']).strip())
+        venta = row['venta']
+        if pd.isna(year) or month_num is None or pd.isna(venta):
+            continue
+        if int(year) == target_year and month_num == target_month:
+            try:
+                ventas.append(float(venta))
+            except (TypeError, ValueError):
+                continue
+
+    if not ventas:
+        return None
+    return sum(ventas) / len(ventas)
+
+
 def load_ipc(path: str) -> pd.DataFrame:
     """
     Parse Indice de Precios al Consumidor (ipc_base_2019-2020.xls).
