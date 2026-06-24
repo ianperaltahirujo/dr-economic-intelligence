@@ -39,6 +39,13 @@ jobs:
           FRED_API_KEY:   ${{ secrets.FRED_API_KEY }}
           SB_API_KEY:     ${{ secrets.SB_API_KEY }}
           BCRD_API_KEY:   ${{ secrets.BCRD_API_KEY }}
+          AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          EMAIL_RECIPIENTS:    ${{ secrets.EMAIL_RECIPIENTS }}
+          ONEDRIVE_OWNER_UPN:   "work@lasociedad.com.do"
+          ONEDRIVE_FOLDER_PATH: "Economic Intelligence/Output"
+          EMAIL_SENDER_UPN:     "work@lasociedad.com.do"
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           if [ "${{ github.event.inputs.skip_download }}" = "true" ]; then
@@ -54,6 +61,9 @@ jobs:
           git add docs/index.html
           if [ -f data/state/current_month_snapshots.json ]; then
             git add data/state/current_month_snapshots.json
+          fi
+          if [ -f data/state/monthly_reports_state.json ]; then
+            git add data/state/monthly_reports_state.json
           fi
           git diff --staged --quiet || git commit -m "chore: weekly dashboard update [skip ci]"
           git push

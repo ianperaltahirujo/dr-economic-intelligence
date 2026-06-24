@@ -25,6 +25,27 @@ run). Pins down three specific, previously-verified scores (2020-04,
 2025-09, 2026-05) so a future change to the engine that shifts any of them
 fails loudly instead of being discovered on the published dashboard.
 
+**test_ms_graph.py** — tests for the OneDrive upload / Outlook email addon
+(`pipeline/ms_graph.py`). All Graph/Azure AD calls are mocked, so no
+network access or credentials are needed: covers token-request shaping,
+the OneDrive upload request shape, `sendMail` payload shape (recipients,
+body, base64 attachment), and the 5xx retry/backoff helper.
+
+**test_write_excel.py** — tests for `write_workbook()`'s `headline`
+parameter in `pipeline/write_excel.py`, which lets the weekly OneDrive
+snapshot show the current in-progress month's projected score instead of
+the last confirmed month. Covers: default behavior is byte-for-byte
+unchanged when `headline` is omitted, the projected month/score render
+correctly and use a distinct label from the confirmed-month "Avance
+Estimado" tag, and the override never mutates the caller's results dict.
+
+**test_monthly_report_state.py** — tests for
+`pipeline/monthly_report_state.py`, which tracks which months already have
+a finalized Monthly Report uploaded to OneDrive. Covers: a never-uploaded
+month always needs upload, an unchanged month is skipped, a provisional
+status flip (e.g. `tourism_daily_spend_usd`'s real value finally arriving)
+triggers a re-upload, and graceful handling of a missing/corrupt state file.
+
 ## Updating the fixture
 
 `fixtures/vulnerability_history.csv` should be regenerated whenever

@@ -69,7 +69,9 @@ dr-economic-intelligence/
 │   ├── build_vulnerability.py           # Scoring engine, z-scores, weights, alerts
 │   ├── backtest_weights.py              # Weight optimizer against known stress periods
 │   ├── write_excel.py                   # Excel workbook writer (6 sheets)
-│   └── write_html.py                    # GitHub Pages site generator
+│   ├── write_html.py                    # GitHub Pages site generator
+│   ├── ms_graph.py                      # Microsoft Graph client (OneDrive upload, Outlook email)
+│   └── monthly_report_state.py          # Tracks which months already have a finalized Monthly Report
 │
 ├── docs/
 │   ├── clima-social.html                    # Static Clima Social page
@@ -164,6 +166,10 @@ Add these in **Settings > Secrets and variables > Actions**:
 | `FRED_API_KEY` | FRED API key                       |
 | `SB_API_KEY`   | Superintendencia de Bancos API key |
 | `BCRD_API_KEY` | Banco Central API key              |
+| `AZURE_TENANT_ID` | Azure AD app registration tenant ID (Microsoft Graph) |
+| `AZURE_CLIENT_ID` | Azure AD app registration client ID (Microsoft Graph) |
+| `AZURE_CLIENT_SECRET` | Azure AD app registration client secret (Microsoft Graph) |
+| `EMAIL_RECIPIENTS` | Comma-separated recipient list for the weekly summary email; if unset, the email step is skipped |
 
 ### Manual trigger
 
@@ -171,7 +177,7 @@ The workflow can be triggered manually from the Actions tab. An optional `skip_d
 
 ### Artifacts
 
-Each run uploads the Excel workbook as a workflow artifact retained for 90 days, accessible from the Actions tab regardless of SharePoint status.
+Each run uploads the Excel workbook as a workflow artifact retained for 90 days, accessible from the Actions tab regardless of OneDrive/email delivery status.
 
 ---
 
@@ -242,14 +248,16 @@ Known stress periods used for calibration: COVID collapse (Mar–Sep 2020), post
 
 ---
 
-## SharePoint integration
+## OneDrive and email integration
 
-The upload step is stubbed pending Azure AD credentials from IT. To enable:
+After each run, the pipeline writes and uploads Excel snapshots to OneDrive and sends a summary email, both via Microsoft Graph using app-only (client-credentials) authentication — there is no signed-in user context. Implemented in `pipeline/ms_graph.py`, wired in via `step_write_weekly_report()`, `step_write_monthly_report()`, `step_upload_onedrive()`, and `step_send_email()` in `run_pipeline.py`.
 
-1. Add to `.env`: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `SHAREPOINT_DRIVE_ID`, `SHAREPOINT_FOLDER_PATH`
-2. Implement the upload logic in `step_upload_sharepoint()` in `run_pipeline.py` using `msal` + `requests`
+- **OneDrive target:** the OneDrive belonging to `work@lasociedad.com.do` (env `ONEDRIVE_OWNER_UPN`), under base folder `Economic Intelligence/Output/` (env `ONEDRIVE_FOLDER_PATH`) — a folder that account genuinely owns. App-only auth cannot resolve "shared with me" items (Graph returns 403 for that under client-credentials auth) and Graph's path-based upload silently auto-creates missing folders rather than failing, so the target folder must be one `work@lasociedad.com.do` owns outright, not a folder merely shared with it. Visibility from the team's shared `Propuestas y Proyectos` folder is handled by a one-time manual OneDrive shortcut placed inside it, pointing at this owned `Economic Intelligence` folder — not by the pipeline.
+- **Weekly Reports** (`Economic Intelligence/Output/Weekly Reports/`): every run writes a new, dated workbook (`vulnerability_report_weekly_YYYY-MM-DD.xlsx`) headlined by the current in-progress calendar month's *projected* score — the same number shown on the website hero, built from `build_vulnerability.estimate_current_month()`. Old weekly files are never deleted; they're a permanent audit trail.
+- **Monthly Reports** (`Economic Intelligence/Output/Monthly Reports/`): once a month has full indicator coverage (12/12 present after the existing fill policy — i.e. the same rule that already governs the historical record, see "Strict coverage rule" below), a single finalized workbook is written for that month (`vulnerability_report_YYYY-MM.xlsx`), headlined by the confirmed score. State is tracked in `data/state/monthly_reports_state.json` so a month's file is only rewritten if it's new or its provisional status changes (e.g. `tourism_daily_spend_usd`'s real value finally arrives, replacing a forward-filled estimate) — never re-uploaded every week for no reason. The "Avance Estimado" disclosure stays intact in both Excel and on the website whenever a component is filled; finalizing at 12/12-after-fills does not hide that disclosure.
+- **Summary email:** sent from `work@lasociedad.com.do` (env `EMAIL_SENDER_UPN`) via Graph `sendMail`, with that run's Weekly Report attached. A static Spanish HTML template linking to the live dashboard, referencing the same projected current-month date as the Weekly Report. Recipients come from the comma-separated `EMAIL_RECIPIENTS` secret; if unset, the email step is skipped, not an error.
 
-Until then, the Excel workbook is available as a GitHub Actions artifact and at the local output path.
+All of these steps are best-effort: failures are logged but never fail the workflow run. The dashboard commit and the original `vulnerability_report.xlsx` artifact upload always proceed regardless of whether OneDrive/email succeeded.
 
 ---
 

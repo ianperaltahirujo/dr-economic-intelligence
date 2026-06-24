@@ -7,7 +7,12 @@ Runs the full weekly pipeline in order:
     3. Load context indicators (gas, tourism, debt)
     4. Write Excel workbook to data/output/
     5. Write HTML site to docs/index.html
-    6. (Future) Upload to SharePoint via Microsoft Graph API
+    6. Write & upload the current month's projected-score Excel snapshot
+       to OneDrive's "Weekly Reports" folder (new file every run), and the
+       finalized Excel for the most recently confirmed month to "Monthly
+       Reports" (only when new or changed since the last upload)
+    7. Send weekly summary email via Outlook/Graph API, with the weekly
+       snapshot attached
 
 Usage:
     python run_pipeline.py                  # full run
@@ -15,6 +20,7 @@ Usage:
     python run_pipeline.py --dry-run        # score only, no Excel output
 """
 
+import os
 import sys
 import argparse
 import traceback
@@ -25,6 +31,7 @@ from pathlib import Path
 
 BCRD_DATA_DIR   = "data/raw"
 OUTPUT_PATH     = "data/output/vulnerability_report.xlsx"
+DASHBOARD_URL   = "https://ianperaltahirujo.github.io/dr-economic-intelligence"
 
 # -- Helpers -----------------------------------------------------------------
 
@@ -77,6 +84,49 @@ def step_load_context() -> dict:
     return load_context_all()
 
 
+def step_estimate_current_month(results: dict) -> dict:
+    """
+    Build the dashboard hero's current-in-progress-month estimate and fold
+    it into `results` under 'current_month_estimate'. Display-only: it
+    never touches vulnerability_scored.csv or the historical record, so a
+    failure here should not affect the confirmed score the rest of the
+    pipeline already computed.
+    """
+    from pipeline.build_vulnerability import estimate_current_month
+    from pipeline.ingest_bcrd import load_exchange_rate_mtd
+    from pipeline.current_month_tracker import (
+        record_weekly_snapshot, average_score, week_of_month,
+    )
+
+    merged = results.get("merged")
+    if merged is None or merged.empty:
+        return results
+
+    dop_usd_mtd = load_exchange_rate_mtd(f"{BCRD_DATA_DIR}/TASA_DOLAR_REFERENCIA_MC.xlsx")
+    estimate = estimate_current_month(merged, overrides={"dop_usd": dop_usd_mtd})
+    if estimate is None:
+        return results
+
+    now = datetime.now()
+    snapshot_data = record_weekly_snapshot(estimate["score"], as_of=now)
+    snapshots = snapshot_data["snapshots"]  # sorted by week, this run's entry last
+    prior_week_score = snapshots[-2]["score"] if len(snapshots) >= 2 else None
+
+    results["current_month_estimate"] = {
+        "date": estimate["date"],
+        "this_week_score": estimate["score"],
+        "prior_week_score": prior_week_score,
+        "averaged_score": average_score(snapshot_data),
+        "week_of_month": week_of_month(now),
+        "weeks_recorded": len(snapshots),
+        "filled_components": estimate["filled_components"],
+        "components_real": estimate["components_real"],
+        "components_total": estimate["components_total"],
+        "components": estimate["components"],
+    }
+    return results
+
+
 def step_write_excel(results: dict) -> Path:
     """Write Excel workbook. Returns output path."""
     from pipeline.write_excel import write_workbook
@@ -89,25 +139,137 @@ def step_write_site(results: dict) -> Path:
     return write_site(results)
 
 
-def step_upload_sharepoint(filepath: Path) -> bool:
+def step_write_weekly_report(results: dict) -> Path | None:
     """
-    Upload workbook to SharePoint via Microsoft Graph API.
-    NOT YET IMPLEMENTED -- requires Azure AD app credentials.
+    Write the weekly OneDrive snapshot: the current in-progress month's
+    projected score (same number shown on the website hero) as headline,
+    to a dated filename so each week's run produces a new file in OneDrive's
+    "Weekly Reports" folder rather than overwriting last week's.
 
-    To enable:
-    1. Add to .env:
-           AZURE_TENANT_ID=...
-           AZURE_CLIENT_ID=...
-           AZURE_CLIENT_SECRET=...
-           SHAREPOINT_DRIVE_ID=...
-           SHAREPOINT_FOLDER_PATH=...
-    2. Implement the upload logic below using the msal + requests libraries.
-    3. Remove the early return.
+    Returns None (no error) if no current-month estimate is available this
+    run -- e.g. estimate_current_month() found no genuine signal yet.
     """
-    print("  SharePoint upload: not yet configured.")
-    print("  Add Azure AD credentials to .env to enable automatic upload.")
-    print(f"  Local file available at: {filepath.resolve()}")
-    return False
+    from pipeline.write_excel import write_workbook
+
+    estimate = results.get("current_month_estimate")
+    if estimate is None:
+        print("  No current-month estimate available -- skipping weekly report.")
+        return None
+
+    headline = {
+        "date": estimate["date"],
+        "score": estimate["averaged_score"],
+        "filled_components": estimate["filled_components"],
+        "components_real": estimate["components_real"],
+        "components_total": estimate["components_total"],
+        "components": estimate["components"],
+    }
+
+    run_date = datetime.now().strftime("%Y-%m-%d")
+    path = f"data/output/vulnerability_report_weekly_{run_date}.xlsx"
+    return write_workbook(results, path=path, headline=headline)
+
+
+def step_write_monthly_report(results: dict) -> Path | None:
+    """
+    Write the finalized Monthly Report for the most recently confirmed
+    month, only if it's new or its is_provisional status changed since the
+    last time one was written (e.g. tourism_daily_spend_usd's real value
+    finally arrived for that month, correcting the score). State is
+    tracked in data/state/monthly_reports_state.json.
+
+    Returns None (no error) if the current confirmed month's report is
+    already up to date.
+    """
+    from pipeline.write_excel import write_workbook
+    from pipeline.monthly_report_state import month_key, load_state, needs_upload, record_upload
+
+    score_date = results.get("score_date")
+    scored = results.get("scored")
+    if score_date is None or scored is None:
+        return None
+
+    is_provisional = False
+    if "is_provisional" in scored.columns and score_date in scored.index:
+        is_provisional = bool(scored.loc[score_date, "is_provisional"])
+
+    month = month_key(score_date)
+    state = load_state()
+    if not needs_upload(state, month, is_provisional):
+        print(f"  Monthly report for {month} already up to date -- skipping.")
+        return None
+
+    path = f"data/output/vulnerability_report_{month}.xlsx"
+    output_path = write_workbook(results, path=path)
+    record_upload(state, month, is_provisional)
+    print(f"  Monthly report for {month} written (is_provisional={is_provisional}).")
+    return output_path
+
+
+def step_upload_onedrive(filepath: Path, subfolder: str) -> bool:
+    """
+    Upload a workbook to OneDrive via Microsoft Graph API (app-only auth),
+    into `subfolder` under the configured base folder (e.g. "Weekly
+    Reports" or "Monthly Reports").
+    Best-effort: failures are logged by the caller in main(), never fatal.
+    """
+    from pipeline.ms_graph import upload_to_onedrive
+
+    owner_upn = os.getenv("ONEDRIVE_OWNER_UPN", "work@lasociedad.com.do")
+    base_folder = os.getenv("ONEDRIVE_FOLDER_PATH", "Economic Intelligence/Output")
+    folder_path = f"{base_folder}/{subfolder}"
+    return upload_to_onedrive(filepath, owner_upn=owner_upn, folder_path=folder_path)
+
+
+def step_send_email(results: dict, filepath: Path) -> bool:
+    """
+    Send weekly summary email via Outlook/Graph sendMail.
+    Skips (returns False, no error) if EMAIL_RECIPIENTS is unset/empty.
+    Best-effort: failures are logged by the caller in main(), never fatal.
+
+    Body is a static Spanish HTML template (not the score/alerts detail --
+    that lives on the dashboard, which the email links to) with the Excel
+    workbook attached.
+    """
+    from pipeline.ms_graph import send_summary_email
+    from pipeline.write_html import MONTHS_ES
+
+    recipients_raw = os.getenv("EMAIL_RECIPIENTS", "")
+    recipients = [r.strip() for r in recipients_raw.split(",") if r.strip()]
+    if not recipients:
+        print("  EMAIL_RECIPIENTS not set -- skipping summary email.")
+        return False
+
+    sender_upn = os.getenv("EMAIL_SENDER_UPN", "work@lasociedad.com.do")
+    estimate = results.get("current_month_estimate")
+    score_date = estimate["date"] if estimate is not None else results.get("score_date")
+    date_str = (
+        f"{MONTHS_ES[score_date.month].capitalize()} de {score_date.year}"
+        if score_date else ""
+    )
+
+    subject = "Reporte Semanal Economic Intelligence"
+    if date_str:
+        subject += f" -- {date_str}"
+
+    intro = "Este es el reporte semanal de Inteligencia Económica de República Dominicana"
+    intro += f", correspondiente a {date_str}." if date_str else "."
+
+    body_html = f"""
+<p>{intro}</p>
+<p>Haz click <a href="{DASHBOARD_URL}">aquí</a> para ver el reporte semanal completo.</p>
+<p>Se adjunta también el archivo Excel con el detalle completo de los indicadores de esta semana.</p>
+<p>Saludos,<br>Economic Intelligence</p>
+"""
+
+    return send_summary_email(
+        sender_upn=sender_upn,
+        recipients=recipients,
+        subject=subject,
+        body_text=body_html,
+        content_type="HTML",
+        attachment_path=filepath,
+    )
 
 
 # -- Main --------------------------------------------------------------------
@@ -133,9 +295,9 @@ def main() -> int:
     if args.dry_run:
         total_steps = 2
     elif args.skip_download:
-        total_steps = 5
-    else:
         total_steps = 6
+    else:
+        total_steps = 7
 
     _section("DR Economic Intelligence Pipeline")
     print(f"  Started: {run_start.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -171,6 +333,13 @@ def main() -> int:
         _print_summary(results, run_start, output_path=None)
         return 0
 
+    print("\nEstimating current month (display only)...")
+    try:
+        results = step_estimate_current_month(results)
+    except Exception as e:
+        print(f"\n  WARNING: Current-month estimate failed: {e}")
+        traceback.print_exc()
+
     # -- Step 3: Load context indicators
     _step(step_n, total_steps, "Loading context indicators")
     step_n += 1
@@ -198,15 +367,34 @@ def main() -> int:
     try:
         site_path = step_write_site(results)
     except Exception as e:
-        print(f"\n  ERROR writing site: {e}")
+        print(f"\n  FATAL ERROR writing site: {e}")
         traceback.print_exc()
+        return 1
 
-    # -- Step 6: Upload to SharePoint
-    _step(step_n, total_steps, "Uploading to SharePoint")
+    # -- Step 6: Write & upload weekly/monthly reports to OneDrive
+    _step(step_n, total_steps, "Uploading reports to OneDrive")
+    step_n += 1
+    weekly_path = None
     try:
-        step_upload_sharepoint(output_path)
+        weekly_path = step_write_weekly_report(results)
+        if weekly_path:
+            step_upload_onedrive(weekly_path, subfolder="Weekly Reports")
     except Exception as e:
-        print(f"\n  ERROR in SharePoint upload: {e}")
+        print(f"\n  ERROR writing/uploading weekly report: {e}")
+
+    try:
+        monthly_path = step_write_monthly_report(results)
+        if monthly_path:
+            step_upload_onedrive(monthly_path, subfolder="Monthly Reports")
+    except Exception as e:
+        print(f"\n  ERROR writing/uploading monthly report: {e}")
+
+    # -- Step 7: Send summary email
+    _step(step_n, total_steps, "Sending summary email")
+    try:
+        step_send_email(results, weekly_path or output_path)
+    except Exception as e:
+        print(f"\n  ERROR sending summary email: {e}")
 
     # -- Summary
     _print_summary(results, run_start, output_path=output_path)
@@ -226,11 +414,15 @@ def _print_summary(results: dict, run_start: datetime, output_path: Path = None)
     print(f"  Elapsed:   {elapsed:.1f}s")
 
     if score is not None:
+        from pipeline.build_vulnerability import (
+            HIGH_STRESS_THRESHOLD,
+            MODERATE_STRESS_THRESHOLD,
+        )
         date_str = score_date.strftime("%B %Y") if score_date else "Unknown"
         print(f"\n  Score:     {score:.1f} / 100  ({date_str})")
-        if score >= 65:
+        if score >= HIGH_STRESS_THRESHOLD:
             print(f"  Status:    HIGH STRESS")
-        elif score >= 50:
+        elif score >= MODERATE_STRESS_THRESHOLD:
             print(f"  Status:    MODERATE STRESS")
         else:
             print(f"  Status:    LOW STRESS")

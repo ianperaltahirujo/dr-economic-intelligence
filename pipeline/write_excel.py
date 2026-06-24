@@ -39,6 +39,7 @@ from pipeline.build_vulnerability import (
     GAS_MOM_THRESHOLD_DOP,
     classify_indicator,
     gas_mom_for,
+    build_alerts,
 )
 
 NAVY       = "0D1B2A"
@@ -102,7 +103,10 @@ def _build_dashboard(wb: Workbook, results: dict) -> None:
     if score_date:
         ws.cell(row=5, column=2, value="Fecha:").font = label_font
         date_display = score_date.strftime("%B %Y").capitalize()
-        if is_provisional: date_display += " (Avance Estimado)"
+        if results.get("is_current_month_projection"):
+            date_display += " (Estimación del Mes en Curso)"
+        elif is_provisional:
+            date_display += " (Avance Estimado)"
         ws.cell(row=5, column=3, value=date_display).font = val_font
 
     ws.cell(row=6, column=2, value="Status:").font = label_font
@@ -280,11 +284,59 @@ def _build_metadata(wb: Workbook, results: dict) -> None:
     r += 1
     ws.cell(row=r, column=2, value=f"• Umbrales del Índice Compuesto: ESTRÉS MODERADO ≥ {MODERATE_STRESS_THRESHOLD:.1f}, ESTRÉS ALTO ≥ {HIGH_STRESS_THRESHOLD:.1f}. Estos umbrales se derivan de los percentiles 70 y 90 de la distribución real del índice (cobertura completa de 12 indicadores, 2012-12 a la fecha), no de cifras redondas arbitrarias. Se recalibran únicamente repitiendo este mismo cálculo de percentiles sobre datos reales, nunca por ajuste manual.")
     r += 1
-    ws.cell(row=r, column=2, value="• Estimación del Mes en Curso (solo en el sitio web): el encabezado del sitio muestra el mes calendario actual como un promedio de las lecturas semanales registradas durante ese mes, usando la última lectura disponible de cada indicador cuando el dato oficial del mes aún no se ha publicado. Este número es display-only: nunca se escribe en vulnerability_scored.csv ni alimenta el cálculo histórico de este libro de Excel, que continúa exigiendo cobertura completa de 12/12 indicadores y muestra siempre el último mes confirmado.")
+    if results.get("is_current_month_projection"):
+        ws.cell(row=r, column=2, value="• Estimación del Mes en Curso (este libro): el encabezado de este libro muestra el mes calendario actual como una proyección basada en las lecturas disponibles de cada indicador, usando la última lectura disponible cuando el dato oficial del mes aún no se ha publicado. Este número es display-only: nunca se escribe en vulnerability_scored.csv ni alimenta el cálculo histórico, que continúa exigiendo cobertura completa de 12/12 indicadores antes de confirmar el score de un mes. Este reporte semanal se reemplaza por el Reporte Mensual una vez que el mes en curso quede confirmado.")
+    else:
+        ws.cell(row=r, column=2, value="• Estimación del Mes en Curso (solo en el sitio web y en el Reporte Semanal): el encabezado del sitio muestra el mes calendario actual como un promedio de las lecturas semanales registradas durante ese mes, usando la última lectura disponible de cada indicador cuando el dato oficial del mes aún no se ha publicado. Este número es display-only: nunca se escribe en vulnerability_scored.csv ni alimenta el cálculo histórico de este libro de Excel, que continúa exigiendo cobertura completa de 12/12 indicadores y muestra siempre el último mes confirmado.")
 
-def write_workbook(results: dict, path: str = "data/output/vulnerability_report.xlsx") -> Path:
+def _apply_headline_override(results: dict, headline: dict) -> dict:
+    """
+    Returns a shallow-copied results dict whose Dashboard/Indicators/History/
+    Alerts sheets render `headline` (estimate_current_month()'s output) as
+    the workbook's headline, instead of the last confirmed month in
+    results['scored'].
+
+    Used for the weekly OneDrive snapshot, which shows the current
+    in-progress month's projected score. This never touches the caller's
+    real results dict or vulnerability_scored.csv -- it operates on a
+    throwaway copy built just for this workbook.
+    """
+    scored = results.get("scored", pd.DataFrame()).copy()
+    date = headline["date"]
+
+    row = {"vulnerability_score": headline["score"], "is_provisional": True}
+    for col, detail in headline["components"].items():
+        row[col] = detail["value"]
+        row[f"{col}_zscore"] = detail["zscore"]
+
+    new_row = pd.DataFrame([row], index=[date])
+    scored = pd.concat([scored[~scored.index.isin([date])], new_row]).sort_index()
+
+    shadow = dict(results)
+    shadow["scored"] = scored
+    shadow["score_date"] = date
+    shadow["current_score"] = headline["score"]
+    shadow["is_current_month_projection"] = True
+    shadow["alerts"] = build_alerts(scored, date)
+    return shadow
+
+def write_workbook(
+    results: dict,
+    path: str = "data/output/vulnerability_report.xlsx",
+    headline: dict | None = None,
+) -> Path:
+    """
+    headline: optional estimate_current_month()-shaped dict. When given,
+    the workbook's headline is that projected current-in-progress month
+    instead of results['scored']'s last confirmed month. Default (None)
+    behavior is unchanged from before this parameter existed.
+    """
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if headline is not None:
+        results = _apply_headline_override(results, headline)
+
     wb = Workbook()
     wb.remove(wb.active)
 

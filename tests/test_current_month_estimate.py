@@ -126,3 +126,32 @@ class TestDoesNotMutateInput:
         before = df.copy()
         estimate_current_month(df, as_of=period)
         pd.testing.assert_frame_equal(df, before)
+
+
+class TestComponentDetail:
+    """
+    The 'components' breakdown exists so callers that need to render a full
+    indicator table for the projected month (e.g. the weekly OneDrive Excel
+    snapshot) aren't limited to the single headline score.
+    """
+
+    def test_includes_value_and_zscore_for_every_real_component(self):
+        df, period = _make_history()
+        result = estimate_current_month(df, as_of=period)
+        assert set(result["components"].keys()) == set(VULNERABILITY_COMPONENTS.keys())
+        for col, detail in result["components"].items():
+            assert isinstance(detail["value"], float)
+            assert isinstance(detail["zscore"], float)
+            assert detail["is_filled"] is False
+
+    def test_filled_components_are_flagged_in_detail(self):
+        df, period = _make_history(drop_current=["ipc_yoy_pct"])
+        result = estimate_current_month(df, as_of=period)
+        assert result["components"]["ipc_yoy_pct"]["is_filled"] is True
+        assert result["components"]["reserves_usd_mm"]["is_filled"] is False
+
+    def test_gas_premium_includes_mom_others_do_not(self):
+        df, period = _make_history()
+        result = estimate_current_month(df, as_of=period)
+        assert result["components"]["gas_premium_dop"]["mom"] is not None
+        assert result["components"]["dop_usd"]["mom"] is None
