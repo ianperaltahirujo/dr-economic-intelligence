@@ -31,8 +31,12 @@ from pipeline.build_vulnerability import (
     gas_mom_for,
 )
 
-# ── Hero logo ────────────────────────────────────────────────
-HERO_LOGO_SRC = "hero_logo.png"
+# ── Hero lockup ──────────────────────────────────────────────
+# "La Sociedad" wordmark served as vector (crisp at any resolution); the
+# "DR Economic Intelligence" tagline is set in our own Reckless webfont below
+# it. The looping chart-line video sits behind the lockup as a banner.
+HERO_LOGO_SVG_SRC = "https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5dbe7af23fb39d85e2ec_horizontal-logo-berlinblue.svg"
+HERO_VIDEO_SRC = "assets/hero-bg.mp4"
 
 # ── Spanish content ────────────────────────────────────────────────────────────
 
@@ -611,19 +615,38 @@ def build_html(results: dict) -> str:
     meter_pos    = max(0.0, min(100.0, float(score)))
 
     week_label_html = f" &middot; Semana {week_of_month}" if week_of_month else ""
-    estimate_note_html = ""
-    confirmed_note_html = ""
+    # Editorial hero meta-row: trend, current period (with provisional pill
+    # when tourism is forward-filled), and -- only when the headline is a
+    # current-month estimate -- the last fully confirmed month. Joined by
+    # thin dividers.
+    _meta_items = [
+        f'<span class="editorial-meta-item editorial-meta-trend {trend_class}">{trend_arrow}&nbsp;{trend_text}</span>',
+    ]
+    _prov_pill = "<span class='provisional-pill'>Avance Estimado</span>" if is_provisional else ""
+    _meta_items.append(f'<span class="editorial-meta-item">{date_str}{week_label_html}{_prov_pill}</span>')
+    if current_estimate is not None and confirmed_date is not None:
+        confirmed_date_str = f"{MONTHS_ES[confirmed_date.month].capitalize()} de {confirmed_date.year}"
+        _meta_items.append(
+            f'<span class="editorial-meta-item">Confirmado {confirmed_date_str} '
+            f'&middot; {confirmed_score:.1f}/100</span>'
+        )
+    editorial_meta_html = '<span class="editorial-meta-divider"></span>'.join(_meta_items)
+
+    # Disclosure notes below the score block. The tourism-provisional caveat
+    # and the current-month estimate methodology line are preserved verbatim
+    # from the prior hero so the "Avance Estimado" disclosure is never dropped.
+    _notes = []
+    if is_provisional:
+        _notes.append(
+            "<div class='editorial-estimate-note'>* Gasto turístico proyectado. "
+            "Se actualizará al publicarse el dato oficial del BCRD.</div>"
+        )
     if current_estimate is not None:
-        estimate_note_html = (
-            '<div class="estimate-note">Estimación del mes en curso &mdash; '
+        _notes.append(
+            '<div class="editorial-estimate-note">Estimación del mes en curso &mdash; '
             'promedio de las lecturas semanales registradas.</div>'
         )
-        if confirmed_date is not None:
-            confirmed_date_str = f"{MONTHS_ES[confirmed_date.month].capitalize()} de {confirmed_date.year}"
-            confirmed_note_html = (
-                f'<div class="confirmed-note">Último mes confirmado: {confirmed_date_str} '
-                f'&middot; {confirmed_score:.1f}/100</div>'
-            )
+    editorial_notes_html = "\n            ".join(_notes)
 
     briefing      = generate_briefing(results, scored)
     chart_data    = build_chart_data(scored)
@@ -788,7 +811,6 @@ def build_html(results: dict) -> str:
         main > section {{ padding: clamp(40px, 7vw, 72px) 0; border-bottom: var(--border); }}
         main > section:last-child {{ border-bottom: none; }}
         section[id] {{ scroll-margin-top: 16px; }}
-        .hero {{ padding-top: clamp(28px, 5vw, 48px); }}
         .section-head {{ display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }}
         .section-label {{ font-family: var(--font-display); font-size: clamp(17px, 3.5vw, 20px); font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
         .section-label::before {{ content: ''; position: absolute; left: 0; top: .14em; bottom: .14em; width: 4px; border-radius: 2px; background: var(--blue); }}
@@ -796,21 +818,41 @@ def build_html(results: dict) -> str:
         .section-intro {{ font-size: 15px; color: var(--gray-600); max-width: 760px; margin-bottom: 30px; line-height: 1.7; }}
 
         /* Hero */
-        .hero-logo {{ max-width: 520px; width: 100%; height: auto; margin-bottom: 44px; display: block; }}
-        .score-hero {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 24px; align-items: stretch; }}
-        .panel {{ background: var(--white); border: var(--border); border-radius: var(--radius); padding: 30px 32px; box-shadow: var(--shadow-sm); }}
-        .score-panel {{ border-top: 3px solid {score_color}; }}
-        .score-label {{ font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; color: var(--gray-600); text-transform: uppercase; margin-bottom: 12px; }}
-        .score-number {{ font-family: var(--font-mono); font-size: clamp(46px, 13vw, 84px); font-weight: 600; line-height: 1; color: {score_color}; letter-spacing: -3px; display: flex; align-items: baseline; flex-wrap: wrap; }}
-        .score-denom {{ font-family: var(--font-mono); font-size: 20px; color: var(--gray-400); margin-left: 6px; letter-spacing: 0; }}
-        .score-main-arrow {{ font-size: 40px; margin-left: 14px; letter-spacing: 0; }}
-        .trend-bad {{ color: var(--red); }} .trend-good {{ color: var(--green); }} .trend-neutral {{ color: var(--gray-400); }}
-        .score-trend-text {{ font-size: 14px; font-weight: 600; margin-top: 14px; }}
-        .score-date {{ font-size: 13px; color: var(--gray-400); margin-top: 4px; font-family: var(--font-mono); }}
+        .hero {{ padding: 0; border-bottom: none; }}
+
+        /* Video banner */
+        .hero-banner {{ position: relative; width: 100%; overflow: hidden; background: #f0f0f0; border-bottom: var(--border); }}
+        .hero-video {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }}
+        .hero-video-overlay {{ position: absolute; inset: 0; background: rgba(255,255,255,0.54); pointer-events: none; }}
+        .hero-banner-inner {{ position: relative; z-index: 1; max-width: var(--maxw); margin: 0 auto; padding: clamp(20px, 3vw, 36px) clamp(16px, 5vw, 40px); display: flex; justify-content: center; }}
+
+        /* Logo lockup inside banner */
+        .hero-lockup {{ display: block; max-width: clamp(340px, 48vw, 560px); width: 100%; }}
+        .hero-lockup-svg {{ display: block; width: 100%; height: auto; }}
+        .hero-lockup-tagline {{ font-family: var(--font-display); line-height: 1.05; letter-spacing: -0.02em; margin-top: 3px; font-size: clamp(20px, 4.4vw, 34px); text-align: center; }}
+        .hero-lockup-dr {{ color: var(--black); font-weight: 400; }}
+        .hero-lockup-ei {{ color: var(--blue); font-weight: 700; }}
+
+        /* Editorial hero content */
+        .hero-editorial {{ padding: clamp(28px, 4vw, 44px) 0 clamp(40px, 7vw, 72px); border-bottom: var(--border); }}
+        .editorial-topbar {{ display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }}
+        .editorial-index-label {{ font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; color: var(--gray-600); text-transform: uppercase; }}
+        .editorial-status-badge {{ display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: {score_color}; padding: 6px 14px; border-radius: 999px; border: 1.5px solid {score_color}; white-space: nowrap; }}
+        .editorial-status-badge::before {{ content: ''; width: 8px; height: 8px; border-radius: 50%; background: {score_color}; flex-shrink: 0; }}
+        .editorial-score-row {{ display: flex; align-items: baseline; margin-bottom: 10px; }}
+        .editorial-score-num {{ font-family: var(--font-mono); font-size: clamp(72px, 14vw, 116px); font-weight: 600; line-height: 1; color: {score_color}; letter-spacing: -5px; }}
+        .editorial-score-denom {{ font-family: var(--font-mono); font-size: clamp(22px, 4.5vw, 36px); color: var(--gray-400); letter-spacing: -1px; margin-left: 8px; padding-bottom: 10px; }}
+        .editorial-meta-row {{ display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 26px; }}
+        .editorial-meta-item {{ display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 12.5px; color: var(--gray-600); }}
+        .editorial-meta-trend {{ font-weight: 600; }}
+        .editorial-meta-trend.trend-good {{ color: var(--green); }}
+        .editorial-meta-trend.trend-bad {{ color: var(--red); }}
+        .editorial-meta-trend.trend-neutral {{ color: var(--gray-400); }}
+        .editorial-meta-divider {{ width: 1px; height: 15px; background: var(--gray-200); flex-shrink: 0; }}
         .provisional-pill {{ display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: rgba(206,17,38,0.10); color: var(--red); border: 1px solid rgba(206,17,38,0.25); margin-left: 8px; vertical-align: middle; white-space: nowrap; }}
-        .provisional-note {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 6px; }}
-        .estimate-note {{ font-size: 11.5px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 6px; }}
-        .confirmed-note {{ font-size: 11.5px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 2px; }}
+        .editorial-footer-bar {{ display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding-top: 20px; border-top: var(--border); margin-top: 6px; }}
+        .editorial-status-desc {{ font-size: 14px; color: var(--gray-600); line-height: 1.6; flex: 1; min-width: 180px; }}
+        .editorial-estimate-note {{ font-family: var(--font-mono); font-size: 10.5px; color: var(--gray-400); margin-top: 14px; }}
 
         /* Score meter */
         .score-meter {{ margin-top: 26px; }}
@@ -828,12 +870,6 @@ def build_html(results: dict) -> str:
         .meter-caption {{ margin-top: 10px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: var(--gray-600); }}
         .zone-key {{ display: inline-flex; align-items: center; gap: 6px; }}
         .zone-swatch {{ width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }}
-
-        /* Status panel */
-        .status-panel {{ display: flex; flex-direction: column; }}
-        .status-title {{ font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; color: {score_color}; text-transform: uppercase; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 10px; }}
-        .status-title::before {{ content: ''; width: 9px; height: 9px; border-radius: 50%; background: {score_color}; box-shadow: 0 0 0 4px {score_color}1f; }}
-        .status-desc {{ font-size: 16px; color: var(--gray-600); max-width: 520px; line-height: 1.7; }}
 
         /* Alert button */
 .alert-count {{ display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: {'var(--red-tint)' if stress_n > 0 else 'var(--gray-100)'}; border: 1px solid {'var(--red)' if stress_n > 0 else 'var(--gray-200)'}; font-size: 13px; color: {'var(--red)' if stress_n > 0 else 'var(--gray-600)'}; font-family: var(--font-mono); align-self: flex-start; }}        .interactive-alert {{ cursor: pointer; transition: all .2s var(--ease); }}
@@ -951,13 +987,16 @@ def build_html(results: dict) -> str:
 
         /* Responsive */
         @media (max-width: 980px) {{
-            .hero-logo {{ max-width: 400px; }}
+            .hero-lockup {{ max-width: 460px; }}
+            .editorial-topbar {{ flex-direction: column; align-items: flex-start; gap: 10px; }}
         }}
         @media (max-width: 640px) {{
             .alert-item {{ grid-template-columns: 1fr; gap: 10px; }}
             .brand-text {{ display: none; }}
-            .hero-logo {{ max-width: 240px; }}
-            .panel {{ padding: 24px; }}
+            .hero-lockup {{ max-width: 240px; }}
+            .editorial-meta-row {{ gap: 10px; }}
+            .editorial-meta-divider {{ display: none; }}
+            .editorial-footer-bar {{ flex-direction: column; align-items: flex-start; gap: 14px; }}
             .footer-inner {{ flex-direction: column; align-items: flex-start; }}
             .nav-cluster {{ align-items: flex-start; }}
             .nav-labels {{ padding-bottom: 2px; }}
@@ -1026,42 +1065,61 @@ def build_html(results: dict) -> str:
 <main>
 
     <section class="hero">
-        <div class="container">
-            <img src="{HERO_LOGO_SRC}" alt="La Sociedad — DR Economic Intelligence" class="hero-logo">
-            <div class="score-hero">
-                <div class="panel score-panel">
-                    <div class="score-label">Índice de Vulnerabilidad Económica</div>
-                    <div class="score-number">
-                        {score:.1f}<span class="score-denom">/100</span>
-                        <span class="score-main-arrow {trend_class}">{trend_arrow}</span>
-                    </div>
-                    <div class="score-trend-text {trend_class}">{trend_text}</div>
-                    <div class="score-date">{date_str}{week_label_html}{"<span class='provisional-pill'>Avance Estimado</span>" if is_provisional else ""}</div>
-                    {"<div class='provisional-note'>* Gasto turístico proyectado. Se actualizará al publicarse el dato oficial del BCRD.</div>" if is_provisional else ""}
-                    {estimate_note_html}
-                    {confirmed_note_html}
-                    <div class="score-meter" role="img" aria-label="Puntuación {score:.1f} de 100">
-                        <div class="meter-track"><div class="meter-marker" style="left:{meter_pos:.1f}%"></div></div>
-                        <div class="meter-scale"><span style="left:0">0</span><span style="left:{MODERATE_STRESS_THRESHOLD:.1f}%">{MODERATE_STRESS_THRESHOLD:.1f}</span><span style="left:{HIGH_STRESS_THRESHOLD:.1f}%">{HIGH_STRESS_THRESHOLD:.1f}</span><span style="left:100%">100</span></div>
-                        <div class="meter-caption">
-                            <span class="zone-key"><span class="zone-swatch" style="background:var(--blue-soft)"></span>Normal</span>
-                            <span class="zone-key"><span class="zone-swatch" style="background:var(--blue)"></span>Moderado ({MODERATE_STRESS_THRESHOLD:.1f}+)</span>
-                            <span class="zone-key"><span class="zone-swatch" style="background:var(--red)"></span>Alerta ({HIGH_STRESS_THRESHOLD:.1f}+)</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel status-panel">
-                    <div class="status-title">{status_label}</div>
-                    <div class="status-desc">{status_desc}</div>
-                    {alert_box_html}
-                    <div class="summary-chips" role="group" aria-label="Resumen de indicadores">
-                        <button type="button" class="chip chip-stress" onclick="jumpFilter('stress')" aria-label="{stress_n} indicadores en alerta"><span class="chip-dot" aria-hidden="true"></span><b>{stress_n}</b>&nbsp;en alerta</button>
-                        <button type="button" class="chip chip-watch" onclick="jumpFilter('watch')" aria-label="{watch_n} indicadores en vigilancia"><span class="chip-dot" aria-hidden="true"></span><b>{watch_n}</b>&nbsp;en vigilancia</button>
-                        <button type="button" class="chip chip-normal" onclick="jumpFilter('normal')" aria-label="{normal_n} indicadores normales"><span class="chip-dot" aria-hidden="true"></span><b>{normal_n}</b>&nbsp;normales</button>
+
+        <div class="hero-banner">
+            <video class="hero-video" autoplay muted loop playsinline>
+                <source src="{HERO_VIDEO_SRC}" type="video/mp4">
+            </video>
+            <div class="hero-video-overlay"></div>
+            <div class="hero-banner-inner">
+                <div class="hero-lockup" role="img" aria-label="La Sociedad — DR Economic Intelligence">
+                    <img src="{HERO_LOGO_SVG_SRC}" alt="La Sociedad" class="hero-lockup-svg" loading="eager">
+                    <div class="hero-lockup-tagline" aria-hidden="true">
+                        <span class="hero-lockup-dr">DR </span><span class="hero-lockup-ei">Economic Intelligence</span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="container hero-editorial">
+
+            <div class="editorial-topbar">
+                <span class="editorial-index-label">Índice de Vulnerabilidad Económica</span>
+                <span class="editorial-status-badge">{status_label}</span>
+            </div>
+
+            <div class="editorial-score-row">
+                <span class="editorial-score-num">{score:.1f}</span>
+                <span class="editorial-score-denom">/100</span>
+            </div>
+
+            <div class="editorial-meta-row">
+                {editorial_meta_html}
+            </div>
+
+            <div class="score-meter" role="img" aria-label="Puntuación {score:.1f} de 100">
+                <div class="meter-track"><div class="meter-marker" style="left:{meter_pos:.1f}%"></div></div>
+                <div class="meter-scale"><span style="left:0">0</span><span style="left:{MODERATE_STRESS_THRESHOLD:.1f}%">{MODERATE_STRESS_THRESHOLD:.1f}</span><span style="left:{HIGH_STRESS_THRESHOLD:.1f}%">{HIGH_STRESS_THRESHOLD:.1f}</span><span style="left:100%">100</span></div>
+                <div class="meter-caption">
+                    <span class="zone-key"><span class="zone-swatch" style="background:var(--blue-soft)"></span>Normal</span>
+                    <span class="zone-key"><span class="zone-swatch" style="background:var(--blue)"></span>Moderado ({MODERATE_STRESS_THRESHOLD:.1f}+)</span>
+                    <span class="zone-key"><span class="zone-swatch" style="background:var(--red)"></span>Alerta ({HIGH_STRESS_THRESHOLD:.1f}+)</span>
+                </div>
+            </div>
+
+            <div class="editorial-footer-bar">
+                <span class="editorial-status-desc">{status_desc}</span>
+                {alert_box_html}
+                <div class="summary-chips" role="group" aria-label="Resumen de indicadores">
+                    <button type="button" class="chip chip-stress" onclick="jumpFilter('stress')" aria-label="{stress_n} indicadores en alerta"><span class="chip-dot" aria-hidden="true"></span><b>{stress_n}</b>&nbsp;en alerta</button>
+                    <button type="button" class="chip chip-watch" onclick="jumpFilter('watch')" aria-label="{watch_n} indicadores en vigilancia"><span class="chip-dot" aria-hidden="true"></span><b>{watch_n}</b>&nbsp;en vigilancia</button>
+                    <button type="button" class="chip chip-normal" onclick="jumpFilter('normal')" aria-label="{normal_n} indicadores normales"><span class="chip-dot" aria-hidden="true"></span><b>{normal_n}</b>&nbsp;normales</button>
+                </div>
+            </div>
+
+            {editorial_notes_html}
+        </div>
+
     </section>
 
     <section>
