@@ -328,19 +328,46 @@
             .fade-in-section { opacity: 1; transform: none; }
         }
         @media print {
-            .site-header, .back-to-top, .chart-controls, .chart-hint, .filter-bar { display: none !important; }
+            .site-header, .back-to-top, .chart-controls, .chart-hint, .filter-bar, .theme-toggle { display: none !important; }
             .fade-in-section { opacity: 1 !important; transform: none !important; }
             .accordion-content { max-height: none !important; opacity: 1 !important; overflow: visible !important; }
             .panel, .context-card, .indicator-card, .alert-item, .chart-card { box-shadow: none !important; break-inside: avoid; }
             main > section { padding: 24px 0; }
             body { font-size: 12px; }
         }
+        /* Dark mode */
+        [data-theme="dark"] {
+            --blue: #4A90D9; --blue-deep: #5B9BD5;
+            --white: #111111; --black: #E8E8E8;
+            --gray-50: #181818; --gray-100: #222222; --gray-200: #2C2C2C;
+            --gray-300: #3A3A3A; --gray-400: #7A7A7A; --gray-600: #AAAAAA;
+            --blue-tint: #0A1929; --blue-soft: #1B3055; --red-tint: #200A0C; --green: #5CB85C;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.25), 0 2px 6px rgba(0,0,0,.2);
+            --shadow-md: 0 6px 18px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.25);
+            --shadow-lg: 0 16px 40px rgba(0,0,0,.5);
+        }
+        [data-theme="dark"] .site-header { background: rgba(17,17,17,.9); }
+        [data-theme="dark"] .hero-banner { background: #1A1A1A; }
+        [data-theme="dark"] .hero-video-overlay { background: rgba(0,0,0,0.55); }
+        [data-theme="dark"] .editorial-status-badge { color: var(--gray-400); border-color: var(--gray-400); }
+        [data-theme="dark"] .editorial-status-badge::before { background: var(--gray-400); }
+        [data-theme="dark"] .editorial-score-num { color: var(--black); }
+        [data-theme="dark"] .meter-marker { background: var(--black); }
+        [data-theme="dark"] .nav-link { text-shadow: none; }
+        .theme-toggle { position: fixed; top: 12px; right: 16px; z-index: 200; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-600); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transition: background .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease); padding: 0; -webkit-tap-highlight-color: transparent; }
+        .theme-toggle:hover { background: var(--gray-100); box-shadow: var(--shadow-md); }
+        .theme-icon { position: absolute; width: 18px; height: 18px; transition: opacity .3s var(--ease), transform .4s var(--ease); }
+        .theme-icon--sun { opacity: 0; transform: rotate(90deg) scale(0.6); }
+        .theme-icon--moon { opacity: 1; transform: none; }
+        [data-theme="dark"] .theme-icon--sun { opacity: 1; transform: none; }
+        [data-theme="dark"] .theme-icon--moon { opacity: 0; transform: rotate(-90deg) scale(0.6); }
     </style>
     <noscript><style>
         .fade-in-section { opacity: 1 !important; transform: none !important; }
         .accordion-content { max-height: none !important; opacity: 1 !important; }
         .dropdown-arrow { display: none; }
     </style></noscript>
+    <script>(function(){var t=localStorage.getItem('dr-ei-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();</script>
 </head>
 <body>
 
@@ -862,6 +889,10 @@
 </footer>
 
 <button id="backToTop" class="back-to-top" aria-label="Volver al inicio" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+<button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
+    <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -1300,6 +1331,35 @@ if (document.fonts && document.fonts.ready) {
     window.addEventListener('load', refresh);
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', function() { layout(); update(); }, { passive: true });
+})();
+
+// ── DARK MODE TOGGLE ──
+(function() {
+    var LS_KEY = 'dr-ei-theme';
+    var btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var next = isDark ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(LS_KEY, next);
+        updateChartsDark(!isDark);
+    });
+    function updateChartsDark(isDark) {
+        if (typeof Chart === 'undefined') return;
+        var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+        var tickColor = isDark ? '#7A7A7A' : '#555555';
+        Object.values(Chart.instances).forEach(function(ch) {
+            if (!ch.options.scales) return;
+            ['x','y'].forEach(function(ax) {
+                var s = ch.options.scales[ax]; if (!s) return;
+                if (s.grid) s.grid.color = gridColor;
+                if (s.ticks) s.ticks.color = tickColor;
+            });
+            ch.update('none');
+        });
+    }
+    if (document.documentElement.getAttribute('data-theme') === 'dark') { updateChartsDark(true); }
 })();
 </script>
 
