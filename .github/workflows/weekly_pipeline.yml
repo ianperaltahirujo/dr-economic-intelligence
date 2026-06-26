@@ -75,3 +75,14 @@ jobs:
           name: vulnerability-report-${{ github.run_id }}
           path: data/output/vulnerability_report.xlsx
           retention-days: 90
+
+      - name: Notify on pipeline failure
+        if: failure()
+        env:
+          AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          EMAIL_RECIPIENTS:    ${{ secrets.EMAIL_RECIPIENTS }}
+          EMAIL_SENDER_UPN:    "work@lasociedad.com.do"
+          GH_RUN_URL:          "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: python -m pipeline.notify_failure

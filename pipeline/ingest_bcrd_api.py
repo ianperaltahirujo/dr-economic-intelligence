@@ -1,26 +1,37 @@
 """
 BCRD API Data Ingestion Module
-Fetches macroeconomic indicators from the Banco Central de la Republica
-Dominicana REST API.
+
+OUT OF SERVICE — not wired into the pipeline. Do not import.
+
+Status (verified 2026-06-25):
+- API is reachable (no IP whitelist block).
+- _parse_values() is broken for all endpoints: it looks for a top-level "values"
+  key but every response wraps data inside result.values[].
+- MacroVariables endpoints (Inflacion, SectorReal, SectorExterno, Monetarias)
+  return current snapshots only, not time series — useless for scoring.
+- HistoricoTasas returns exchange-rate history but uses exchangeRateDate/
+  sellingValue, not the fecha/venta field names hard-coded here.
+- HistoricoIPC returned an empty values list; root cause unknown.
+CDN downloads (ingest_bcrd.py + download_bcrd_files.py) are the active path.
+
+If this module is ever revived, the parser and field-name mappings need fixing
+before wiring into run_vulnerability_pipeline().
 
 IMPORTANT: All endpoints are POST, not GET.
 Auth: API key passed in request body as "token" field.
 Base URL: https://api.bancentral.gov.do
 
 Endpoints:
-    POST /api/services/app/MacroVariables/Inflacion       -> inflation/IPC
-    POST /api/services/app/MacroVariables/SectorReal      -> IMAE, GDP
-    POST /api/services/app/MacroVariables/SectorExterno   -> remesas, trade
-    POST /api/services/app/MacroVariables/Monetarias      -> monetary aggregates
-    POST /api/services/app/MacroVariables/HistoricoTasas  -> exchange rate history
-    POST /api/v2/HistoricoIPC                             -> IPC with date range filter
-
-Response schema for all endpoints:
-    { "name": "string", "values": [ {...}, ... ] }
+    POST /api/services/app/MacroVariables/Inflacion       -> inflation/IPC (snapshot)
+    POST /api/services/app/MacroVariables/SectorReal      -> IMAE, GDP (snapshot)
+    POST /api/services/app/MacroVariables/SectorExterno   -> remesas, trade (snapshot)
+    POST /api/services/app/MacroVariables/Monetarias      -> monetary aggregates (snapshot)
+    POST /api/services/app/MacroVariables/HistoricoTasas  -> exchange rate history (time series)
+    POST /api/v2/HistoricoIPC                             -> IPC with date range filter (broken)
 
 Usage:
     python pipeline/ingest_bcrd_api.py --discover   # probe all endpoints, print raw structure
-    python pipeline/ingest_bcrd_api.py              # run full ingestion
+    python pipeline/ingest_bcrd_api.py              # run full ingestion (currently fails)
 """
 
 import os
