@@ -17,6 +17,8 @@ Runs the full weekly pipeline in order:
 Usage:
     python run_pipeline.py                  # full run
     python run_pipeline.py --skip-download  # skip BCRD download (use cached files)
+    python run_pipeline.py --local          # skip OneDrive upload + email (local outputs only)
+    python run_pipeline.py --skip-download --local  # fast local run, no side effects
     python run_pipeline.py --dry-run        # score only, no Excel output
 """
 
@@ -284,6 +286,11 @@ def main() -> int:
         help="Skip BCRD file download and use cached files in data/raw/"
     )
     parser.add_argument(
+        "--local",
+        action="store_true",
+        help="Skip OneDrive upload and summary email (write local outputs only)"
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Run scoring only -- skip Excel output and upload"
@@ -294,15 +301,19 @@ def main() -> int:
 
     if args.dry_run:
         total_steps = 2
-    elif args.skip_download:
-        total_steps = 6
     else:
-        total_steps = 7
+        # score, context, excel, html (always) + download (unless skipped)
+        # + onedrive & email (unless --local)
+        total_steps = 4
+        total_steps += 0 if args.skip_download else 1
+        total_steps += 0 if args.local else 2
 
     _section("DR Economic Intelligence Pipeline")
     print(f"  Started: {run_start.strftime('%Y-%m-%d %H:%M:%S')}")
     if args.skip_download:
         print("  Mode: skip BCRD download")
+    if args.local:
+        print("  Mode: local only (no OneDrive upload or email)")
     if args.dry_run:
         print("  Mode: dry run (no Excel output)")
 
@@ -371,30 +382,31 @@ def main() -> int:
         traceback.print_exc()
         return 1
 
-    # -- Step 6: Write & upload weekly/monthly reports to OneDrive
-    _step(step_n, total_steps, "Uploading reports to OneDrive")
-    step_n += 1
     weekly_path = None
-    try:
-        weekly_path = step_write_weekly_report(results)
-        if weekly_path:
-            step_upload_onedrive(weekly_path, subfolder="Weekly Reports")
-    except Exception as e:
-        print(f"\n  ERROR writing/uploading weekly report: {e}")
+    if not args.local:
+        # -- Step 6: Write & upload weekly/monthly reports to OneDrive
+        _step(step_n, total_steps, "Uploading reports to OneDrive")
+        step_n += 1
+        try:
+            weekly_path = step_write_weekly_report(results)
+            if weekly_path:
+                step_upload_onedrive(weekly_path, subfolder="Weekly Reports")
+        except Exception as e:
+            print(f"\n  ERROR writing/uploading weekly report: {e}")
 
-    try:
-        monthly_path = step_write_monthly_report(results)
-        if monthly_path:
-            step_upload_onedrive(monthly_path, subfolder="Monthly Reports")
-    except Exception as e:
-        print(f"\n  ERROR writing/uploading monthly report: {e}")
+        try:
+            monthly_path = step_write_monthly_report(results)
+            if monthly_path:
+                step_upload_onedrive(monthly_path, subfolder="Monthly Reports")
+        except Exception as e:
+            print(f"\n  ERROR writing/uploading monthly report: {e}")
 
-    # -- Step 7: Send summary email
-    _step(step_n, total_steps, "Sending summary email")
-    try:
-        step_send_email(results, weekly_path or output_path)
-    except Exception as e:
-        print(f"\n  ERROR sending summary email: {e}")
+        # -- Step 7: Send summary email
+        _step(step_n, total_steps, "Sending summary email")
+        try:
+            step_send_email(results, weekly_path or output_path)
+        except Exception as e:
+            print(f"\n  ERROR sending summary email: {e}")
 
     # -- Summary
     _print_summary(results, run_start, output_path=output_path)
