@@ -822,7 +822,8 @@ def build_html(results: dict) -> str:
         .hero {{ padding: 0; border-bottom: none; }}
 
         /* Video banner */
-        .hero-banner {{ position: relative; width: 100%; overflow: hidden; background: #f0f0f0; border-bottom: var(--border); }}
+        .hero-banner {{ position: relative; width: 100%; overflow: hidden; background: var(--white); }}
+        .hero-video-wrap {{ position: absolute; inset: 0; -webkit-mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent), linear-gradient(to bottom, transparent, black 10%, black 78%, transparent); mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent), linear-gradient(to bottom, transparent, black 10%, black 78%, transparent); -webkit-mask-composite: source-in; mask-composite: intersect; }}
         .hero-video {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }}
         .hero-video--dark {{ display: none; }}
         [data-theme="dark"] .hero-video--light {{ display: none; }}
@@ -1038,7 +1039,6 @@ def build_html(results: dict) -> str:
             --shadow-lg: 0 16px 40px rgba(0,0,0,.5);
         }}
         [data-theme="dark"] .site-header {{ background: rgba(17,17,17,.9); }}
-        [data-theme="dark"] .hero-banner {{ background: #111111; }}
         /* Mirror the light-mode overlay (page color over the video) so the banner
            blends into the page bg instead of crushing to black: tint toward the
            #111111 page color, which also neutralizes the video's faint blue cast. */
@@ -1110,13 +1110,15 @@ def build_html(results: dict) -> str:
     <section class="hero">
 
         <div class="hero-banner">
-            <video class="hero-video hero-video--light" autoplay muted loop playsinline>
-                <source src="{HERO_VIDEO_SRC}" type="video/mp4">
-            </video>
-            <video class="hero-video hero-video--dark" autoplay muted loop playsinline>
-                <source src="{HERO_VIDEO_DARK_SRC}" type="video/mp4">
-            </video>
-            <div class="hero-video-overlay"></div>
+            <div class="hero-video-wrap">
+                <video class="hero-video hero-video--light" autoplay muted loop playsinline>
+                    <source src="{HERO_VIDEO_SRC}" type="video/mp4">
+                </video>
+                <video class="hero-video hero-video--dark" autoplay muted loop playsinline>
+                    <source src="{HERO_VIDEO_DARK_SRC}" type="video/mp4">
+                </video>
+                <div class="hero-video-overlay"></div>
+            </div>
             <div class="hero-banner-inner">
                 <div class="hero-lockup" role="img" aria-label="La Sociedad — DR Economic Intelligence">
                     <span class="hero-lockup-svg" aria-hidden="true"></span>
