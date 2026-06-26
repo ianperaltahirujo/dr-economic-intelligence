@@ -1735,13 +1735,21 @@ if (document.fonts && document.fonts.ready) {{
         if (typeof Chart === 'undefined') return;
         var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
         var tickColor = isDark ? '#7A7A7A' : '#555555';
+        // Brighten the navy line (#002D62) in dark mode for contrast on the near-black bg.
+        var lineColor = isDark ? '#5DA9F0' : '#002D62';
+        var fillColor = isDark ? 'rgba(93,169,240,0.10)' : 'rgba(0,45,98,0.06)';
         Object.values(Chart.instances).forEach(function(ch) {{
-            if (!ch.options.scales) return;
-            ['x','y'].forEach(function(ax) {{
-                var s = ch.options.scales[ax]; if (!s) return;
-                if (s.grid) s.grid.color = gridColor;
-                if (s.ticks) s.ticks.color = tickColor;
+            (ch.data && ch.data.datasets ? ch.data.datasets : []).forEach(function(ds) {{
+                ds.borderColor = lineColor;
+                if (ds.fill) ds.backgroundColor = fillColor;
             }});
+            if (ch.options.scales) {{
+                ['x','y'].forEach(function(ax) {{
+                    var s = ch.options.scales[ax]; if (!s) return;
+                    if (s.grid) s.grid.color = gridColor;
+                    if (s.ticks) s.ticks.color = tickColor;
+                }});
+            }}
             ch.update('none');
         }});
     }}
