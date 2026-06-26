@@ -37,6 +37,7 @@ from pipeline.build_vulnerability import (
 # it. The looping chart-line video sits behind the lockup as a banner.
 HERO_LOGO_SVG_SRC = "https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5dbe7af23fb39d85e2ec_horizontal-logo-berlinblue.svg"
 HERO_VIDEO_SRC = "assets/hero-bg.mp4"
+HERO_VIDEO_DARK_SRC = "assets/hero_bg_dark.mp4"
 
 # ── Spanish content ────────────────────────────────────────────────────────────
 
@@ -823,12 +824,18 @@ def build_html(results: dict) -> str:
         /* Video banner */
         .hero-banner {{ position: relative; width: 100%; overflow: hidden; background: #f0f0f0; border-bottom: var(--border); }}
         .hero-video {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }}
+        .hero-video--dark {{ display: none; }}
+        [data-theme="dark"] .hero-video--light {{ display: none; }}
+        [data-theme="dark"] .hero-video--dark {{ display: block; }}
         .hero-video-overlay {{ position: absolute; inset: 0; background: rgba(255,255,255,0.54); pointer-events: none; }}
         .hero-banner-inner {{ position: relative; z-index: 1; max-width: var(--maxw); margin: 0 auto; padding: clamp(20px, 3vw, 36px) clamp(16px, 5vw, 40px); display: flex; justify-content: center; }}
 
         /* Logo lockup inside banner */
         .hero-lockup {{ display: block; max-width: clamp(340px, 48vw, 560px); width: 100%; }}
-        .hero-lockup-svg {{ display: block; width: 100%; height: auto; }}
+        /* Logo is a monochrome (#112130) vector served as a CSS mask so its color
+           is controllable per theme; aspect-ratio matches the SVG viewBox (257x41)
+           to keep the same box the <img> occupied (no layout shift). */
+        .hero-lockup-svg {{ display: block; width: 100%; aspect-ratio: 257 / 41; background-color: #112130; -webkit-mask: url("{HERO_LOGO_SVG_SRC}") center / contain no-repeat; mask: url("{HERO_LOGO_SVG_SRC}") center / contain no-repeat; }}
         .hero-lockup-tagline {{ font-family: var(--font-display); line-height: 1.05; letter-spacing: -0.02em; margin-top: 3px; font-size: clamp(20px, 4.4vw, 34px); text-align: center; }}
         .hero-lockup-dr {{ color: var(--black); font-weight: 400; }}
         .hero-lockup-ei {{ color: var(--blue); font-weight: 700; }}
@@ -1031,8 +1038,12 @@ def build_html(results: dict) -> str:
             --shadow-lg: 0 16px 40px rgba(0,0,0,.5);
         }}
         [data-theme="dark"] .site-header {{ background: rgba(17,17,17,.9); }}
-        [data-theme="dark"] .hero-banner {{ background: #1A1A1A; }}
-        [data-theme="dark"] .hero-video-overlay {{ background: rgba(0,0,0,0.55); }}
+        [data-theme="dark"] .hero-banner {{ background: #111111; }}
+        /* Mirror the light-mode overlay (page color over the video) so the banner
+           blends into the page bg instead of crushing to black: tint toward the
+           #111111 page color, which also neutralizes the video's faint blue cast. */
+        [data-theme="dark"] .hero-video-overlay {{ background: rgba(17,17,17,0.5); }}
+        [data-theme="dark"] .hero-lockup-svg {{ background-color: #fcf1e7; }}
         [data-theme="dark"] .editorial-status-badge {{ color: var(--gray-400); border-color: var(--gray-400); }}
         [data-theme="dark"] .editorial-status-badge::before {{ background: var(--gray-400); }}
         [data-theme="dark"] .editorial-score-num {{ color: var(--black); }}
@@ -1094,13 +1105,16 @@ def build_html(results: dict) -> str:
     <section class="hero">
 
         <div class="hero-banner">
-            <video class="hero-video" autoplay muted loop playsinline>
+            <video class="hero-video hero-video--light" autoplay muted loop playsinline>
                 <source src="{HERO_VIDEO_SRC}" type="video/mp4">
+            </video>
+            <video class="hero-video hero-video--dark" autoplay muted loop playsinline>
+                <source src="{HERO_VIDEO_DARK_SRC}" type="video/mp4">
             </video>
             <div class="hero-video-overlay"></div>
             <div class="hero-banner-inner">
                 <div class="hero-lockup" role="img" aria-label="La Sociedad — DR Economic Intelligence">
-                    <img src="{HERO_LOGO_SVG_SRC}" alt="La Sociedad" class="hero-lockup-svg" loading="eager">
+                    <span class="hero-lockup-svg" aria-hidden="true"></span>
                     <div class="hero-lockup-tagline" aria-hidden="true">
                         <span class="hero-lockup-dr">DR </span><span class="hero-lockup-ei">Economic Intelligence</span>
                     </div>
@@ -1704,7 +1718,14 @@ if (document.fonts && document.fonts.ready) {{
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem(LS_KEY, next);
         updateChartsDark(!isDark);
+        playActiveVideo(!isDark);
     }});
+    function playActiveVideo(isDark) {{
+        var v = document.querySelector(isDark ? '.hero-video--dark' : '.hero-video--light');
+        if (!v) return;
+        var p = v.play();
+        if (p && p.catch) p.catch(function() {{}});
+    }}
     function updateChartsDark(isDark) {{
         if (typeof Chart === 'undefined') return;
         var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
@@ -1719,7 +1740,7 @@ if (document.fonts && document.fonts.ready) {{
             ch.update('none');
         }});
     }}
-    if (document.documentElement.getAttribute('data-theme') === 'dark') {{ updateChartsDark(true); }}
+    if (document.documentElement.getAttribute('data-theme') === 'dark') {{ updateChartsDark(true); playActiveVideo(true); }}
 }})();
 </script>
 
