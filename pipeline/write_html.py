@@ -1044,6 +1044,11 @@ def build_html(results: dict) -> str:
            #111111 page color, which also neutralizes the video's faint blue cast. */
         [data-theme="dark"] .hero-video-overlay {{ background: rgba(17,17,17,0.5); }}
         [data-theme="dark"] .hero-lockup-svg {{ background-color: #fcf1e7; }}
+        /* Alerted (stress) cards: keep the post-scroll blink and hover red-toned
+           in dark mode instead of flashing the light pink/white used in light mode. */
+        [data-theme="dark"] .card-stress:hover {{ background: #2a1012; }}
+        [data-theme="dark"] .blink-alert {{ animation-name: redBlinkDark; }}
+        @keyframes redBlinkDark {{ 0%, 100% {{ background-color: var(--red-tint); border-color: var(--red); }} 50% {{ background-color: #3a1416; border-color: #ff6b6b; box-shadow: 0 0 16px rgba(206,17,38,0.5); }} }}
         [data-theme="dark"] .editorial-status-badge {{ color: var(--gray-400); border-color: var(--gray-400); }}
         [data-theme="dark"] .editorial-status-badge::before {{ background: var(--gray-400); }}
         [data-theme="dark"] .editorial-score-num {{ color: var(--black); }}

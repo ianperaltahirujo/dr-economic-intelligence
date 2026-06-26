@@ -359,6 +359,11 @@
            #111111 page color, which also neutralizes the video's faint blue cast. */
         [data-theme="dark"] .hero-video-overlay { background: rgba(17,17,17,0.5); }
         [data-theme="dark"] .hero-lockup-svg { background-color: #fcf1e7; }
+        /* Alerted (stress) cards: keep the post-scroll blink and hover red-toned
+           in dark mode instead of flashing the light pink/white used in light mode. */
+        [data-theme="dark"] .card-stress:hover { background: #2a1012; }
+        [data-theme="dark"] .blink-alert { animation-name: redBlinkDark; }
+        @keyframes redBlinkDark { 0%, 100% { background-color: var(--red-tint); border-color: var(--red); } 50% { background-color: #3a1416; border-color: #ff6b6b; box-shadow: 0 0 16px rgba(206,17,38,0.5); } }
         [data-theme="dark"] .editorial-status-badge { color: var(--gray-400); border-color: var(--gray-400); }
         [data-theme="dark"] .editorial-status-badge::before { background: var(--gray-400); }
         [data-theme="dark"] .editorial-score-num { color: var(--black); }
@@ -484,7 +489,7 @@
     <section>
         <div class="container">
             <div class="section-head"><h2 class="section-label">Análisis semanal</h2><span class="section-rule"></span></div>
-            <div class="briefing-text"><p>El Índice de Vulnerabilidad Económica de la República Dominicana se ubicó en <strong>49.4 puntos</strong> en mayo de 2026, dentro de rangos históricos normales. Los principales indicadores macroeconómicos y financieros muestran estabilidad relativa.</p><p>Los principales factores que explican este resultado son: la confianza del consumidor estadounidense cayó a <strong>49.8 puntos</strong>, anticipando posible reducción en el turismo hacia la región.</p><p>Entre los factores de estabilidad destacan que las remesas se mantienen en USD 1090 millones mensuales y la morosidad bancaria permanece contenida en 1.89% y el sistema bancario mantiene sólidos niveles de capitalización (18.6%).</p><p>Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad a partir de fuentes oficiales: Banco Central de la República Dominicana (BCRD), Superintendencia de Bancos (SB) y la Reserva Federal de EE.UU. (FRED).</p></div>
+            <div class="briefing-text"><p>El Índice de Vulnerabilidad Económica de la República Dominicana se ubicó en <strong>49.4 puntos</strong> en mayo de 2026, dentro de rangos históricos normales. Los principales indicadores macroeconómicos y financieros muestran estabilidad relativa.</p><p>Los principales factores que explican este resultado son: la confianza del consumidor estadounidense cayó a <strong>44.8 puntos</strong>, anticipando posible reducción en el turismo hacia la región.</p><p>Entre los factores de estabilidad destacan que las remesas se mantienen en USD 1090 millones mensuales y la morosidad bancaria permanece contenida en 1.89% y el sistema bancario mantiene sólidos niveles de capitalización (18.6%).</p><p>Este informe es generado automáticamente cada semana por el sistema de inteligencia económica de La Sociedad a partir de fuentes oficiales: Banco Central de la República Dominicana (BCRD), Superintendencia de Bancos (SB) y la Reserva Federal de EE.UU. (FRED).</p></div>
         </div>
     </section>
 
@@ -578,7 +583,7 @@
             <div class="alert-tag">ALERTA</div>
             <div class="alert-content">
                 <strong>Confianza del consumidor en EE.UU.</strong>
-                <span class="alert-text">1.6 desviaciones estándar por debajo de su promedio histórico (valor actual: 49.80)</span>
+                <span class="alert-text">2.0 desviaciones estándar por debajo de su promedio histórico (valor actual: 44.80)</span>
             </div>
         </div>
 
@@ -790,12 +795,12 @@
                 </div>
             </div>
             <div class="card-value">
-                <span class="value-number">49.8</span>
+                <span class="value-number">44.8</span>
                 <span class="value-arrow arrow-bad">&#8595;</span>
             </div>
             <div class="zscore-bar-container"><div class="zscore-bar" style="width:100.0%;background:var(--red);"></div></div>
             <div class="accordion-content">
-                <div class="zscore-label">Z-score: -1.47 &nbsp;|&nbsp; Peso: 5%</div>
+                <div class="zscore-label">Z-score: -1.88 &nbsp;|&nbsp; Peso: 5%</div>
                 <div class="card-desc">Índice de confianza del consumidor estadounidense (Universidad de Michigan). Una caída anticipa menor gasto en turismo hacia el Caribe, incluyendo la República Dominicana.</div>
             </div>
         </div>
