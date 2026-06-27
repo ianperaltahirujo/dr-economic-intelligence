@@ -322,7 +322,13 @@
             .editorial-footer-bar { flex-direction: column; align-items: flex-start; gap: 14px; }
             .footer-inner { flex-direction: column; align-items: flex-start; }
             .nav-cluster { align-items: flex-start; }
-            .nav-labels { padding-bottom: 2px; }
+            /* Left-align the nav and reserve space for the fixed theme toggle so the
+               "Clima Social" pill never sits under it. Flatten the nested header-nav
+               scroll so the whole row scrolls as one and the full pill stays reachable. */
+            .header-inner--centered { justify-content: flex-start; padding-right: 60px; }
+            .header-nav { overflow-x: visible; flex: 0 0 auto; }
+            .nav-link--clima { flex: 0 0 auto; }
+            .nav-labels { padding-bottom: 2px; padding-right: 14px; }
             .nav-metro { display: none; }
             .nav-link { padding: 8px 14px; }
             .filter-chip, .chart-btn { min-height: 40px; }
@@ -1269,6 +1275,25 @@ if (document.fonts && document.fonts.ready) {
     var Y = 7, NODE_R = 3;
     var isClima = links.map(function(l) { return l.classList.contains('nav-link--clima'); });
     var nodeEls = [];
+    var lastActive = -1;
+
+    // Keep the active nav link in view: horizontally scroll the nav's scroll container
+    // so the current section's link is centered as the page scrolls. The scrollable
+    // element differs by page (.nav-labels when flattened, else .header-nav), so walk up
+    // from the link to find the nearest horizontally-scrollable ancestor. scrollTo on
+    // that element only -- never scrollIntoView, which would also move the page vertically.
+    function revealActive(idx) {
+        if (idx < 0 || idx >= links.length) return;
+        var link = links[idx];
+        var sc = link.parentElement;
+        var stop = cluster.parentElement;
+        while (sc && sc !== stop && sc.scrollWidth <= sc.clientWidth + 1) { sc = sc.parentElement; }
+        if (!sc || sc === stop || sc.scrollWidth <= sc.clientWidth + 1) return;
+        var sRect = sc.getBoundingClientRect();
+        var lRect = link.getBoundingClientRect();
+        var delta = (lRect.left - sRect.left) - (sc.clientWidth - lRect.width) / 2;
+        sc.scrollTo({ left: sc.scrollLeft + delta, behavior: 'smooth' });
+    }
 
     function docTop(el) { return el.getBoundingClientRect().top + window.pageYOffset; }
     function centerOf(el) {
@@ -1345,6 +1370,7 @@ if (document.fonts && document.fonts.ready) {
                 nd.setAttribute('r', NODE_R);
             }
         });
+        if (activeIdx !== lastActive) { lastActive = activeIdx; revealActive(activeIdx); }
     }
 
     function refresh() { buildNodes(); layout(); update(); }

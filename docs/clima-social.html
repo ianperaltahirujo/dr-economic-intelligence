@@ -55,6 +55,8 @@
         .header-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 40px); height: var(--header-h); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
         .header-back{font-family:var(--font-mono);font-size:12px;color:var(--gray-600);text-decoration:none;display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:999px;border:var(--border);transition:background .2s,color .2s;white-space:nowrap}
         .header-back:hover{background:var(--gray-100);color:var(--black)}
+        .header-inner img{height:30px}
+        .back-text-short{display:none}
         .header-badge{font-family:var(--font-mono);font-size:12px;font-weight:400;padding:7px 16px;border-radius:999px;border:var(--border);color:var(--gray-600);background:transparent;white-space:nowrap}
         .nav-cluster { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; max-width: 100%; }
         .nav-labels { display: flex; align-items: center; gap: clamp(6px, 2vw, 24px); position: relative; z-index: 5; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
@@ -199,8 +201,18 @@
             .nav-metro { display: none; }
             .nav-link { padding: 8px 14px; }
             .header-badge { display: none; }
+            /* Top header row: reserve space for the fixed theme toggle so the back
+               button never sits under it, shrink the logo, and use the short label. */
+            .header-inner:first-of-type { padding-right: 64px; }
+            .header-inner:first-of-type img { height: 22px; }
+            .header-back { font-size: 11px; padding: 6px 12px; }
+            .back-text-long { display: none; }
+            .back-text-short { display: inline; }
             .tracking-table { min-width: 520px; }
             .table-hint { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 10px; }
+        }
+        @media(max-width:360px){
+            .header-inner:first-of-type img { height: 18px; }
         }
         /* Dark mode */
         [data-theme="dark"] {
@@ -237,9 +249,9 @@
 
 <header class="site-header">
     <div class="header-inner" style="height:80px;justify-content:space-between;">
-        <img src="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5dbe7af23fb39d85e2ec_horizontal-logo-berlinblue.svg" alt="La Sociedad" style="height:30px;">
+        <img src="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5dbe7af23fb39d85e2ec_horizontal-logo-berlinblue.svg" alt="La Sociedad">
         <div style="display:flex;align-items:center;gap:12px;">
-            <a href="index.html" class="header-back">&#8592; Volver al índice</a>
+            <a href="index.html" class="header-back"><span aria-hidden="true">&#8592;</span>&nbsp;<span class="back-text-long">Volver al índice</span><span class="back-text-short">Índice</span></a>
             <span class="header-badge">Ola 7 · Abril 2026</span>
         </div>
     </div>
@@ -985,6 +997,25 @@ if (document.fonts && document.fonts.ready) {
 
     var Y = 7, NODE_R = 3;
     var nodeEls = [];
+    var lastActive = -1;
+
+    // Keep the active nav link in view: horizontally scroll the nav's scroll container
+    // so the current section's link is centered as the page scrolls. The scrollable
+    // element differs by page (.nav-labels when flattened, else .header-nav), so walk up
+    // from the link to find the nearest horizontally-scrollable ancestor. scrollTo on
+    // that element only -- never scrollIntoView, which would also move the page vertically.
+    function revealActive(idx) {
+        if (idx < 0 || idx >= links.length) return;
+        var link = links[idx];
+        var sc = link.parentElement;
+        var stop = cluster.parentElement;
+        while (sc && sc !== stop && sc.scrollWidth <= sc.clientWidth + 1) { sc = sc.parentElement; }
+        if (!sc || sc === stop || sc.scrollWidth <= sc.clientWidth + 1) return;
+        var sRect = sc.getBoundingClientRect();
+        var lRect = link.getBoundingClientRect();
+        var delta = (lRect.left - sRect.left) - (sc.clientWidth - lRect.width) / 2;
+        sc.scrollTo({ left: sc.scrollLeft + delta, behavior: 'smooth' });
+    }
 
     function docTop(el) { return el.getBoundingClientRect().top + window.pageYOffset; }
     function centerOf(el) {
@@ -1061,6 +1092,7 @@ if (document.fonts && document.fonts.ready) {
                 nd.setAttribute('r', NODE_R);
             }
         });
+        if (activeIdx !== lastActive) { lastActive = activeIdx; revealActive(activeIdx); }
     }
 
     function refresh() { buildNodes(); layout(); update(); }
