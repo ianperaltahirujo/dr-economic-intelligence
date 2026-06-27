@@ -1267,7 +1267,7 @@ def build_html(results: dict) -> str:
         </div>
         <div class="footer-run"><a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;"><strong>Ver código fuente &#8599;</strong></a></div>
     </div>
-    <div style="max-width:var(--maxw);margin:16px auto 0;padding:0 clamp(16px,5vw,40px);border-top:var(--border);padding-top:16px;font-size:11px;color:var(--gray-400);font-family:var(--font-mono);">Copyright &copy; 2025 &nbsp;/&nbsp; La Sociedad SRL</div>
+    <div style="max-width:var(--maxw);margin:16px auto 0;padding:0 clamp(16px,5vw,40px);border-top:var(--border);padding-top:16px;font-size:11px;color:var(--gray-400);font-family:var(--font-mono);">Copyright &copy; 2026 &nbsp;/&nbsp; La Sociedad SRL</div>
 </footer>
 
 <button id="backToTop" class="back-to-top" aria-label="Volver al inicio" onclick="window.scrollTo({{top:0,behavior:'smooth'}})">&#8593;</button>
