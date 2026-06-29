@@ -1,8 +1,12 @@
 # DR Economic Intelligence
 
+[![CI](https://github.com/ianperaltahirujo/dr-economic-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/ianperaltahirujo/dr-economic-intelligence/actions/workflows/ci.yml)
+
 Weekly economic intelligence system for the Dominican Republic, built for La Sociedad's upper management. A GitHub Actions workflow runs every Monday and publishes an updated vulnerability score, interactive dashboard, and Excel briefing to OneDrive and GitHub Pages.
 
 **[View Live Dashboard →](https://ianperaltahirujo.github.io/dr-economic-intelligence)**
+
+[![DR Economic Intelligence dashboard](docs/assets/dashboard-preview-hero.png)](https://ianperaltahirujo.github.io/dr-economic-intelligence)
 
 ---
 
@@ -162,11 +166,13 @@ dr-economic-intelligence/
 │   ├── ingest_context.py                # Gas prices, tourism fiscal revenue, national debt
 │   ├── ingest_debt.py                   # BCRD consolidated public debt (quarterly)
 │   ├── build_vulnerability.py           # Scoring engine, z-scores, weights, alerts
+│   ├── current_month_tracker.py         # Records weekly partial readings for the in-progress month
 │   ├── backtest_weights.py              # Weight optimizer against known stress periods
 │   ├── write_excel.py                   # Excel workbook writer (6 sheets)
 │   ├── write_html.py                    # GitHub Pages site generator
 │   ├── ms_graph.py                      # Microsoft Graph client (OneDrive upload, Outlook email)
-│   └── monthly_report_state.py          # Tracks finalized monthly report state
+│   ├── monthly_report_state.py          # Tracks finalized monthly report state
+│   └── notify_failure.py                # Pipeline failure notification helper
 │
 ├── docs/
 │   ├── assets/                          # Static assets served with the dashboard (hero-bg.mp4, etc.)
@@ -180,15 +186,23 @@ dr-economic-intelligence/
 │   ├── output/                          # Final Excel workbook
 │   └── state/                           # Pipeline state tracking (monthly reports, current-month snapshots)
 │
-├── tests/
+├── tests/                               # 98 tests, run on every push via CI
 │   ├── README.md
 │   ├── test_build_vulnerability.py      # Unit tests for scoring and classification logic
 │   ├── test_regression_real_data.py     # Regression tests against pinned real-data scores
+│   ├── test_current_month_estimate.py   # In-progress-month projection arithmetic
+│   ├── test_current_month_tracker.py    # Weekly partial-reading state tracker
+│   ├── test_monthly_report_state.py     # Monthly report write/rewrite gating
+│   ├── test_ingest_bcrd.py              # BCRD Excel parsing
+│   ├── test_ms_graph.py                 # Microsoft Graph upload/email client
+│   ├── test_write_excel.py              # Excel workbook writer
+│   ├── test_write_html.py               # Dashboard HTML generator
 │   └── fixtures/
 │       └── vulnerability_history.csv
 │
 └── .github/workflows/
-    └── weekly_pipeline.yml              # GitHub Actions workflow
+    ├── ci.yml                           # Runs the test suite on push and pull request
+    └── weekly_pipeline.yml              # Scheduled Monday pipeline run
 ```
 
 ---
@@ -196,6 +210,12 @@ dr-economic-intelligence/
 ## Author
 
 Ian Eduardo Peralta Hirujo | B.S. Applied Data Sciences, The Pennsylvania State University
+
+---
+
+## License
+
+Proprietary. Copyright (c) 2026 La Sociedad. All rights reserved. This repository is published for reference only; no license to use, copy, modify, or redistribute the software or its outputs is granted. See [LICENSE](LICENSE).
 
 ---
 
