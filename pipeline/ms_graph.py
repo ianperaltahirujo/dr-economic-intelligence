@@ -183,6 +183,7 @@ def send_summary_email(
     attachment_path: Path | None = None,
     token: str | None = None,
     content_type: str = "Text",
+    sender_name: str | None = None,
 ) -> bool:
     """
     Send a summary email via Graph sendMail, app-only, from sender_upn's
@@ -191,6 +192,12 @@ def send_summary_email(
     content_type: "Text" or "HTML" -- passed straight through to Graph's
     message.body.contentType. Use "HTML" when body_text needs markup (e.g.
     an inline hyperlink).
+
+    sender_name: optional friendly display name for the From field. Because
+    we send as the mailbox itself (/users/{sender_upn}/sendMail), Graph
+    honors a display-name override on the same address without SendAs --
+    the inbox entry reads "<sender_name>" instead of the bare UPN. When
+    None, the mailbox's own default display name is used.
 
     No-ops (returns False, logs) if recipients is empty -- a second guard
     beyond the caller's own check. Never raises.
@@ -213,6 +220,11 @@ def send_summary_email(
             {"emailAddress": {"address": addr}} for addr in recipients
         ],
     }
+
+    if sender_name:
+        message["from"] = {
+            "emailAddress": {"address": sender_upn, "name": sender_name}
+        }
 
     if attachment_path is not None:
         attachment_path = Path(attachment_path)

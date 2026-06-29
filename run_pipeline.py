@@ -34,8 +34,129 @@ from pathlib import Path
 BCRD_DATA_DIR   = "data/raw"
 OUTPUT_PATH     = "data/output/vulnerability_report.xlsx"
 DASHBOARD_URL   = "https://ianperaltahirujo.github.io/dr-economic-intelligence"
+EMAIL_SENDER_NAME = "Economic Intelligence · La Sociedad"
+
+# Brand palette (mirrors docs/index.html :root) for the weekly summary email.
+_EMAIL_NAVY      = "#002D62"
+_EMAIL_RED       = "#CE1126"
+_EMAIL_INK       = "#1A1A1A"
+_EMAIL_MUTED     = "#555555"
+_EMAIL_HAIRLINE  = "#E0E0E0"
+_EMAIL_BLUE_TINT = "#EEF2F8"
+_EMAIL_PAGE_BG   = "#F4F5F7"
+_EMAIL_FONT_BODY = "Arial, 'Helvetica Neue', Helvetica, sans-serif"
+_EMAIL_FONT_HEAD = "Georgia, 'Times New Roman', serif"
+_EMAIL_FONT_MONO = "Consolas, 'Courier New', monospace"
 
 # -- Helpers -----------------------------------------------------------------
+
+
+def build_email_html(date_str: str, dashboard_url: str, attachment_name: str) -> str:
+    """
+    Branded, Outlook-safe HTML body for the weekly summary email.
+
+    Table-based layout with inline styles only -- no flexbox/grid, web fonts,
+    or background-image dependence -- so it survives Outlook's Word rendering
+    engine. Mirrors the dashboard's navy/red brand palette.
+    """
+    intro = "Este es el reporte semanal de Inteligencia Económica de la República Dominicana"
+    intro += f", correspondiente a {date_str}." if date_str else "."
+    meta_line = date_str if date_str else "Reporte semanal"
+
+    return f"""\
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0; padding:0; background:{_EMAIL_PAGE_BG}; -webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{_EMAIL_PAGE_BG};">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+               style="width:600px; max-width:600px; background:#FFFFFF; border:1px solid {_EMAIL_HAIRLINE}; border-radius:8px; overflow:hidden;">
+
+          <tr>
+            <td style="padding:0; font-size:0; line-height:0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="50%" height="4" style="background:{_EMAIL_NAVY}; font-size:0; line-height:0;">&nbsp;</td>
+                  <td width="50%" height="4" style="background:{_EMAIL_RED}; font-size:0; line-height:0;">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 36px 22px 36px;">
+              <div style="font-family:{_EMAIL_FONT_HEAD}; font-size:26px; font-weight:bold; color:{_EMAIL_NAVY}; letter-spacing:-0.01em;">La Sociedad</div>
+              <div style="font-family:{_EMAIL_FONT_MONO}; font-size:11px; letter-spacing:0.12em; color:{_EMAIL_MUTED}; text-transform:uppercase; margin-top:4px;">DR Economic Intelligence</div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 36px 8px 36px;">
+              <div style="font-family:{_EMAIL_FONT_MONO}; font-size:11px; letter-spacing:0.14em; color:{_EMAIL_RED}; text-transform:uppercase;">Reporte Semanal</div>
+              <div style="font-family:{_EMAIL_FONT_HEAD}; font-size:21px; color:{_EMAIL_INK}; margin-top:6px;">Índice de Vulnerabilidad Económica</div>
+              <div style="font-family:{_EMAIL_FONT_MONO}; font-size:12px; color:{_EMAIL_MUTED}; margin-top:6px;">{meta_line}</div>
+            </td>
+          </tr>
+
+          <tr><td style="padding:18px 36px 0 36px;"><div style="border-top:1px solid {_EMAIL_HAIRLINE}; font-size:0; line-height:0;">&nbsp;</div></td></tr>
+
+          <tr>
+            <td style="padding:18px 36px 4px 36px; font-family:{_EMAIL_FONT_BODY}; font-size:15px; line-height:1.6; color:{_EMAIL_INK};">
+              <p style="margin:0 0 16px 0;">{intro}</p>
+              <p style="margin:0 0 24px 0; color:{_EMAIL_MUTED};">Consulte el tablero interactivo para ver el puntaje del índice, el estado de cada indicador y las alertas activas de esta semana.</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 36px 28px 36px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="{_EMAIL_NAVY}" style="background:{_EMAIL_NAVY}; border-radius:6px;">
+                    <a href="{dashboard_url}" target="_blank"
+                       style="display:inline-block; padding:13px 28px; font-family:{_EMAIL_FONT_BODY}; font-size:14px; font-weight:bold; color:#FFFFFF; text-decoration:none; border-radius:6px;">
+                      Ver el tablero completo &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 36px 30px 36px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="background:{_EMAIL_BLUE_TINT}; border:1px solid {_EMAIL_HAIRLINE}; border-radius:6px;">
+                <tr>
+                  <td style="padding:14px 18px; font-family:{_EMAIL_FONT_BODY}; font-size:13px; color:{_EMAIL_INK};">
+                    <span style="font-family:{_EMAIL_FONT_MONO}; font-size:11px; font-weight:bold; color:{_EMAIL_NAVY}; letter-spacing:0.04em;">ADJUNTO &nbsp;·&nbsp;</span>
+                    {attachment_name}
+                    <div style="font-family:{_EMAIL_FONT_BODY}; font-size:12px; color:{_EMAIL_MUTED}; margin-top:4px;">Detalle completo de los 12 indicadores en formato Excel.</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0; font-size:0; line-height:0;"><div style="border-top:1px solid {_EMAIL_HAIRLINE};">&nbsp;</div></td>
+          </tr>
+          <tr>
+            <td style="padding:20px 36px 26px 36px; font-family:{_EMAIL_FONT_BODY}; font-size:11px; line-height:1.6; color:{_EMAIL_MUTED};">
+              Informe generado automáticamente cada semana por el sistema de Inteligencia Económica de La Sociedad,
+              a partir de fuentes oficiales: Banco Central de la República Dominicana (BCRD), Superintendencia de Bancos (SB)
+              y la Reserva Federal de EE.UU. (FRED).
+              <div style="margin-top:10px; color:#8A8A8A;">La Sociedad · Economic Intelligence</div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
 def _section(title: str) -> None:
     width = 54
@@ -254,15 +375,11 @@ def step_send_email(results: dict, filepath: Path) -> bool:
     if date_str:
         subject += f" -- {date_str}"
 
-    intro = "Este es el reporte semanal de Inteligencia Económica de República Dominicana"
-    intro += f", correspondiente a {date_str}." if date_str else "."
-
-    body_html = f"""
-<p>{intro}</p>
-<p>Haz click <a href="{DASHBOARD_URL}">aquí</a> para ver el reporte semanal completo.</p>
-<p>Se adjunta también el archivo Excel con el detalle completo de los indicadores de esta semana.</p>
-<p>Saludos,<br>Economic Intelligence</p>
-"""
+    body_html = build_email_html(
+        date_str=date_str,
+        dashboard_url=DASHBOARD_URL,
+        attachment_name=Path(filepath).name,
+    )
 
     return send_summary_email(
         sender_upn=sender_upn,
@@ -271,6 +388,7 @@ def step_send_email(results: dict, filepath: Path) -> bool:
         body_text=body_html,
         content_type="HTML",
         attachment_path=filepath,
+        sender_name=EMAIL_SENDER_NAME,
     )
 
 
