@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Economic Intelligence</title>
+<style>
+  @font-face { font-family: 'Haffer'; src: url('../fonts/Haffer-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'Haffer'; src: url('../fonts/Haffer-TRIAL-Bold.otf') format('opentype'); font-weight: 700; }
+  @font-face { font-family: 'Reckless'; src: url('../fonts/Reckless-Regular.otf') format('opentype'); font-weight: 400; }
+  @font-face { font-family: 'Reckless'; src: url('../fonts/RecklessStandardM-TRIAL-Bold.otf') format('opentype'); font-weight: 700; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #002D62; --red: #CE1126; --black: #0A0A0A;
+    --gray-100: #F4F5F7; --gray-200: #E0E2E7; --gray-500: #6B7280;
+    --green: #1A6B36; --amber: #92510B;
+    --font-sans: 'Haffer', Arial, sans-serif;
+    --font-display: 'Reckless', Georgia, serif;
+  }
+  html { font-size: 14px; }
+  body { font-family: var(--font-sans); color: var(--black); background: #fff; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  @page { size: A4 portrait; margin: 2cm 2.4cm; }
+  @media screen { body { max-width: 780px; margin: 0 auto; padding: 40px 32px; } }
+
+  /* COVER */
+  .cover { display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; page-break-after: always; break-after: page; }
+  .cover-top-accent { height: 6px; background: linear-gradient(90deg, var(--blue) 0 50%, var(--red) 50% 100%); margin-bottom: 72px; }
+  .cover-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--red); margin-bottom: 22px; }
+  .cover-title { font-family: var(--font-display); font-size: 4.6rem; font-weight: 400; color: var(--blue); line-height: 1.1; margin-bottom: 32px; }
+  .cover-subtitle { font-size: 1.15rem; color: var(--gray-500); max-width: 540px; line-height: 1.7; margin-bottom: 56px; }
+  .cover-stats { display: flex; border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
+  .cover-stat { flex: 1; padding: 28px 0; }
+  .cover-stat + .cover-stat { border-left: 1px solid var(--gray-200); padding-left: 32px; }
+  .cover-stat-num { font-family: var(--font-display); font-size: 2.6rem; font-weight: 400; color: var(--blue); line-height: 1; margin-bottom: 8px; }
+  .cover-stat-label { font-size: 0.78rem; color: var(--gray-500); line-height: 1.4; }
+  .cover-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 32px; }
+  .cover-org { font-weight: 700; font-size: 0.95rem; color: var(--blue); letter-spacing: 0.06em; margin-bottom: 4px; }
+  .cover-date { font-size: 0.82rem; color: var(--gray-500); }
+
+  /* TOC */
+  .toc-section { display: flex; flex-direction: column; min-height: 100vh; page-break-after: always; break-after: page; padding-top: 8px; }
+  .toc-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--red); margin-bottom: 16px; }
+  .toc-heading { font-family: var(--font-display); font-size: 2.4rem; font-weight: 400; color: var(--blue); margin-bottom: 48px; line-height: 1.2; }
+  .toc-list { list-style: none; flex: 1; }
+  .toc-list li { display: flex; gap: 28px; align-items: flex-start; padding: 24px 0; border-bottom: 1px solid var(--gray-200); }
+  .toc-list li:first-child { border-top: 1px solid var(--gray-200); }
+  .toc-num { font-family: var(--font-display); font-size: 1.9rem; font-weight: 400; color: var(--red); line-height: 1; min-width: 44px; padding-top: 2px; opacity: 0.5; }
+  .toc-entry { flex: 1; }
+  .toc-label { font-size: 1rem; font-weight: 700; color: var(--black); margin-bottom: 5px; line-height: 1.3; }
+  .toc-desc { font-size: 0.84rem; color: var(--gray-500); line-height: 1.5; }
+
+  /* SECTIONS */
+  section { padding: 8px 0 32px; page-break-before: always; break-before: page; }
+  .section-num { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); margin-bottom: 10px; }
+  h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 400; color: var(--blue); margin-bottom: 24px; line-height: 1.2; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--blue); margin: 28px 0 10px; }
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  .info-box { background: var(--gray-100); border-left: 3px solid var(--blue); border-radius: 0 6px 6px 0; padding: 18px 22px; margin: 22px 0; font-size: 0.9rem; }
+  .info-box strong { color: var(--blue); }
+
+  .folder-tree { background: #F8F9FC; border: 1px solid var(--gray-200); border-radius: 8px; padding: 22px 28px; font-family: 'Courier New', monospace; font-size: 0.84rem; line-height: 2.1; margin: 18px 0; }
+  .folder-tree .dir { font-weight: 700; color: var(--blue); }
+  .folder-tree .file { color: #444; }
+  .folder-tree .note { color: var(--gray-500); font-style: italic; }
+
+  .sheet-grid { display: grid; gap: 12px; margin: 18px 0; }
+  .sheet-card { border: 1px solid var(--gray-200); border-radius: 8px; padding: 18px 20px; display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: start; }
+  .sheet-name { font-weight: 700; font-size: 0.82rem; color: var(--blue); background: #EEF2F8; border-radius: 5px; padding: 6px 10px; text-align: center; letter-spacing: 0.04em; }
+  .sheet-desc { font-size: 0.88rem; }
+  .sheet-desc strong { color: var(--black); }
+
+  .score-band-container { margin: 28px 0; }
+  .score-bar { height: 32px; border-radius: 6px; background: linear-gradient(90deg, #1A6B36 0%, #2E9E52 30%, #D97706 50.8%, #B45309 55.2%, #C41A1A 75%, #8B0000 100%); position: relative; margin-bottom: 12px; }
+  .score-marker { position: absolute; top: 0; width: 2px; height: 100%; background: #fff; }
+  .score-marker-label { position: absolute; top: 36px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; transform: translateX(-50%); }
+  .score-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--gray-500); margin-top: 10px; }
+  .band-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 32px; }
+  .band-item { border-radius: 8px; padding: 18px; font-size: 0.84rem; }
+  .band-item.low  { background: #F0FBF4; border: 1px solid #A7D7B8; }
+  .band-item.mod  { background: #FFFBEB; border: 1px solid #F0C56A; }
+  .band-item.high { background: #FEF2F2; border: 1px solid #F5A0A0; }
+  .band-range { font-weight: 700; font-size: 1.15rem; margin-bottom: 6px; }
+  .band-item.low  .band-range { color: var(--green); }
+  .band-item.mod  .band-range { color: var(--amber); }
+  .band-item.high .band-range { color: #C41A1A; }
+  .band-label { font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .band-item.low  .band-label { color: var(--green); }
+  .band-item.mod  .band-label { color: var(--amber); }
+  .band-item.high .band-label { color: #C41A1A; }
+  .band-desc { font-size: 0.82rem; color: #555; line-height: 1.5; }
+
+  .indicator-table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.84rem; }
+  .indicator-table th { background: var(--blue); color: #fff; text-align: left; padding: 11px 14px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .indicator-table th:first-child { border-radius: 6px 0 0 0; }
+  .indicator-table th:last-child  { border-radius: 0 6px 0 0; }
+  .indicator-table td { padding: 10px 14px; border-bottom: 1px solid var(--gray-200); vertical-align: top; }
+  .indicator-table tr:nth-child(even) td { background: var(--gray-100); }
+  .indicator-table tr:last-child td { border-bottom: none; }
+  .w-tag { display: inline-block; background: #EEF2F8; color: var(--blue); font-weight: 700; font-size: 0.72rem; border-radius: 4px; padding: 2px 7px; white-space: nowrap; }
+  .src-tag { font-size: 0.72rem; color: var(--gray-500); font-style: italic; }
+
+  .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+  .status-card { border-radius: 8px; padding: 20px 18px; text-align: center; }
+  .status-card.stress { background: #FEF2F2; border: 1px solid #F5A0A0; }
+  .status-card.watch  { background: #FFFBEB; border: 1px solid #F0C56A; }
+  .status-card.normal { background: #F0FBF4; border: 1px solid #A7D7B8; }
+  .status-badge { display: inline-block; border-radius: 20px; padding: 5px 16px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 12px; }
+  .status-card.stress .status-badge { background: #C41A1A; color: #fff; }
+  .status-card.watch  .status-badge { background: #D97706; color: #fff; }
+  .status-card.normal .status-badge { background: var(--green); color: #fff; }
+  .status-card p { font-size: 0.82rem; color: #444; line-height: 1.5; }
+
+  .callout { border: 1px solid var(--blue); border-radius: 8px; padding: 20px 24px; margin: 22px 0; font-size: 0.88rem; background: #F5F8FD; }
+  .callout-title { font-weight: 700; color: var(--blue); margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .warn-box { border-left: 3px solid var(--amber); background: #FFFBEB; border-radius: 0 6px 6px 0; padding: 16px 20px; margin: 18px 0; font-size: 0.88rem; }
+  .warn-box strong { color: #92510B; }
+
+  .doc-footer { border-top: 1px solid var(--gray-200); margin-top: 52px; padding: 24px 0 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--gray-500); }
+  .footer-brand { font-weight: 700; color: var(--blue); font-size: 0.82rem; }
+
+  @media print {
+    html { font-size: 11.5px; }
+    body { padding: 0; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    a { text-decoration: none; color: inherit; }
+    .cover { min-height: calc(297mm - 4cm); }
+    .toc-section { min-height: calc(297mm - 4cm); }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div>
+    <div class="cover-top-accent"></div>
+    <div class="cover-tag">Guía de referencia</div>
+    <h1 class="cover-title">Economic<br>Intelligence<br>Manual de<br>Usuario</h1>
+    <p class="cover-subtitle">Cómo leer e interpretar los reportes semanales y mensuales de vulnerabilidad económica de la República Dominicana disponibles en la carpeta compartida de OneDrive.</p>
+  </div>
+  <div>
+    <div class="cover-stats">
+      <div class="cover-stat">
+        <div class="cover-stat-num">12</div>
+        <div class="cover-stat-label">Indicadores<br>compuestos</div>
+      </div>
+      <div class="cover-stat">
+        <div class="cover-stat-num">2</div>
+        <div class="cover-stat-label">Tipos de reporte<br>en OneDrive</div>
+      </div>
+      <div class="cover-stat">
+        <div class="cover-stat-num">Lunes</div>
+        <div class="cover-stat-label">Actualización<br>automática semanal</div>
+      </div>
+    </div>
+    <div class="cover-footer">
+      <div>
+        <div class="cover-org">LA SOCIEDAD</div>
+        <div class="cover-date">Área de Inteligencia Económica &nbsp;·&nbsp; Junio 2026</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toc-section">
+  <div class="toc-eyebrow">Contenido</div>
+  <div class="toc-heading">En este documento</div>
+  <ul class="toc-list">
+    <li><span class="toc-num">01</span><div class="toc-entry"><div class="toc-label">¿Qué es este sistema?</div><div class="toc-desc">Propósito del índice de vulnerabilidad, qué mide y por qué no es un predictor de crisis sino una herramienta de alerta temprana.</div></div></li>
+    <li><span class="toc-num">02</span><div class="toc-entry"><div class="toc-label">Organización de la carpeta en OneDrive</div><div class="toc-desc">Estructura de Weekly Reports y Monthly Reports, cuándo se genera cada uno y cuál usar según el contexto.</div></div></li>
+    <li><span class="toc-num">03</span><div class="toc-entry"><div class="toc-label">Las hojas del archivo Excel</div><div class="toc-desc">Función de cada una de las seis hojas: Dashboard, Indicators, Alerts, History, Contexto y Metadata.</div></div></li>
+    <li><span class="toc-num">04</span><div class="toc-entry"><div class="toc-label">El Índice de Vulnerabilidad: cómo interpretarlo</div><div class="toc-desc">Escala 0–100, los tres niveles de riesgo y la lógica detrás de los umbrales 50.8 y 55.2.</div></div></li>
+    <li><span class="toc-num">05</span><div class="toc-entry"><div class="toc-label">Los 12 indicadores: qué mide cada uno</div><div class="toc-desc">Descripción, peso relativo y fuente de cada variable que compone el índice compuesto.</div></div></li>
+    <li><span class="toc-num">06</span><div class="toc-entry"><div class="toc-label">Estados de los indicadores</div><div class="toc-desc">Diferencia entre Estrés, Vigilancia y Normal, y los cuatro umbrales absolutos que fuerzan estado crítico.</div></div></li>
+    <li><span class="toc-num">07</span><div class="toc-entry"><div class="toc-label">¿Qué significa "Avance Estimado"?</div><div class="toc-desc">Cuándo aparece esta etiqueta, por qué es necesaria y cómo interpretar un período marcado como preliminar.</div></div></li>
+    <li><span class="toc-num">08</span><div class="toc-entry"><div class="toc-label">Nota metodológica breve</div><div class="toc-desc">Los tres pasos del cálculo (z-score, ponderación, escala) y la regla de cobertura completa.</div></div></li>
+  </ul>
+</div>
+
+<section>
+  <div class="section-num">01</div>
+  <h2>¿Qué es este sistema?</h2>
+  <p>El sistema de <strong>Economic Intelligence</strong> monitorea la vulnerabilidad económica de la República Dominicana en tiempo cuasi-real. Cada semana, un proceso automatizado recopila datos de fuentes oficiales (BCRD, Superintendencia de Bancos, FRED/Fed de EE.UU.) y produce un índice compuesto de 0 a 100.</p>
+  <p>El número resume el estado de 12 indicadores clave — desde el tipo de cambio y las reservas internacionales hasta el desempleo en EE.UU. y el gasto turístico. Un puntaje más alto significa mayor vulnerabilidad.</p>
+  <div class="info-box"><strong>Propósito:</strong> El índice no predice una crisis; señala cuándo varias variables se deterioran al mismo tiempo y la economía se vuelve más frágil ante shocks externos. Es una herramienta de monitoreo temprano, no de predicción.</div>
+  <p>Los reportes se generan automáticamente los lunes y quedan disponibles en la carpeta compartida de OneDrive. No requieren intervención manual para publicarse.</p>
+</section>
+
+<section>
+  <div class="section-num">02</div>
+  <h2>Organización de la carpeta en OneDrive</h2>
+  <p>Dentro de <strong>Economic Intelligence / Output /</strong> hay dos subcarpetas:</p>
+  <div class="folder-tree">
+    <span class="dir">Economic Intelligence /</span><br>
+    &nbsp;&nbsp;<span class="dir">Output /</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">Weekly Reports /</span> &nbsp;<span class="note">← un archivo nuevo cada lunes</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">Reporte Semanal 2026-06-30.xlsx</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">Reporte Semanal 2026-06-23.xlsx</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">...</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">Monthly Reports /</span> &nbsp;<span class="note">← un archivo por mes confirmado</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">Reporte Mensual 2026-05.xlsx</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">Reporte Mensual 2026-04.xlsx</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">...</span>
+  </div>
+  <h3>Reportes Semanales</h3>
+  <p>Se genera uno <strong>cada lunes</strong>. Contiene el análisis del mes en curso, pero como el mes todavía no ha terminado y algunos indicadores aún no están publicados, el puntaje es una <em>proyección</em> basada en los datos disponibles hasta esa fecha. Los archivos semanales se acumulan y <strong>no se borran</strong>.</p>
+  <h3>Reportes Mensuales</h3>
+  <p>Se genera <strong>uno por mes confirmado</strong>, reemplazando la versión anterior si el estado del mes cambió. Un mes se considera confirmado cuando los 12 indicadores tienen datos válidos (después de los rellenos permitidos por política). Si algún indicador todavía está en espera, el reporte mensual se actualiza en la siguiente corrida que lo resuelva.</p>
+  <div class="callout"><div class="callout-title">Recomendación de uso</div>Para el seguimiento semanal, revise el <strong>Reporte Semanal</strong> más reciente. Para análisis histórico o comparaciones entre meses, use los <strong>Reportes Mensuales</strong>, que contienen los puntajes finales de cada período.</div>
+</section>
+
+<section>
+  <div class="section-num">03</div>
+  <h2>Las hojas del archivo Excel</h2>
+  <p>Cada archivo Excel tiene seis hojas. Esta es la función de cada una:</p>
+  <div class="sheet-grid">
+    <div class="sheet-card"><div class="sheet-name">Dashboard</div><div class="sheet-desc"><strong>Vista de un vistazo.</strong> Muestra el puntaje del mes actual, la variación respecto al mes anterior y las alertas activas. Es el punto de partida para cualquier lectura rápida.</div></div>
+    <div class="sheet-card"><div class="sheet-name">Indicators</div><div class="sheet-desc"><strong>Detalle de los 12 indicadores.</strong> Para cada uno: el valor actual, el z-score (qué tan lejos está del promedio histórico), el estado (Estrés / Vigilancia / Normal) y la contribución que hace al índice total.</div></div>
+    <div class="sheet-card"><div class="sheet-name">Alerts</div><div class="sheet-desc"><strong>Alertas activas.</strong> Lista los indicadores que superaron sus umbrales de estrés, con una descripción en español del motivo. Si está vacía, no hay indicadores en estado crítico.</div></div>
+    <div class="sheet-card"><div class="sheet-name">History</div><div class="sheet-desc"><strong>Histórico mensual del índice.</strong> Serie completa desde el inicio del cálculo, con el puntaje mes a mes. Útil para graficar tendencias en presentaciones o reportes.</div></div>
+    <div class="sheet-card"><div class="sheet-name">Contexto</div><div class="sheet-desc"><strong>Indicadores de contexto.</strong> Variables que <em>no</em> entran en el índice (ingresos fiscales del turismo, deuda pública, precios del combustible en detalle) pero que ayudan a interpretar el cuadro general.</div></div>
+    <div class="sheet-card"><div class="sheet-name">Metadata</div><div class="sheet-desc"><strong>Trazabilidad de la corrida.</strong> Fecha y hora de generación, versión de la metodología, cobertura de datos. Para uso técnico o de auditoría.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="section-num">04</div>
+  <h2>El Índice de Vulnerabilidad: cómo interpretarlo</h2>
+  <p>El índice va de <strong>0 a 100</strong>. Nunca llegará a los extremos en condiciones normales; el rango histórico relevante está aproximadamente entre 40 y 65. Un número más alto significa que más indicadores están bajo presión simultáneamente.</p>
+  <div class="score-band-container">
+    <div class="score-bar">
+      <div class="score-marker" style="left:50.8%"><div class="score-marker-label" style="left:0;color:#92510B;">50.8</div></div>
+      <div class="score-marker" style="left:55.2%"><div class="score-marker-label" style="left:0;color:#C41A1A;">55.2</div></div>
+    </div>
+    <div class="score-labels"><span>0 — Sin vulnerabilidad</span><span>100 — Máxima vulnerabilidad</span></div>
+  </div>
+  <div class="band-legend">
+    <div class="band-item low"><div class="band-range">0 — 50.7</div><div class="band-label">Riesgo bajo</div><p class="band-desc">Los indicadores se comportan dentro de sus rangos históricos. Monitoreo rutinario.</p></div>
+    <div class="band-item mod"><div class="band-range">50.8 — 55.1</div><div class="band-label">Vigilancia</div><p class="band-desc">Varios indicadores muestran tensión. Requiere seguimiento más frecuente y atención a las alertas.</p></div>
+    <div class="band-item high"><div class="band-range">55.2 — 100</div><div class="band-label">Estrés alto</div><p class="band-desc">Presión simultánea en múltiples frentes. El umbral corresponde a los peores períodos históricos registrados (percentil 90).</p></div>
+  </div>
+  <div class="info-box" style="margin-top:28px;"><strong>Nota sobre los umbrales:</strong> Los valores 50.8 y 55.2 no son números arbitrarios — son los percentiles 70 y 90 del historial real del índice desde su inicio. Representan qué tan "malo" ha sido el período más tenso que ha registrado el sistema.</div>
+</section>
+
+<section>
+  <div class="section-num">05</div>
+  <h2>Los 12 indicadores: qué mide cada uno</h2>
+  <p>El índice está compuesto por 12 variables. Cada una tiene un <strong>peso</strong> (su importancia relativa en el total) y una <strong>dirección</strong> (si sube o baja agrava la vulnerabilidad).</p>
+  <table class="indicator-table">
+    <thead><tr><th>Indicador</th><th>Qué mide</th><th>Peso</th><th>Fuente</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tasa de Cambio</strong><br><span class="src-tag">DOP/USD</span></td><td>Precio del dólar en pesos dominicanos. Si sube, la moneda se deprecia y aumenta la vulnerabilidad.</td><td><span class="w-tag">15%</span></td><td><span class="src-tag">BCRD</span></td></tr>
+      <tr><td><strong>Gasto Turístico Diario</strong><br><span class="src-tag">USD</span></td><td>Gasto promedio diario por turista. Una caída reduce ingresos en divisas.</td><td><span class="w-tag">10%</span></td><td><span class="src-tag">BCRD</span></td></tr>
+      <tr><td><strong>Inflación Interanual</strong><br><span class="src-tag">%</span></td><td>Variación del IPC en los últimos 12 meses. Alta inflación eleva el estrés.</td><td><span class="w-tag">10%</span></td><td><span class="src-tag">BCRD</span></td></tr>
+      <tr><td><strong>Remesas</strong><br><span class="src-tag">USD millones</span></td><td>Transferencias de dominicanos en el exterior. Una caída reduce el flujo de divisas.</td><td><span class="w-tag">10%</span></td><td><span class="src-tag">BCRD</span></td></tr>
+      <tr><td><strong>Reservas Internacionales</strong><br><span class="src-tag">USD mm</span></td><td>Activos en moneda extranjera del Banco Central. Colchón ante shocks externos. Si caen, sube el riesgo.</td><td><span class="w-tag">10%</span></td><td><span class="src-tag">BCRD</span></td></tr>
+      <tr><td><strong>Morosidad Bancaria</strong><br><span class="src-tag">%</span></td><td>Porcentaje de préstamos en mora en el sistema financiero. Mayor morosidad = más estrés bancario.</td><td><span class="w-tag">10%</span></td><td><span class="src-tag">SB</span></td></tr>
+      <tr><td><strong>Desempleo EE.UU.</strong><br><span class="src-tag">%</span></td><td>Tasa de desempleo en EE.UU. Cuando sube, cae la demanda de turismo y las remesas se resienten.</td><td><span class="w-tag">10%</span></td><td><span class="src-tag">FRED</span></td></tr>
+      <tr><td><strong>IMAE</strong><br><span class="src-tag">Índice</span></td><td>Índice Mensual de Actividad Económica — proxy del PIB. Si cae, la economía se contrae.</td><td><span class="w-tag">5%</span></td><td><span class="src-tag">BCRD</span></td></tr>
+      <tr><td><strong>Solvencia Bancaria</strong><br><span class="src-tag">%</span></td><td>Capital de los bancos como proporción de activos ponderados. Si baja, el sistema financiero se fragiliza.</td><td><span class="w-tag">5%</span></td><td><span class="src-tag">SB</span></td></tr>
+      <tr><td><strong>Confianza Consumidor EE.UU.</strong><br><span class="src-tag">Índice</span></td><td>Indicador adelantado de la economía estadounidense. Si cae, anticipa menor turismo y remesas.</td><td><span class="w-tag">5%</span></td><td><span class="src-tag">FRED</span></td></tr>
+      <tr><td><strong>Tasa Activa Promedio</strong><br><span class="src-tag">%</span></td><td>Costo de crédito en el sistema bancario dominicano. Tasas altas encarecen el financiamiento.</td><td><span class="w-tag">5%</span></td><td><span class="src-tag">SB</span></td></tr>
+      <tr><td><strong>Gasolina Premium</strong><br><span class="src-tag">DOP</span></td><td>Precio regulado del combustible premium. Un alza brusca en un mes tiene efecto cascada sobre costos.</td><td><span class="w-tag">5%</span></td><td><span class="src-tag">BCRD</span></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:14px;font-size:0.82rem;color:var(--gray-500);"><strong>Fuentes:</strong> BCRD = Banco Central de la República Dominicana. SB = Superintendencia de Bancos. FRED = Reserva Federal de EE.UU.</p>
+</section>
+
+<section>
+  <div class="section-num">06</div>
+  <h2>Estados de los indicadores</h2>
+  <p>Cada indicador aparece en el Excel y en el dashboard web con uno de tres estados. El estado combina cuánto se desvía el valor de su promedio histórico y si supera ciertos umbrales absolutos.</p>
+  <div class="status-grid">
+    <div class="status-card stress"><div class="status-badge">Estrés</div><p>El indicador está en niveles que históricamente se asocian con tensión económica. Superó su umbral de z-score o un tope absoluto (ej. inflación &gt; 7%).</p></div>
+    <div class="status-card watch"><div class="status-badge">Vigilancia</div><p>El indicador está deteriorándose pero no ha cruzado el umbral crítico. Conviene seguirlo de cerca en las próximas semanas.</p></div>
+    <div class="status-card normal"><div class="status-badge">Normal</div><p>El indicador se comporta dentro de su rango histórico habitual. No genera presión sobre el índice en este momento.</p></div>
+  </div>
+  <h3>Umbrales absolutos que fuerzan estado de Estrés</h3>
+  <p>Algunos indicadores tienen reglas de nivel fijo, independientemente del z-score histórico:</p>
+  <div class="info-box">
+    <ul style="list-style:none;display:grid;gap:10px;">
+      <li><strong>Inflación interanual &gt; 7%</strong> → Estrés automático</li>
+      <li><strong>Tipo de cambio &gt; DOP 65/USD</strong> → Estrés automático</li>
+      <li><strong>Confianza Consumidor EE.UU. &lt; 60</strong> → Estrés automático</li>
+      <li><strong>Gasolina Premium: alza &gt; DOP 10 en un mes</strong> → Estrés automático</li>
+    </ul>
+  </div>
+  <p style="font-size:0.86rem;color:var(--gray-500);">Estos umbrales capturan situaciones que el promedio histórico puede no reflejar bien — por ejemplo, un tipo de cambio que cruza un umbral psicológico relevante.</p>
+</section>
+
+<section>
+  <div class="section-num">07</div>
+  <h2>¿Qué significa "Avance Estimado"?</h2>
+  <p>Verá la etiqueta <strong>"Avance Estimado"</strong> en algunos reportes y en el dashboard web cuando el puntaje del mes incluye datos que aún no han sido publicados oficialmente.</p>
+  <p>El caso más frecuente es el <strong>Gasto Turístico Diario</strong>: la encuesta del BCRD se publica con aproximadamente 6 meses de rezago. Cuando el dato no está disponible, el sistema usa el último valor conocido como estimado y marca el período con "Avance Estimado". Tan pronto el dato oficial se publica, el sistema lo incorpora automáticamente y el marcador desaparece.</p>
+  <div class="warn-box"><strong>Importante:</strong> Un reporte marcado como "Avance Estimado" es válido para el monitoreo semanal, pero no debe citarse como cifra definitiva. Los Reportes Mensuales en OneDrive también muestran este marcador cuando aplica, para que siempre quede claro qué datos son preliminares.</div>
+</section>
+
+<section>
+  <div class="section-num">08</div>
+  <h2>Nota metodológica breve</h2>
+  <p>El índice se calcula en tres pasos: (1) cada indicador se convierte a un <strong>z-score</strong> (cuántas desviaciones estándar se aleja del promedio de los últimos 5 años); (2) los z-scores se ponderan según los pesos de la tabla del apartado 5; (3) el resultado se lleva a la escala 0–100.</p>
+  <p><strong>Solo se publica un puntaje cuando los 12 indicadores tienen datos.</strong> Si alguna fuente falla o un dato está ausente, el proceso no renormaliza sobre los indicadores restantes — emite un error en lugar de publicar un número incompleto. Esto garantiza que el índice siempre refleja el cuadro completo.</p>
+  <p>El proceso corre de forma autónoma cada lunes a la 1:00 PM UTC en GitHub Actions. Si la corrida falla (por un corte de fuente, por ejemplo), no se sobreescribe el reporte anterior — el último reporte válido permanece en OneDrive.</p>
+  <div class="callout"><div class="callout-title">Más información</div>El dashboard web (actualizado también cada lunes) incluye la metodología completa, el histórico gráfico interactivo y las alertas del período actual. Solicite el enlace al área de Inteligencia Económica si aún no lo tiene.</div>
+  <div class="doc-footer"><div><div class="footer-brand">LA SOCIEDAD</div><div>Economic Intelligence — Manual de Usuario &nbsp;·&nbsp; Versión junio 2026</div></div></div>
+</section>
+
+</body>
+</html>

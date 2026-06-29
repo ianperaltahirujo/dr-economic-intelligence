@@ -51,7 +51,7 @@ _EMAIL_FONT_MONO = "Consolas, 'Courier New', monospace"
 # -- Helpers -----------------------------------------------------------------
 
 
-def build_email_html(date_str: str, dashboard_url: str, attachment_name: str) -> str:
+def build_email_html(date_str: str, dashboard_url: str) -> str:
     """
     Branded, Outlook-safe HTML body for the weekly summary email.
 
@@ -130,9 +130,9 @@ def build_email_html(date_str: str, dashboard_url: str, attachment_name: str) ->
                      style="background:{_EMAIL_BLUE_TINT}; border:1px solid {_EMAIL_HAIRLINE}; border-radius:6px;">
                 <tr>
                   <td style="padding:14px 18px; font-family:{_EMAIL_FONT_BODY}; font-size:13px; color:{_EMAIL_INK};">
-                    <span style="font-family:{_EMAIL_FONT_MONO}; font-size:11px; font-weight:bold; color:{_EMAIL_NAVY}; letter-spacing:0.04em;">ADJUNTO &nbsp;·&nbsp;</span>
-                    {attachment_name}
-                    <div style="font-family:{_EMAIL_FONT_BODY}; font-size:12px; color:{_EMAIL_MUTED}; margin-top:4px;">Detalle completo de los 12 indicadores en formato Excel.</div>
+                    <span style="font-family:{_EMAIL_FONT_MONO}; font-size:11px; font-weight:bold; color:{_EMAIL_NAVY}; letter-spacing:0.04em;">ONEDRIVE &nbsp;·&nbsp;</span>
+                    Economic Intelligence / Output
+                    <div style="font-family:{_EMAIL_FONT_BODY}; font-size:12px; color:{_EMAIL_MUTED}; margin-top:4px;">El reporte en Excel está disponible en la carpeta compartida de OneDrive.</div>
                   </td>
                 </tr>
               </table>
@@ -351,8 +351,8 @@ def step_send_email(results: dict, filepath: Path) -> bool:
     Best-effort: failures are logged by the caller in main(), never fatal.
 
     Body is a static Spanish HTML template (not the score/alerts detail --
-    that lives on the dashboard, which the email links to) with the Excel
-    workbook attached.
+    that lives on the dashboard, which the email links to). The Excel is
+    available via OneDrive only; no attachment is sent.
     """
     from pipeline.ms_graph import send_summary_email
     from pipeline.write_html import MONTHS_ES
@@ -378,7 +378,6 @@ def step_send_email(results: dict, filepath: Path) -> bool:
     body_html = build_email_html(
         date_str=date_str,
         dashboard_url=DASHBOARD_URL,
-        attachment_name=Path(filepath).name,
     )
 
     return send_summary_email(
@@ -387,7 +386,6 @@ def step_send_email(results: dict, filepath: Path) -> bool:
         subject=subject,
         body_text=body_html,
         content_type="HTML",
-        attachment_path=filepath,
         sender_name=EMAIL_SENDER_NAME,
     )
 
