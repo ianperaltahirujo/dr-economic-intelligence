@@ -36,6 +36,7 @@ from pipeline.build_vulnerability import (
 # "DR Economic Intelligence" tagline is set in our own Reckless webfont below
 # it. The looping chart-line video sits behind the lockup as a banner.
 HERO_LOGO_SVG_SRC = "https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5dbe7af23fb39d85e2ec_horizontal-logo-berlinblue.svg"
+HERO_LOGO_SVG_DARK_SRC = "https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5dbe86ab1c9e49509a32_horizontal-logo-marfil.svg"
 HERO_VIDEO_SRC = "assets/hero-bg.mp4"
 HERO_VIDEO_DARK_SRC = "assets/hero_bg_dark.mp4"
 
@@ -691,7 +692,7 @@ def build_html(results: dict) -> str:
     <meta name="description" content="Informe semanal de vulnerabilidad económica de la República Dominicana — La Sociedad.">
     <meta name="theme-color" content="#002D62">
     <meta name="color-scheme" content="light"><link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
-    <title>DR Economic Intelligence &#8212; La Sociedad</title>
+    <title>Economic Intelligence &#8212; La Sociedad</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1049,7 +1050,9 @@ def build_html(results: dict) -> str:
            blends into the page bg instead of crushing to black: tint toward the
            #111111 page color, which also neutralizes the video's faint blue cast. */
         [data-theme="dark"] .hero-video-overlay {{ background: rgba(17,17,17,0.5); }}
-        [data-theme="dark"] .hero-lockup-svg {{ background-color: #fcf1e7; }}
+        [data-theme="dark"] .hero-lockup-svg {{ background-color: transparent; -webkit-mask: none; mask: none; background-image: url("{HERO_LOGO_SVG_DARK_SRC}"); background-size: contain; background-repeat: no-repeat; background-position: center; }}
+        [data-theme="dark"] .hero-lockup-dr {{ color: #f6ecdb; }}
+        [data-theme="dark"] .hero-lockup-ei {{ color: #0e3c88; }}
         /* Alerted (stress) cards: keep the post-scroll blink and hover red-toned
            in dark mode instead of flashing the light pink/white used in light mode. */
         [data-theme="dark"] .card-stress:hover {{ background: #2a1012; }}
@@ -1430,7 +1433,7 @@ const scoreChart = new Chart(ctx, {{
                 label: 'Índice de Vulnerabilidad',
                 data: confirmedValues,
                 borderColor: '#002D62',
-                backgroundColor: 'rgba(0,45,98,0.06)',
+                backgroundColor: 'rgba(0,45,98,0.13)',
                 borderWidth: 2,
                 pointBackgroundColor: chartData.colors,
                 pointBorderColor: chartData.colors,
@@ -1766,7 +1769,7 @@ if (document.fonts && document.fonts.ready) {{
         var tickColor = isDark ? '#7A7A7A' : '#555555';
         // Brighten the navy line (#002D62) in dark mode for contrast on the near-black bg.
         var lineColor = isDark ? '#5DA9F0' : '#002D62';
-        var fillColor = isDark ? 'rgba(93,169,240,0.10)' : 'rgba(0,45,98,0.06)';
+        var fillColor = isDark ? 'rgba(93,169,240,0.10)' : 'rgba(0,45,98,0.13)';
         Object.values(Chart.instances).forEach(function(ch) {{
             (ch.data && ch.data.datasets ? ch.data.datasets : []).forEach(function(ds) {{
                 ds.borderColor = lineColor;

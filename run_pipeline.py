@@ -33,7 +33,7 @@ from pathlib import Path
 
 BCRD_DATA_DIR   = "data/raw"
 OUTPUT_PATH     = "data/output/vulnerability_report.xlsx"
-DASHBOARD_URL   = "https://ianperaltahirujo.github.io/dr-economic-intelligence"
+DASHBOARD_URL   = "https://economic-intelligence.lasociedad.com.do/"
 EMAIL_SENDER_NAME = "Economic Intelligence · La Sociedad"
 
 # Brand palette (mirrors docs/index.html :root) for the weekly summary email.

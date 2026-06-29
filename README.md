@@ -4,9 +4,9 @@
 
 Weekly economic intelligence system for the Dominican Republic, built for La Sociedad's upper management. A GitHub Actions workflow runs every Monday and publishes an updated vulnerability score, interactive dashboard, and Excel briefing to OneDrive and GitHub Pages.
 
-**[View Live Dashboard →](https://ianperaltahirujo.github.io/dr-economic-intelligence)**
+**[View Live Dashboard →](https://economic-intelligence.lasociedad.com.do/)**
 
-[![DR Economic Intelligence dashboard](docs/assets/dashboard-preview-hero.png)](https://ianperaltahirujo.github.io/dr-economic-intelligence)
+[![DR Economic Intelligence dashboard](docs/assets/dashboard-preview-hero.png)](https://economic-intelligence.lasociedad.com.do/)
 
 ---
 
