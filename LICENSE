@@ -1,29 +1,57 @@
-DR Economic Intelligence — Proprietary Software License
+DR Economic Intelligence: Proprietary Software License
 
-Copyright (c) 2026 La Sociedad. All rights reserved.
+Copyright (c) 2026 LA SOCIEDAD & PARTNERS CONSULTING GROUP. All rights reserved.
 
 This software and its associated source code, documentation, data, generated
 outputs, and dashboards (collectively, the "Software") are the exclusive
-property of La Sociedad. The Software was developed for La Sociedad and all
-right, title, and interest in and to it belong solely to La Sociedad.
+property of LA SOCIEDAD & PARTNERS CONSULTING GROUP ("La Sociedad"). The
+Software was developed by and for La Sociedad, and all right, title, and
+interest in and to it — including all intellectual property rights — belong
+solely to La Sociedad.
 
-NO LICENSE IS GRANTED. The Software is made available for reference only. No
-permission is granted to any person or entity to use, copy, modify, merge,
-publish, distribute, sublicense, sell, host, or create derivative works of the
-Software, in whole or in part, by any means, without the prior express written
-authorization of La Sociedad.
+TRADE SECRET NOTICE. The Software, including its methodology, scoring logic,
+data pipeline, and generated outputs, constitutes confidential and proprietary
+information and trade secrets of La Sociedad. Recipients are obligated to
+maintain strict confidentiality and may not disclose any part of the Software
+or its outputs to third parties without the prior express written authorization
+of La Sociedad.
+
+NO LICENSE IS GRANTED BY DEFAULT. No permission is granted to any person or
+entity to use, copy, modify, merge, publish, distribute, sublicense, sell,
+host, or create derivative works of the Software, in whole or in part, by any
+means, except as expressly provided below.
+
+LIMITED CLIENT LICENSE. Current clients of La Sociedad who have received prior
+express written authorization from La Sociedad ("Authorized Clients") are
+granted a limited, non-exclusive, non-transferable, revocable license solely
+to view and use the generated output of the Software (dashboards, reports, and
+data exports) for their own internal business purposes. This limited license
+does not extend to the source code, pipeline, methodology, or any other
+component of the Software itself. Authorization is personal to the client to
+whom it is granted and may not be shared, sublicensed, or transferred. La
+Sociedad may revoke any client's authorization at any time without notice.
 
 The public visibility of this repository and of the published dashboard does
-not constitute a grant of any license or right. Viewing the published output
-is permitted; reproducing, reusing, or redistributing the Software or its
-outputs is not.
+not constitute a grant of any license or right to any party. Viewing the
+published output is permitted solely for informational purposes; reproducing,
+reusing, redistributing, or commercially exploiting the Software or its outputs
+is not permitted without prior express written authorization from La Sociedad.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM,
-OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+LA SOCIEDAD & PARTNERS CONSULTING GROUP BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE.
 
-For licensing inquiries, contact La Sociedad.
+GOVERNING LAW. This license and any dispute arising out of or related to the
+Software or its use shall be governed by and construed in accordance with the
+laws of the Dominican Republic, without regard to its conflict of law
+principles. Any legal action or proceeding arising under this license shall be
+brought exclusively in the competent courts of Santo Domingo, Dominican
+Republic, and the parties hereby irrevocably consent to the personal
+jurisdiction and venue therein.
+
+For licensing inquiries or to request written authorization, contact
+LA SOCIEDAD & PARTNERS CONSULTING GROUP.
