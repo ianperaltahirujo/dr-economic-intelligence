@@ -49,7 +49,7 @@
             --blue: #002D62; --blue-deep: #013A7D; --red: #CE1126; --black: #0A0A0A; --white: #FFFFFF;
             --gray-50: #F9F9F9; --gray-100: #F0F0F0; --gray-200: #E0E0E0; --gray-300: #D2D2D2;
             --gray-400: #999999; --gray-600: #555555;
-            --blue-tint: #ededed; --blue-soft: #CDD9EA; --red-tint: #FDF0F2; --green: #2E7D32;
+            --blue-tint: #EEF2F8; --blue-soft: #CDD9EA; --red-tint: #FDF0F2; --green: #2E7D32;
             --font-sans: 'Haffer', system-ui, sans-serif;
             --font-display: 'Reckless', Georgia, serif;
             --font-mono: 'IBM Plex Mono', monospace;
@@ -706,7 +706,7 @@
 
         <div class="indicator-card interactive-card " data-status="normal" onclick="toggleAccordion(this)">
             <div class="card-header">
-                <span class="card-label">Reservas internacionales</span>
+                <span class="card-label">Reservas internacionales (brutas)</span>
                 <div class="card-header-meta">
                     <span class="status-badge status-normal">NORMAL</span>
                     <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
@@ -719,7 +719,7 @@
             <div class="zscore-bar-container"><div class="zscore-bar" style="width:29.8%;background:var(--gray-400);"></div></div>
             <div class="accordion-content">
                 <div class="zscore-label">Z-score: +1.21 &nbsp;|&nbsp; Peso: 10%</div>
-                <div class="card-desc">Activos en moneda extranjera del Banco Central. Constituyen el colchón de seguridad ante choques externos. Valores bajos reducen la capacidad de respuesta.</div>
+                <div class="card-desc">Reservas brutas en moneda extranjera del Banco Central (puede diferir de las RIN publicadas por el BCRD, que excluyen asignaciones de DEG y posición en el FMI). Constituyen el colchón de seguridad ante choques externos. Valores bajos reducen la capacidad de respuesta.</div>
             </div>
         </div>
 
@@ -820,7 +820,7 @@
 
         <div class="indicator-card interactive-card " data-status="normal" onclick="toggleAccordion(this)">
             <div class="card-header">
-                <span class="card-label">Tasa Activa Promedio (%)</span>
+                <span class="card-label">Tasa de interés activa (bancos múltiples)</span>
                 <div class="card-header-meta">
                     <span class="status-badge status-normal">NORMAL</span>
                     <span class="dropdown-arrow" aria-hidden="true">&#9660;</span>
@@ -833,7 +833,7 @@
             <div class="zscore-bar-container"><div class="zscore-bar" style="width:42.5%;background:var(--gray-400);"></div></div>
             <div class="accordion-content">
                 <div class="zscore-label">Z-score: -0.45 &nbsp;|&nbsp; Peso: 5%</div>
-                <div class="card-desc"></div>
+                <div class="card-desc">Tasa de interés promedio ponderada de los préstamos del sistema de bancos múltiples (Superintendencia de Bancos). Puede diferir de la tasa promedio del sistema publicada por el BCRD, que incluye asociaciones de ahorros, cooperativas y otras entidades. Un alza sostenida encarece el crédito y presiona la capacidad de pago de hogares y empresas.</div>
             </div>
         </div>
 

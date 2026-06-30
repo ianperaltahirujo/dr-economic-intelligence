@@ -59,8 +59,9 @@ INDICATOR_DESCRIPTIONS_ES = {
         "Una depreciación acelerada del peso encarece las importaciones y presiona la inflación."
     ),
     "reserves_usd_mm": (
-        "Reservas internacionales",
-        "Activos en moneda extranjera del Banco Central. "
+        "Reservas internacionales (brutas)",
+        "Reservas brutas en moneda extranjera del Banco Central (puede diferir de las RIN publicadas por el BCRD, "
+        "que excluyen asignaciones de DEG y posición en el FMI). "
         "Constituyen el colchón de seguridad ante choques externos. Valores bajos reducen la capacidad de respuesta."
     ),
     "imae_index": (
@@ -87,6 +88,13 @@ INDICATOR_DESCRIPTIONS_ES = {
         "Confianza del consumidor en EE.UU.",
         "Índice de confianza del consumidor estadounidense (Universidad de Michigan). "
         "Una caída anticipa menor gasto en turismo hacia el Caribe, incluyendo la República Dominicana."
+    ),
+    "sb_tasa_activa_pct": (
+        "Tasa de interés activa (bancos múltiples)",
+        "Tasa de interés promedio ponderada de los préstamos del sistema de bancos múltiples "
+        "(Superintendencia de Bancos). Puede diferir de la tasa promedio del sistema publicada por el BCRD, "
+        "que incluye asociaciones de ahorros, cooperativas y otras entidades. "
+        "Un alza sostenida encarece el crédito y presiona la capacidad de pago de hogares y empresas."
     ),
 }
 
