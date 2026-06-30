@@ -982,12 +982,14 @@ def build_html(results: dict) -> str:
         .chart-hint {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 12px; }}
 
         /* Footer */
-        .site-footer {{ padding: 44px 0; background: var(--gray-50); border-top: var(--border); }}
+        .site-footer {{ padding: 44px 0; background: var(--blue-tint); border-top: var(--border); }}
         .footer-inner {{ max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 40px); display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }}
         .footer-sources {{ font-size: 13px; color: var(--gray-600); line-height: 1.7; max-width: 640px; }}
         .footer-sources strong {{ font-weight: 600; color: var(--black); }}
         .footer-run {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); white-space: nowrap; }}
         .footer-run strong {{ font-weight: 600; color: var(--black); }}
+        .footer-ls-logo {{ display: block; width: 165px; aspect-ratio: 257 / 41; background-color: #112130; -webkit-mask: url("{HERO_LOGO_SVG_SRC}") center / contain no-repeat; mask: url("{HERO_LOGO_SVG_SRC}") center / contain no-repeat; flex-shrink: 0; }}
+        [data-theme="dark"] .footer-ls-logo {{ background-color: transparent; -webkit-mask: none; mask: none; background-image: url("{HERO_LOGO_SVG_DARK_SRC}"); background-size: contain; background-repeat: no-repeat; background-position: left center; }}
 
         /* Back to top */
         .back-to-top {{ position: fixed; right: 24px; bottom: 24px; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--blue); color: var(--white); font-size: 20px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-md); opacity: 0; visibility: hidden; transform: translateY(10px); transition: all .3s var(--ease); z-index: 40; }}
@@ -1063,6 +1065,7 @@ def build_html(results: dict) -> str:
         [data-theme="dark"] .editorial-score-num {{ color: var(--black); }}
         [data-theme="dark"] .meter-marker {{ background: var(--black); }}
         [data-theme="dark"] .nav-link {{ text-shadow: none; }}
+        [data-theme="dark"] .site-footer {{ background: var(--gray-50); }}
         .theme-toggle {{ position: fixed; top: 12px; right: 16px; z-index: 200; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-600); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transition: background .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease); padding: 0; -webkit-tap-highlight-color: transparent; }}
         .theme-toggle:hover {{ background: var(--gray-100); box-shadow: var(--shadow-md); }}
         .theme-icon {{ position: absolute; width: 18px; height: 18px; transition: opacity .3s var(--ease), transform .4s var(--ease); }}
@@ -1276,7 +1279,10 @@ def build_html(results: dict) -> str:
         </div>
         <div class="footer-run"><a href="https://github.com/ianperaltahirujo/dr-economic-intelligence" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;"><strong>Ver código fuente &#8599;</strong></a></div>
     </div>
-    <div style="max-width:var(--maxw);margin:16px auto 0;padding:0 clamp(16px,5vw,40px);border-top:var(--border);padding-top:16px;font-size:11px;color:var(--gray-400);font-family:var(--font-mono);">Copyright &copy; 2026 &nbsp;/&nbsp; La Sociedad SRL</div>
+    <div style="max-width:var(--maxw);margin:16px auto 0;padding:0 clamp(16px,5vw,40px);border-top:var(--border);padding-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <a href="https://www.lasociedad.com.do/" target="_blank" rel="noopener" aria-label="La Sociedad" style="display:flex;align-items:center;text-decoration:none;"><span class="footer-ls-logo" aria-hidden="true"></span></a>
+        <span style="font-size:11px;color:var(--gray-400);font-family:var(--font-mono);">Copyright &copy; 2026 &nbsp;/&nbsp; La Sociedad SRL</span>
+    </div>
 </footer>
 
 <button id="backToTop" class="back-to-top" aria-label="Volver al inicio" onclick="window.scrollTo({{top:0,behavior:'smooth'}})">&#8593;</button>
