@@ -656,8 +656,8 @@
 // ── CHART DEFAULTS ──
 Chart.defaults.font.family = "'IBM Plex Mono', monospace";
 Chart.defaults.color = '#555';
-const CS_A = '#4e92f7', CS_B = '#f7534e', BLUE = '#36a2eb';
-const CS_COLORS = [CS_A, CS_B, '#ff9f40', '#ffcd56', '#36a2eb', '#9966ff', '#E5E7EB'];
+const CS_A = '#4e92f7', CS_B = '#f7534e', BLUE = '#36a2eb', GREEN = '#22c55e';
+const CS_COLORS = [CS_A, CS_B, '#ff9f40', '#ffcd56', GREEN, '#9966ff', '#E5E7EB'];
 
 // ── TRACKING: dirección incorrecta ──
 new Chart(document.getElementById('chartTracking'), {
@@ -686,7 +686,7 @@ new Chart(document.getElementById('chartLegado'), {
         labels: ['Ola 3', 'Ola 4', 'Ola 5', 'Ola 6', 'Ola 7'],
         datasets: [
             { label: 'Peor', data: [44, 52, 60, 54, 66], borderColor: CS_A, backgroundColor: 'rgba(54,162,235,.08)', borderWidth: 2.5, pointBackgroundColor: CS_A, pointRadius: 5, fill: true, tension: .35 },
-            { label: 'Mejor', data: [32, 24, 21, 21, 13], borderColor: BLUE, backgroundColor: 'rgba(54,162,235,.05)', borderWidth: 2, pointBackgroundColor: BLUE, pointRadius: 4, fill: true, tension: .35 }
+            { label: 'Mejor', data: [32, 24, 21, 21, 13], borderColor: GREEN, backgroundColor: 'rgba(34,197,94,.05)', borderWidth: 2, pointBackgroundColor: GREEN, pointRadius: 4, fill: true, tension: .35 }
         ]
     },
     options: {
@@ -701,7 +701,7 @@ new Chart(document.getElementById('chartFraseVital'), {
     type: 'doughnut',
     data: {
         labels: ['Con dificultad', 'Estancado', 'Retrocediendo', 'Sin definir', 'Avanzando'],
-        datasets: [{ data: [34, 15, 14, 31, 6], backgroundColor: [CS_A, CS_B, '#ff9f40', '#E5E7EB', BLUE], borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{ data: [34, 15, 14, 31, 6], backgroundColor: [CS_A, CS_B, '#ff9f40', '#E5E7EB', GREEN], borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, cutout: '60%',
@@ -714,7 +714,7 @@ new Chart(document.getElementById('chartEmociones'), {
     type: 'doughnut',
     data: {
         labels: ['Preocupación', 'Esperanza', 'Ansiedad', 'Impotencia', 'Inseguridad', 'Frustración', 'Otras'],
-        datasets: [{ data: [31, 24, 20, 20, 20, 19, 16], backgroundColor: [CS_A, BLUE, CS_B, '#ff9f40', '#ffcd56', '#ffcd56', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{ data: [31, 24, 20, 20, 20, 19, 16], backgroundColor: [CS_A, GREEN, CS_B, '#ff9f40', '#ffcd56', '#9966ff', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, cutout: '60%',
@@ -727,7 +727,7 @@ new Chart(document.getElementById('chartParadoja'), {
     type: 'bar',
     data: {
         labels: ['Optimismo personal', 'Pesimismo país'],
-        datasets: [{ data: [71, 79], backgroundColor: [CS_A, BLUE], borderRadius: 8, borderSkipped: false }]
+        datasets: [{ data: [71, 79], backgroundColor: [CS_A, CS_B], borderRadius: 8, borderSkipped: false }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -742,8 +742,8 @@ new Chart(document.getElementById('chartEmocionesComp'), {
     data: {
         labels: ['Preocupación', 'Ansiedad', 'Esperanza', 'Impotencia', 'Estrés', 'Frustración'],
         datasets: [
-            { label: 'General (P6)', data: [31, 20, 24, 20, null, 19], backgroundColor: 'rgba(54,162,235,.7)', borderRadius: 4 },
-            { label: 'Económica (P15)', data: [31, 29, 6, null, 11, null], backgroundColor: 'rgba(54,162,235,.8)', borderRadius: 4 }
+            { label: 'General (P6)', data: [31, 20, 24, 20, null, 19], backgroundColor: CS_A, borderRadius: 4 },
+            { label: 'Económica (P15)', data: [31, 29, 6, null, 11, null], backgroundColor: CS_B, borderRadius: 4 }
         ]
     },
     options: {
@@ -761,7 +761,7 @@ new Chart(document.getElementById('chartPreocupaciones'), {
     type: 'bar',
     data: {
         labels: ['Costo de la vida', 'Corrupción', 'Delincuencia', 'Inmigración', 'Desempleo', 'Pobreza'],
-        datasets: [{ data: [62, 60, 53, 43, 37, 37], backgroundColor: [CS_A, CS_A, CS_B, CS_B, CS_B, CS_B], borderRadius: 6 }]
+        datasets: [{ data: [62, 60, 53, 43, 37, 37], backgroundColor: [CS_A, CS_B, '#ff9f40', '#ffcd56', GREEN, '#9966ff'], borderRadius: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -775,7 +775,7 @@ new Chart(document.getElementById('chartAprobacion'), {
     type: 'bar',
     data: {
         labels: ['1 - Pésimo', '2', '3', '4', '5', '6', '7', '8', '9', '10 - Excelente'],
-        datasets: [{ data: [37, 10, 8, 9, 10, 8, 8, 5, 3, 2], backgroundColor: ['#CE1126','#DC2626','#EF4444','#ff9f40','#ffcd56','#E5E7EB','#c9cbcf','#36a2eb','#9966ff','#4e92f7'], borderRadius: 4 }]
+        datasets: [{ data: [37, 10, 8, 9, 10, 8, 8, 5, 3, 2], backgroundColor: ['#7f1d1d','#CE1126','#f7534e','#ff9f40','#ffcd56','#E5E7EB','#9CA3AF','#36a2eb','#9966ff','#22c55e'], borderRadius: 4 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false,
@@ -789,7 +789,7 @@ new Chart(document.getElementById('chartLegadoAtrib'), {
     type: 'bar',
     data: {
         labels: ['Aumento deuda', 'Costo de vida', 'Incumplimiento promesas', 'Aumento corrupción', 'Obras realizadas (positivo)'],
-        datasets: [{ data: [67, 67, 56, 56, 15], backgroundColor: [CS_A, CS_A, CS_B, CS_B, BLUE], borderRadius: 6 }]
+        datasets: [{ data: [67, 67, 56, 56, 15], backgroundColor: [CS_A, CS_B, '#ff9f40', '#9966ff', GREEN], borderRadius: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -803,7 +803,7 @@ new Chart(document.getElementById('chartPrecios'), {
     type: 'bar',
     data: {
         labels: ['Alimentos básicos', 'Combustible', 'Electricidad', 'Medicamentos', 'Gas propano', 'Transporte', 'Prod. limpieza', 'Educación'],
-        datasets: [{ data: [85, 65, 53, 51, 29, 23, 22, 19], backgroundColor: [CS_A, CS_A, CS_B, CS_B, CS_B, '#E5E7EB', '#E5E7EB', '#E5E7EB'], borderRadius: 6 }]
+        datasets: [{ data: [85, 65, 53, 51, 29, 23, 22, 19], backgroundColor: [CS_A, CS_B, '#ff9f40', '#ffcd56', GREEN, '#9966ff', '#E5E7EB', '#9CA3AF'], borderRadius: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -817,7 +817,7 @@ new Chart(document.getElementById('chartRecortes'), {
     type: 'bar',
     data: {
         labels: ['Ropa y calzado', 'Ahorro suspendido', 'Apoyo a familiares', 'Alimentación', 'Compras no esenciales', 'Salud', 'Educación'],
-        datasets: [{ data: [51, 50, 45, 44, 46, 32, 18], backgroundColor: [CS_A, CS_A, CS_A, CS_A, CS_B, CS_B, CS_B], borderRadius: 6 }]
+        datasets: [{ data: [51, 50, 45, 44, 46, 32, 18], backgroundColor: [CS_A, CS_B, '#ff9f40', '#ffcd56', GREEN, '#9966ff', '#E5E7EB'], borderRadius: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -831,7 +831,7 @@ new Chart(document.getElementById('chartDeudaNSE'), {
     type: 'bar',
     data: {
         labels: ['NSE Bajo', 'NSE Medio', 'NSE Alto'],
-        datasets: [{ data: [82, 75, 59], backgroundColor: [CS_A, CS_B, 'rgba(54,162,235,.35)'], borderRadius: 8 }]
+        datasets: [{ data: [82, 75, 59], backgroundColor: [CS_A, CS_B, '#9966ff'], borderRadius: 8 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false,
@@ -845,7 +845,7 @@ new Chart(document.getElementById('chartDolor'), {
     type: 'doughnut',
     data: {
         labels: ['No dar a los hijos', 'Sentir que retrocede', 'Dejar de disfrutar', 'No poder ahorrar', 'Depender de otros', 'Otros'],
-        datasets: [{ data: [38, 18, 17, 9, 9, 9], backgroundColor: [CS_A, CS_B, '#ff9f40', BLUE, '#9966ff', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{ data: [38, 18, 17, 9, 9, 9], backgroundColor: [CS_A, CS_B, '#ff9f40', GREEN, '#9966ff', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, cutout: '55%',
@@ -858,7 +858,7 @@ new Chart(document.getElementById('chartBeneficia'), {
     type: 'bar',
     data: {
         labels: ['Políticos', 'Empresarios', 'Extranjeros', 'Sector turismo', 'Clase media', 'Vulnerables'],
-        datasets: [{ data: [84, 64, 34, 28, 7, 4], backgroundColor: [CS_A, CS_A, CS_B, CS_B, BLUE, BLUE], borderRadius: 6 }]
+        datasets: [{ data: [84, 64, 34, 28, 7, 4], backgroundColor: [CS_A, CS_B, '#ff9f40', '#ffcd56', GREEN, '#9966ff'], borderRadius: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -875,7 +875,7 @@ new Chart(document.getElementById('chartIngresos'), {
         datasets: [
             { label: 'Bajaron', data: [26, 58, 61], backgroundColor: CS_A, borderRadius: 4 },
             { label: 'Se mantuvieron', data: [46, 22, 25], backgroundColor: 'rgba(0,0,0,.12)', borderRadius: 0 },
-            { label: 'Aumentaron', data: [20, 14, 10], backgroundColor: BLUE, borderRadius: 4 }
+            { label: 'Aumentaron', data: [20, 14, 10], backgroundColor: GREEN, borderRadius: 4 }
         ]
     },
     options: {
@@ -890,7 +890,7 @@ new Chart(document.getElementById('chartElectrica'), {
     type: 'doughnut',
     data: {
         labels: ['Muy mala', 'Mala', 'Regular', 'Buena', 'Muy buena'],
-        datasets: [{ data: [32, 21, 26, 14, 7], backgroundColor: ['#CE1126', CS_A, '#E5E7EB', '#9966ff', BLUE], borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{ data: [32, 21, 26, 14, 7], backgroundColor: ['#CE1126', CS_A, '#E5E7EB', '#9966ff', GREEN], borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, cutout: '60%',
@@ -903,7 +903,7 @@ new Chart(document.getElementById('chartConfianza'), {
     type: 'doughnut',
     data: {
         labels: ['Perdida definitivamente', 'Muy difícil recuperar', 'Puede recuperar', 'Se mantiene'],
-        datasets: [{ data: [33, 39, 19, 8], backgroundColor: ['#CE1126', CS_A, '#FCA5A5', BLUE], borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{ data: [33, 39, 19, 8], backgroundColor: ['#CE1126', CS_A, '#FCA5A5', GREEN], borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, cutout: '60%',
@@ -916,7 +916,7 @@ new Chart(document.getElementById('chartImagen'), {
     type: 'bar',
     data: {
         labels: ['Negligente', 'Desorientado', 'Reactivo', 'Indiferente', 'Oportunista', 'Responsable'],
-        datasets: [{ data: [54, 44, 43, 40, 28, 7], backgroundColor: [CS_A, CS_A, CS_B, CS_B, CS_B, BLUE], borderRadius: 6 }]
+        datasets: [{ data: [54, 44, 43, 40, 28, 7], backgroundColor: [CS_A, CS_B, '#ff9f40', '#ffcd56', '#9966ff', GREEN], borderRadius: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -956,7 +956,7 @@ new Chart(document.getElementById('chartLluvias'), {
     type: 'bar',
     data: {
         labels: ['Sale igual aunque tarde', 'No pudo ir al trabajo', 'Home office', 'Usó delivery', 'No pudo llevar hijos', 'Daños en casa'],
-        datasets: [{ data: [40, 33, 32, 14, 13, 17], backgroundColor: [BLUE, CS_A, CS_B, CS_B, CS_B, CS_A], borderRadius: 6 }]
+        datasets: [{ data: [40, 33, 32, 14, 13, 17], backgroundColor: [GREEN, CS_A, CS_B, '#ff9f40', '#ffcd56', '#9966ff'], borderRadius: 6 }]
     },
     options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
