@@ -988,6 +988,25 @@ def build_html(results: dict) -> str:
         .chart-btn.active {{ background: var(--blue); color: var(--white); border-color: var(--blue); }}
         .chart-container {{ position: relative; height: 380px; }}
         .chart-hint {{ font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 12px; }}
+        /* Month gauge docked beside the chart (updates on hover, defaults to latest month) */
+        .chart-layout {{ display: flex; gap: 24px; align-items: stretch; }}
+        .chart-layout .chart-container {{ flex: 1 1 auto; min-width: 0; }}
+        .chart-gauge-panel {{ flex: 0 0 232px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-left: 24px; border-left: var(--border); }}
+        .cg-title {{ font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 6px; }}
+        .cg-svg {{ width: 100%; max-width: 210px; height: auto; display: block; overflow: visible; }}
+        .cg-zone {{ fill: none; stroke-linecap: round; }}
+        .cg-marker {{ fill: var(--black); stroke: var(--white); stroke-width: 2; }}
+        .cg-end-label {{ font-family: var(--font-mono); font-size: 11px; fill: var(--gray-400); }}
+        .cg-val {{ font-family: var(--font-mono); font-weight: 600; font-size: 42px; }}
+        .cg-denom {{ font-family: var(--font-mono); font-size: 15px; fill: var(--gray-400); }}
+        .cg-month {{ font-family: var(--font-mono); font-size: 13px; color: var(--gray-600); margin-top: 2px; }}
+        .cg-status {{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-top: 6px; }}
+        .cg-note {{ font-family: var(--font-mono); font-size: 10.5px; color: var(--gray-400); margin-top: 5px; min-height: 14px; }}
+        @media (max-width: 720px) {{
+            .chart-layout {{ flex-direction: column; gap: 8px; }}
+            .chart-gauge-panel {{ flex: none; width: 100%; padding-left: 0; border-left: none; border-top: var(--border); padding-top: 18px; margin-top: 4px; }}
+            .cg-svg {{ max-width: 240px; }}
+        }}
 
         /* Footer */
         .site-footer {{ padding: 44px 0; background: var(--blue-tint); border-top: var(--border); }}
@@ -1257,8 +1276,20 @@ def build_html(results: dict) -> str:
                     <button class="chart-btn active" data-range="36">36 meses</button>
                     <button class="chart-btn" data-range="0">Todo</button>
                 </div>
-                <div class="chart-container"><canvas id="scoreChart"></canvas></div>
-                <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar · La línea roja marca el umbral de alerta ({HIGH_STRESS_THRESHOLD})</div>
+                <div class="chart-layout">
+                    <div class="chart-container"><canvas id="scoreChart"></canvas></div>
+                    <aside class="chart-gauge-panel" aria-live="polite">
+                        <div class="cg-title">Puntuación del mes</div>
+                        <svg id="gaugeC" class="cg-svg" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                            <g class="cg-zones"></g>
+                            <g class="cg-overlay"></g>
+                        </svg>
+                        <div class="cg-month" id="cgMonth">&mdash;</div>
+                        <div class="cg-status" id="cgStatus">&mdash;</div>
+                        <div class="cg-note" id="cgNote"></div>
+                    </aside>
+                </div>
+                <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar · La línea roja marca el umbral de alerta ({HIGH_STRESS_THRESHOLD}) · Pase el cursor sobre un mes para ver su puntuación</div>
             </div>
         </div>
     </section>
@@ -1431,6 +1462,9 @@ const estimatedValues = chartData.values.map((v, i) => {{
 let activeEstimated = chartData.estimated;
 let activeProvisional = chartData.provisional;
 let activeCoverageN = chartData.coverageN;
+// Mirror the visible slice's raw values/labels for the docked month gauge.
+let activeValues = chartData.values;
+let activeLabels = chartData.labels;
 // Point radius scaled by coverage confidence: thin-coverage months render
 // as smaller points, alongside their already-lighter color, so visual
 // weight tracks how much of the index was actually available that month.
@@ -1550,6 +1584,8 @@ function applyRange(months, btn) {{
     activeEstimated = chartData.estimated.slice(-n);
     activeProvisional = chartData.provisional.slice(-n);
     activeCoverageN = chartData.coverageN.slice(-n);
+    activeValues = chartData.values.slice(-n);
+    activeLabels = chartData.labels.slice(-n);
     scoreChart.data.labels = slicedLabels;
     scoreChart.data.datasets[0].data = slicedConfirmed;
     scoreChart.data.datasets[0].pointBackgroundColor = slicedColors;
@@ -1560,9 +1596,59 @@ function applyRange(months, btn) {{
     scoreChart.data.datasets[2].pointBorderColor = slicedColors;
     scoreChart.data.datasets[2].pointRadius = slicedRadii;
     scoreChart.update();
+    if (window.__gaugeReset) window.__gaugeReset();
 }}
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
 (function() {{ const def = document.querySelector('.chart-btn[data-range="36"]'); applyRange(36, def); }})();
+
+// ---- Month gauge docked beside the chart (updates on hover, defaults to latest) ----
+(function() {{
+    var NS = 'http://www.w3.org/2000/svg';
+    var cx = 160, cy = 150, r = 118, sw = 15;
+    var V_MOD = {MODERATE_STRESS_THRESHOLD:.1f}, V_HIGH = {HIGH_STRESS_THRESHOLD:.1f};
+    function ang(v) {{ return (180 - v * 1.8) * Math.PI / 180; }}
+    function pt(v, rad) {{ var a = ang(v); return [cx + rad * Math.cos(a), cy - rad * Math.sin(a)]; }}
+    function arcPath(v1, v2, rad) {{ var p1 = pt(v1, rad), p2 = pt(v2, rad); return 'M' + p1[0].toFixed(2) + ' ' + p1[1].toFixed(2) + ' A' + rad + ' ' + rad + ' 0 0 1 ' + p2[0].toFixed(2) + ' ' + p2[1].toFixed(2); }}
+    function mk(name, attrs) {{ var e = document.createElementNS(NS, name); for (var k in attrs) {{ e.setAttribute(k, attrs[k]); }} return e; }}
+    function zoneOf(v) {{
+        if (v >= V_HIGH) return {{ label: 'Alerta', varName: '--red' }};
+        if (v >= V_MOD) return {{ label: 'Moderado', varName: '--blue' }};
+        return {{ label: 'Normal', varName: '--black' }};
+    }}
+    var svg = document.getElementById('gaugeC');
+    if (!svg) return;
+    var zones = svg.querySelector('.cg-zones');
+    var overlay = svg.querySelector('.cg-overlay');
+    [[0.6, V_MOD - 0.4, '--blue-soft'], [V_MOD + 0.4, V_HIGH - 0.4, '--blue'], [V_HIGH + 0.4, 99.4, '--red']].forEach(function(z) {{
+        zones.appendChild(mk('path', {{ 'class': 'cg-zone', d: arcPath(z[0], z[1], r), style: 'stroke:var(' + z[2] + ');stroke-width:' + sw }}));
+    }});
+    var z0 = pt(0, r), z1 = pt(100, r);
+    var t0 = mk('text', {{ 'class': 'cg-end-label', x: z0[0].toFixed(2), y: (z0[1] + 18).toFixed(2), 'text-anchor': 'middle' }}); t0.textContent = '0'; zones.appendChild(t0);
+    var t1 = mk('text', {{ 'class': 'cg-end-label', x: z1[0].toFixed(2), y: (z1[1] + 18).toFixed(2), 'text-anchor': 'middle' }}); t1.textContent = '100'; zones.appendChild(t1);
+    var elMonth = document.getElementById('cgMonth');
+    var elStatus = document.getElementById('cgStatus');
+    var elNote = document.getElementById('cgNote');
+    function render(idx) {{
+        var v = activeValues[idx];
+        if (v == null) return;
+        var z = zoneOf(v);
+        overlay.textContent = '';
+        var m = pt(v, r);
+        overlay.appendChild(mk('rect', {{ 'class': 'cg-marker', x: -8, y: -8, width: 16, height: 16, rx: 2, transform: 'translate(' + m[0].toFixed(2) + ',' + m[1].toFixed(2) + ') rotate(45)' }}));
+        var val = mk('text', {{ 'class': 'cg-val', x: cx, y: cy - 8, 'text-anchor': 'middle', style: 'fill:var(' + z.varName + ')' }}); val.textContent = v.toFixed(1); overlay.appendChild(val);
+        var den = mk('text', {{ 'class': 'cg-denom', x: cx, y: cy + 13, 'text-anchor': 'middle' }}); den.textContent = '/ 100'; overlay.appendChild(den);
+        elMonth.textContent = activeLabels[idx];
+        elStatus.textContent = z.label;
+        elStatus.style.color = 'var(' + (z.varName === '--black' ? '--gray-600' : z.varName) + ')';
+        if (activeEstimated[idx]) {{ elNote.textContent = activeCoverageN[idx] + ' de 12 indicadores'; }}
+        else if (activeProvisional[idx]) {{ elNote.textContent = 'Avance estimado'; }}
+        else {{ elNote.textContent = ''; }}
+    }}
+    window.__gaugeReset = function() {{ render(activeValues.length - 1); }};
+    scoreChart.options.onHover = function(e, els) {{ if (els && els.length) {{ render(els[0].index); }} }};
+    scoreChart.canvas.addEventListener('mouseleave', function() {{ window.__gaugeReset(); }});
+    window.__gaugeReset();
+}})();
 
 // Re-fit chart once the IBM Plex Mono webfont loads. Chart.js renders before the
 // font is ready, measures axis-label widths with the fallback font, under-allocates,
