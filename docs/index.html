@@ -294,10 +294,16 @@
         .chart-btn.active { background: var(--blue); color: var(--white); border-color: var(--blue); }
         .chart-container { position: relative; height: 380px; }
         .chart-hint { font-size: 12px; color: var(--gray-400); font-family: var(--font-mono); margin-top: 12px; }
-        /* Month gauge docked beside the chart (updates on hover, defaults to latest month) */
-        .chart-layout { display: flex; gap: 24px; align-items: stretch; }
+        /* Month gauge docked beside the chart (updates on hover, defaults to latest month); divider resizes chart vs gauge */
+        .chart-layout { display: flex; align-items: stretch; }
         .chart-layout .chart-container { flex: 1 1 auto; min-width: 0; }
-        .chart-gauge-panel { flex: 0 0 232px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-left: 24px; border-left: var(--border); }
+        .chart-divider { flex: 0 0 auto; width: 20px; align-self: stretch; position: relative; display: flex; align-items: center; justify-content: center; cursor: ew-resize; touch-action: none; -webkit-user-select: none; user-select: none; }
+        .chart-divider::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--gray-200); transform: translateX(-50%); transition: background .15s var(--ease); }
+        .chart-divider-grip { position: relative; z-index: 1; width: 5px; height: 34px; border-radius: 3px; background: var(--gray-200); border: 1px solid var(--gray-300); transition: background .15s var(--ease), border-color .15s var(--ease); }
+        .chart-divider:hover .chart-divider-grip, .chart-divider.dragging .chart-divider-grip { background: var(--gray-400); border-color: var(--gray-400); }
+        .chart-divider:hover::before, .chart-divider.dragging::before { background: var(--gray-300); }
+        .chart-gauge-panel { flex: 0 0 var(--gauge-w, 232px); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .cg-inner { width: 216px; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .cg-title { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 6px; }
         .cg-svg { width: 100%; max-width: 210px; height: auto; display: block; overflow: visible; }
         .cg-zone { fill: none; stroke-linecap: round; }
@@ -310,7 +316,9 @@
         .cg-note { font-family: var(--font-mono); font-size: 10.5px; color: var(--gray-400); margin-top: 5px; min-height: 14px; }
         @media (max-width: 720px) {
             .chart-layout { flex-direction: column; gap: 8px; }
-            .chart-gauge-panel { flex: none; width: 100%; padding-left: 0; border-left: none; border-top: var(--border); padding-top: 18px; margin-top: 4px; }
+            .chart-divider { display: none; }
+            .chart-gauge-panel { flex: none; width: 100%; padding-left: 0; border-top: var(--border); padding-top: 18px; margin-top: 4px; overflow: visible; }
+            .cg-inner { width: 100%; }
             .cg-svg { max-width: 240px; }
         }
 
@@ -908,15 +916,18 @@
                 </div>
                 <div class="chart-layout">
                     <div class="chart-container"><canvas id="scoreChart"></canvas></div>
+                    <div class="chart-divider" id="chartDivider" role="separator" aria-orientation="vertical" aria-label="Ajustar ancho del gráfico" tabindex="0"><div class="chart-divider-grip"></div></div>
                     <aside class="chart-gauge-panel" aria-live="polite">
-                        <div class="cg-title">Puntuación del mes</div>
-                        <svg id="gaugeC" class="cg-svg" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-                            <g class="cg-zones"></g>
-                            <g class="cg-overlay"></g>
-                        </svg>
-                        <div class="cg-month" id="cgMonth">&mdash;</div>
-                        <div class="cg-status" id="cgStatus">&mdash;</div>
-                        <div class="cg-note" id="cgNote"></div>
+                        <div class="cg-inner">
+                            <div class="cg-title">Puntuación del mes</div>
+                            <svg id="gaugeC" class="cg-svg" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                                <g class="cg-zones"></g>
+                                <g class="cg-overlay"></g>
+                            </svg>
+                            <div class="cg-month" id="cgMonth">&mdash;</div>
+                            <div class="cg-status" id="cgStatus">&mdash;</div>
+                            <div class="cg-note" id="cgNote"></div>
+                        </div>
                     </aside>
                 </div>
                 <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar · La línea roja marca el umbral de alerta (55.2) · Pase el cursor sobre un mes para ver su puntuación</div>
@@ -1278,6 +1289,31 @@ document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click',
     scoreChart.options.onHover = function(e, els) { if (els && els.length) { render(els[0].index); } };
     scoreChart.canvas.addEventListener('mouseleave', function() { window.__gaugeReset(); });
     window.__gaugeReset();
+})();
+
+// ---- Draggable divider: resize chart vs gauge (drag left = default width, drag right hides the gauge) ----
+(function() {
+    var divider = document.getElementById('chartDivider');
+    var panel = document.querySelector('.chart-gauge-panel');
+    if (!divider || !panel) return;
+    var DEFAULT_W = 232, MIN_W = 0, STEP = 24;
+    var gaugeW = DEFAULT_W, dragging = false, startX = 0, startW = DEFAULT_W, raf = null;
+    function scheduleResize() { if (raf) return; raf = requestAnimationFrame(function() { raf = null; if (scoreChart && scoreChart.resize) scoreChart.resize(); }); }
+    function setW(w) { gaugeW = Math.max(MIN_W, Math.min(DEFAULT_W, w)); panel.style.setProperty('--gauge-w', gaugeW + 'px'); scheduleResize(); }
+    function isMobile() { return window.matchMedia('(max-width: 720px)').matches; }
+    function startDrag(clientX) { dragging = true; startX = clientX; startW = gaugeW; divider.classList.add('dragging'); document.body.style.userSelect = 'none'; }
+    function moveDrag(clientX) { if (!dragging) return; setW(startW - (clientX - startX)); }
+    function endDrag() { if (!dragging) return; dragging = false; divider.classList.remove('dragging'); document.body.style.userSelect = ''; }
+    divider.addEventListener('mousedown', function(e) { if (isMobile()) return; startDrag(e.clientX); e.preventDefault(); });
+    window.addEventListener('mousemove', function(e) { moveDrag(e.clientX); });
+    window.addEventListener('mouseup', endDrag);
+    divider.addEventListener('touchstart', function(e) { if (isMobile()) return; startDrag(e.touches[0].clientX); }, { passive: true });
+    window.addEventListener('touchmove', function(e) { if (dragging) moveDrag(e.touches[0].clientX); }, { passive: true });
+    window.addEventListener('touchend', endDrag);
+    divider.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') { setW(gaugeW + STEP); e.preventDefault(); }
+        else if (e.key === 'ArrowRight') { setW(gaugeW - STEP); e.preventDefault(); }
+    });
 })();
 
 // Re-fit chart once the IBM Plex Mono webfont loads. Chart.js renders before the
