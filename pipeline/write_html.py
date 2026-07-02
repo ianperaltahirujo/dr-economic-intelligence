@@ -96,6 +96,18 @@ INDICATOR_DESCRIPTIONS_ES = {
         "que incluye asociaciones de ahorros, cooperativas y otras entidades. "
         "Un alza sostenida encarece el crédito y presiona la capacidad de pago de hogares y empresas."
     ),
+    "gas_premium_dop": (
+        "Gasolina Premium (DOP)",
+        "Precio de venta al público de la gasolina premium fijado semanalmente por el MICM. "
+        "Al ser un precio administrado se mantiene estable y sube en escalones; alzas sostenidas "
+        "encarecen el transporte y presionan los precios de la canasta básica."
+    ),
+    "tourism_daily_spend_usd": (
+        "Gasto Turístico Diario (USD)",
+        "Gasto promedio diario por visitante según la encuesta de gasto turístico del BCRD. "
+        "La encuesta se publica con varios meses de rezago, por lo que los meses recientes pueden "
+        "mostrarse como avance estimado. Una caída sostenida reduce el ingreso de divisas del país."
+    ),
 }
 
 STATUS_TEXT_ES = {
@@ -529,9 +541,9 @@ def build_indicator_cards(scored: pd.DataFrame) -> str:
                 <span class="value-number">{value_str}</span>
                 <span class="value-arrow {arrow_class}">{arrow}</span>
             </div>
-            <div class="zscore-bar-container"><div class="zscore-bar" style="width:{bar_pct:.1f}%;background:{bar_color};"></div></div>
+            <div class="zscore-bar-container"><span class="zscore-tick" aria-hidden="true"></span><div class="zscore-bar" style="width:{bar_pct:.1f}%;background:{bar_color};"></div></div>
+            <div class="card-stats"><span>Z-score: {zscore:+.2f}</span><span>Peso: {weight*100:.0f}%</span></div>
             <div class="accordion-content">
-                <div class="zscore-label">Z-score: {zscore:+.2f} &nbsp;|&nbsp; Peso: {weight*100:.0f}%</div>
                 <div class="card-desc">{es_desc}</div>
             </div>
         </div>""")
@@ -619,6 +631,8 @@ def build_html(results: dict) -> str:
 
     status_key   = "HIGH" if score >= HIGH_STRESS_THRESHOLD else ("MODERATE" if score >= MODERATE_STRESS_THRESHOLD else "LOW")
     status_label, status_desc = STATUS_TEXT_ES[status_key]
+    status_key_lower = status_key.lower()
+    hs_status_short = {"HIGH": "Alerta", "MODERATE": "Moderado", "LOW": "Normal"}[status_key]
     score_color  = "#CE1126" if status_key == "HIGH" else "#002D62" if status_key == "MODERATE" else "#1A1A1A"
     date_str     = f"{MONTHS_ES[score_date.month].capitalize()} de {score_date.year}" if score_date else ""
     run_date     = datetime.now().strftime("%d/%m/%Y a las %H:%M")
@@ -669,15 +683,9 @@ def build_html(results: dict) -> str:
 
     alert_count  = len(alerts) if alerts is not None and not alerts.empty else 0
 
-    _alert_class   = "interactive-alert" if stress_n > 0 else ""
-    _alert_onclick = 'onclick="jumpFilter(\'stress\')"' if stress_n > 0 else ""
-    _plural        = "es" if stress_n != 1 else ""
-    _alert_inner   = (f'&#9888; {stress_n} indicador{_plural} en zona de alerta <span class="alert-arrow">&#8595;</span>'
-                      if stress_n > 0 else '&#10003; Sin alertas activas')
-    alert_box_html = f'''
-    <div class="alert-count {_alert_class}" {_alert_onclick}>
-        {_alert_inner}
-    </div>'''
+    # Stress chip carries the alert emphasis (pulses red on hover) only when
+    # there are active stress alerts; otherwise it reads as a plain summary chip.
+    stress_chip_class = "chip chip-stress chip--hot" if stress_n > 0 else "chip chip-stress"
 
     context_section_html = ""
     if context_cards:
@@ -701,6 +709,13 @@ def build_html(results: dict) -> str:
     <meta name="theme-color" content="#002D62">
     <meta name="color-scheme" content="light"><link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png">
     <title>Economic Intelligence &#8212; La Sociedad</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="La Sociedad">
+    <meta property="og:title" content="DR Economic Intelligence · Índice de Vulnerabilidad Económica">
+    <meta property="og:description" content="Informe semanal automatizado de vulnerabilidad económica de la República Dominicana a partir de fuentes oficiales: BCRD, SB y FRED.">
+    <meta property="og:url" content="https://economic-intelligence.lasociedad.com.do/">
+    <meta property="og:locale" content="es_DO">
+    <meta name="twitter:card" content="summary">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -777,8 +792,8 @@ def build_html(results: dict) -> str:
         .accordion-content {{ max-height: 0; overflow: hidden; opacity: 0; transition: max-height .4s var(--ease), opacity .35s var(--ease); }}
         .accordion-content.open {{ opacity: 1; }}
         .dropdown-arrow {{ font-size: 10px; color: var(--gray-400); transition: transform .3s var(--ease); user-select: none; }}
-        .interactive-card, .interactive-legend {{ cursor: pointer; -webkit-tap-highlight-color: transparent; }}
-        .interactive-card.active .dropdown-arrow, .interactive-legend.active .dropdown-arrow {{ transform: rotate(180deg); }}
+        .interactive-card {{ cursor: pointer; -webkit-tap-highlight-color: transparent; }}
+        .interactive-card.active .dropdown-arrow {{ transform: rotate(180deg); }}
 
         /* Header */
         .site-header {{ position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.85); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: var(--border); }}
@@ -820,7 +835,8 @@ def build_html(results: dict) -> str:
         .container {{ max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 5vw, 40px); }}
         main > section {{ padding: clamp(40px, 7vw, 72px) 0; border-bottom: var(--border); }}
         main > section:last-child {{ border-bottom: none; }}
-        section[id] {{ scroll-margin-top: 16px; }}
+        /* Header-aware anchor offset: 16px left section titles hidden under the 64px sticky header */
+        section[id] {{ scroll-margin-top: calc(var(--header-h) + 12px); }}
         .section-head {{ display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }}
         .section-label {{ font-family: var(--font-display); font-size: clamp(17px, 3.5vw, 20px); font-weight: 700; color: var(--black); letter-spacing: -.01em; position: relative; padding-left: 14px; }}
         .section-label::before {{ content: ''; position: absolute; left: 0; top: .14em; bottom: .14em; width: 4px; border-radius: 2px; background: var(--blue); }}
@@ -888,11 +904,8 @@ def build_html(results: dict) -> str:
         .zone-key {{ display: inline-flex; align-items: center; gap: 6px; }}
         .zone-swatch {{ width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }}
 
-        /* Alert button */
-.alert-count {{ display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 10px 16px; border-radius: 999px; background: {'var(--red-tint)' if stress_n > 0 else 'var(--gray-100)'}; border: 1px solid {'var(--red)' if stress_n > 0 else 'var(--gray-200)'}; font-size: 13px; color: {'var(--red)' if stress_n > 0 else 'var(--gray-600)'}; font-family: var(--font-mono); align-self: flex-start; }}        .interactive-alert {{ cursor: pointer; transition: all .2s var(--ease); }}
+        /* Alert pulse (reused by the hot summary chip below) */
         @keyframes alertPulse {{ 0%, 100% {{ background-color: var(--red-tint); border-color: var(--red); box-shadow: none; }} 50% {{ background-color: #ffd6d6; border-color: #ff0000; box-shadow: 0 0 14px rgba(206,17,38,0.55); }} }}
-        .interactive-alert:hover {{ animation: alertPulse .9s ease-in-out infinite; }}
-        .alert-arrow {{ margin-left: 6px; font-size: 12px; }}
 
         /* Summary chips */
         .summary-chips {{ display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }}
@@ -945,12 +958,7 @@ def build_html(results: dict) -> str:
 
         /* Panel legend + filters */
         .legend-intro {{ font-size: 13px; font-weight: 600; color: var(--gray-600); letter-spacing: .02em; margin-bottom: 14px; }}
-        .legend-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 14px; margin-bottom: 36px; }}
-        .legend-item {{ padding: 18px 20px; background: var(--gray-50); border: var(--border); border-radius: var(--radius-sm); transition: background .2s var(--ease); }}
-        .legend-item:hover {{ background: var(--gray-100); }}
-        .legend-title {{ font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }}
         .legend-dot {{ width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }}
-        .legend-desc {{ font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-top: 10px; }}
         .filter-bar {{ display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }}
         .filter-chip {{ font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 8px 16px; border: var(--border); border-radius: 999px; background: var(--white); color: var(--gray-600); cursor: pointer; transition: all .2s var(--ease); }}
         .filter-chip:hover {{ border-color: var(--blue); color: var(--blue); }}
@@ -976,9 +984,13 @@ def build_html(results: dict) -> str:
         .card-value {{ display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }}
         .value-number {{ font-family: var(--font-mono); font-size: 27px; font-weight: 600; color: var(--black); }}
         .value-arrow {{ font-size: 18px; }} .arrow-bad {{ color: var(--red); }} .arrow-good {{ color: var(--green); }}
-        .zscore-bar-container {{ height: 5px; background: var(--gray-200); border-radius: 999px; margin-bottom: 8px; overflow: hidden; }}
+        .zscore-bar-container {{ height: 5px; background: var(--gray-200); border-radius: 999px; margin-bottom: 8px; overflow: visible; position: relative; }}
         .zscore-bar {{ height: 100%; border-radius: 999px; transition: width .4s var(--ease); }}
-        .zscore-label {{ font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); margin-top: 14px; margin-bottom: 12px; }}
+        /* Center tick marks z-score 0 (the historical average); bar_pct is calibrated
+           so z=0 always lands at 50%, see classify_indicator()'s contribution formula. */
+        .zscore-tick {{ position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; border-radius: 1px; background: rgba(10,10,10,.30); z-index: 1; }}
+        [data-theme="dark"] .zscore-tick {{ background: rgba(232,232,232,.38); }}
+        .card-stats {{ display: flex; justify-content: space-between; gap: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--gray-600); margin-top: 9px; }}
 
         /* Chart */
         .chart-card {{ border: var(--border); border-radius: var(--radius); padding: 24px; background: var(--white); box-shadow: var(--shadow-sm); }}
@@ -1108,6 +1120,53 @@ def build_html(results: dict) -> str:
         .theme-icon--moon {{ opacity: 1; transform: none; }}
         [data-theme="dark"] .theme-icon--sun {{ opacity: 1; transform: none; }}
         [data-theme="dark"] .theme-icon--moon {{ opacity: 0; transform: rotate(-90deg) scale(0.6); }}
+
+        /* Skip link (a11y): first tab stop, jumps past header/video to the score */
+        .skip-link {{ position: fixed; top: 10px; left: 10px; z-index: 300; background: var(--blue); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transform: translateY(-200%); transition: transform .2s var(--ease); }}
+        .skip-link:focus {{ transform: none; }}
+
+        /* Sticky mini-score: keeps the headline number visible after the hero scrolls away */
+        .header-inner--centered {{ position: relative; }}
+        .header-score {{ position: absolute; left: clamp(16px, 5vw, 40px); top: 50%; transform: translateY(-50%) translateY(-6px); display: inline-flex; align-items: baseline; gap: 7px; font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--black); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: var(--border); background: var(--gray-50); box-shadow: var(--shadow-sm); opacity: 0; pointer-events: none; transition: opacity .25s var(--ease), transform .25s var(--ease); white-space: nowrap; }}
+        .header-score.show {{ opacity: 1; pointer-events: auto; transform: translateY(-50%); }}
+        .header-score:hover {{ background: var(--gray-100); }}
+        .header-score .hs-dot {{ width: 8px; height: 8px; border-radius: 50%; background: var(--gray-400); align-self: center; flex-shrink: 0; }}
+        .header-score .hs-denom {{ font-size: 10.5px; color: var(--gray-400); font-weight: 400; }}
+        .header-score .hs-status {{ font-size: 10.5px; color: var(--gray-600); font-weight: 500; letter-spacing: .05em; text-transform: uppercase; padding-left: 8px; border-left: 1px solid var(--gray-200); }}
+        @media (max-width: 900px) {{ .header-score {{ display: none; }} }}
+
+        /* Status dot: hero badge and header pill both pick up the classification
+           color. Placed after the dark-mode badge override above so it wins the
+           specificity tie in both themes (equal specificity, later in source). */
+        .editorial-status-badge[data-status="low"]::before, .header-score[data-status="low"] .hs-dot {{ background: var(--green); }}
+        .editorial-status-badge[data-status="moderate"]::before, .header-score[data-status="moderate"] .hs-dot {{ background: var(--blue); }}
+        .editorial-status-badge[data-status="high"]::before, .header-score[data-status="high"] .hs-dot {{ background: var(--red); }}
+
+        /* Stress chip carries the alert emphasis when alerts are active */
+        .chip--hot {{ border-color: rgba(206,17,38,.4); background: var(--red-tint); color: var(--red); }}
+        .chip--hot:hover {{ animation: alertPulse .9s ease-in-out infinite; }}
+        @keyframes alertPulseDark {{ 0%, 100% {{ background-color: var(--red-tint); border-color: var(--red); box-shadow: none; }} 50% {{ background-color: #3a1416; border-color: #ff6b6b; box-shadow: 0 0 14px rgba(206,17,38,0.55); }} }}
+        [data-theme="dark"] .chip--hot:hover {{ animation-name: alertPulseDark; }}
+
+        /* Compact glossary replacing the six accordion legend boxes */
+        .glossary {{ margin-bottom: 28px; border: var(--border); border-radius: var(--radius); background: var(--gray-50); padding: 18px 20px; }}
+        .glossary-status {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 14px 22px; }}
+        .g-item {{ display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }}
+        .g-item .legend-dot {{ margin-top: 4px; }}
+        .g-item b {{ font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .07em; display: block; margin-bottom: 2px; color: var(--black); }}
+        .g-item div span {{ color: var(--gray-600); line-height: 1.55; display: block; }}
+        .glossary-metrics {{ display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 14px; padding-top: 14px; border-top: var(--border); font-size: 12.5px; color: var(--gray-600); line-height: 1.55; }}
+        .glossary-metrics b {{ color: var(--black); font-weight: 600; }}
+
+        /* Alert items link to their indicator card */
+        .alert-item.linkable {{ grid-template-columns: 110px 1fr auto; cursor: pointer; transition: transform .2s var(--ease), box-shadow .2s var(--ease); }}
+        .alert-item.linkable:hover {{ transform: translateY(-2px); box-shadow: var(--shadow-md); }}
+        .alert-go {{ align-self: center; font-size: 18px; line-height: 1; color: var(--gray-400); transition: transform .2s var(--ease), color .2s var(--ease); }}
+        .alert-item.linkable:hover .alert-go {{ transform: translateX(4px); color: var(--blue); }}
+        .alert-stress.linkable:hover .alert-go {{ color: var(--red); }}
+        @media (max-width: 640px) {{ .alert-item.linkable {{ grid-template-columns: 1fr; }} .alert-go {{ display: none; }} }}
+        @keyframes cardFlash {{ 0% {{ box-shadow: 0 0 0 0 var(--flash, rgba(0,45,98,.5)); }} 70% {{ box-shadow: 0 0 0 10px transparent; }} 100% {{ box-shadow: 0 0 0 0 transparent; }} }}
+        .flash-card {{ animation: cardFlash .9s var(--ease) 2; }}
     </style>
     <noscript><style>
         .fade-in-section {{ opacity: 1 !important; transform: none !important; }}
@@ -1118,10 +1177,15 @@ def build_html(results: dict) -> str:
 </head>
 <body>
 
+<a class="skip-link" href="#resumen">Saltar al contenido</a>
+
 <div class="top-accent" id="top"></div>
 
 <header class="site-header">
     <div class="header-inner header-inner--centered">
+        <a href="#top" class="header-score" id="headerScore" data-status="{status_key_lower}" aria-label="Índice actual {score:.1f} de 100, {status_label.lower()}. Volver al inicio.">
+            <span class="hs-dot" aria-hidden="true"></span>{score:.1f}<span class="hs-denom">/100</span><span class="hs-status">{hs_status_short}</span>
+        </a>
         <div class="nav-cluster" id="navCluster">
             <div class="nav-labels">
                 <nav class="header-nav" id="mainNav" aria-label="Secciones del informe">
@@ -1154,7 +1218,7 @@ def build_html(results: dict) -> str:
 
 <main>
 
-    <section class="hero">
+    <section class="hero" id="resumen">
 
         <div class="hero-banner">
             <div class="hero-video-wrap">
@@ -1180,7 +1244,7 @@ def build_html(results: dict) -> str:
 
             <div class="editorial-topbar">
                 <span class="editorial-index-label">Índice de Vulnerabilidad Económica</span>
-                <span class="editorial-status-badge">{status_label}</span>
+                <span class="editorial-status-badge" data-status="{status_key_lower}">{status_label}</span>
             </div>
 
             <div class="editorial-score-row">
@@ -1204,9 +1268,8 @@ def build_html(results: dict) -> str:
 
             <div class="editorial-footer-bar">
                 <span class="editorial-status-desc">{status_desc}</span>
-                {alert_box_html}
                 <div class="summary-chips" role="group" aria-label="Resumen de indicadores">
-                    <button type="button" class="chip chip-stress" onclick="jumpFilter('stress')" aria-label="{stress_n} indicadores en alerta"><span class="chip-dot" aria-hidden="true"></span><b>{stress_n}</b>&nbsp;en alerta</button>
+                    <button type="button" class="{stress_chip_class}" onclick="jumpFilter('stress')" aria-label="{stress_n} indicadores en alerta"><span class="chip-dot" aria-hidden="true"></span><b>{stress_n}</b>&nbsp;en alerta</button>
                     <button type="button" class="chip chip-watch" onclick="jumpFilter('watch')" aria-label="{watch_n} indicadores en vigilancia"><span class="chip-dot" aria-hidden="true"></span><b>{watch_n}</b>&nbsp;en vigilancia</button>
                     <button type="button" class="chip chip-normal" onclick="jumpFilter('normal')" aria-label="{normal_n} indicadores normales"><span class="chip-dot" aria-hidden="true"></span><b>{normal_n}</b>&nbsp;normales</button>
                 </div>
@@ -1229,7 +1292,7 @@ def build_html(results: dict) -> str:
     <section id="indicadores-seguimiento">
         <div class="container">
             <div class="section-head"><h2 class="section-label">Indicadores en seguimiento</h2><span class="section-rule"></span></div>
-            <p class="section-intro">Indicadores que se desvían de forma notable de su promedio histórico y concentran la atención esta semana.</p>
+            <p class="section-intro">Indicadores que se desvían de forma notable de su promedio histórico y concentran la atención esta semana. Toque una alerta para ver el detalle del indicador.</p>
             <div class="alerts-list">{alert_html}</div>
         </div>
     </section>
@@ -1238,30 +1301,16 @@ def build_html(results: dict) -> str:
         <div class="container">
             <div class="section-head"><h2 class="section-label">Panel de indicadores</h2><span class="section-rule"></span></div>
             <div class="legend-intro">Cómo interpretar cada indicador</div>
-            <div class="legend-grid">
-                <div class="legend-item interactive-legend" data-group="legend-status" onclick="toggleAccordion(this)">
-                    <div class="legend-title"><div class="legend-dot" style="background:var(--red)"></div>ALERTA <span class="dropdown-arrow" style="margin-left:auto;" aria-hidden="true">&#9660;</span></div>
-                    <div class="accordion-content"><div class="legend-desc">El indicador supera 1.5 desviaciones estándar de su promedio histórico en dirección de estrés.</div></div>
+            <div class="glossary">
+                <div class="glossary-status">
+                    <div class="g-item"><span class="legend-dot" style="background:var(--red)" aria-hidden="true"></span><div><b>ALERTA</b><span>Supera 1.5 desviaciones estándar de su promedio histórico en dirección de estrés.</span></div></div>
+                    <div class="g-item"><span class="legend-dot" style="background:var(--blue)" aria-hidden="true"></span><div><b>VIGILANCIA</b><span>Desviación notable, sin superar el umbral de alerta. Requiere seguimiento.</span></div></div>
+                    <div class="g-item"><span class="legend-dot" style="background:var(--gray-400)" aria-hidden="true"></span><div><b>NORMAL</b><span>Dentro de sus rangos históricos habituales. No representa riesgo inmediato.</span></div></div>
                 </div>
-                <div class="legend-item interactive-legend" data-group="legend-status" onclick="toggleAccordion(this)">
-                    <div class="legend-title"><div class="legend-dot" style="background:var(--blue)"></div>VIGILANCIA <span class="dropdown-arrow" style="margin-left:auto;" aria-hidden="true">&#9660;</span></div>
-                    <div class="accordion-content"><div class="legend-desc">El indicador muestra desviación notable pero sin superar el umbral de alerta. Requiere seguimiento.</div></div>
-                </div>
-                <div class="legend-item interactive-legend" data-group="legend-status" onclick="toggleAccordion(this)">
-                    <div class="legend-title"><div class="legend-dot" style="background:var(--gray-400)"></div>NORMAL <span class="dropdown-arrow" style="margin-left:auto;" aria-hidden="true">&#9660;</span></div>
-                    <div class="accordion-content"><div class="legend-desc">El indicador se encuentra dentro de sus rangos históricos habituales. No representa riesgo inmediato.</div></div>
-                </div>
-                <div class="legend-item interactive-legend" data-group="legend-metrics" onclick="toggleAccordion(this)">
-                    <div class="legend-title">Z-score <span class="dropdown-arrow" style="margin-left:auto;" aria-hidden="true">&#9660;</span></div>
-                    <div class="accordion-content"><div class="legend-desc">Mide cuántas desviaciones estándar se aleja el valor actual de su promedio histórico.</div></div>
-                </div>
-                <div class="legend-item interactive-legend" data-group="legend-metrics" onclick="toggleAccordion(this)">
-                    <div class="legend-title">Peso <span class="dropdown-arrow" style="margin-left:auto;" aria-hidden="true">&#9660;</span></div>
-                    <div class="accordion-content"><div class="legend-desc">Contribución porcentual de cada indicador al índice total.</div></div>
-                </div>
-                <div class="legend-item interactive-legend" data-group="legend-metrics" onclick="toggleAccordion(this)">
-                    <div class="legend-title">&#8593; &#8595; Tendencia <span class="dropdown-arrow" style="margin-left:auto;" aria-hidden="true">&#9660;</span></div>
-                    <div class="accordion-content"><div class="legend-desc">Dirección del cambio respecto al mes anterior. Rojo si desfavorable, verde si favorable.</div></div>
+                <div class="glossary-metrics">
+                    <span><b>Z-score:</b> desviaciones estándar respecto al promedio histórico. La marca central de cada barra señala ese promedio.</span>
+                    <span><b>Peso:</b> contribución porcentual del indicador al índice total.</span>
+                    <span><b>&#8593;&#8595; Tendencia:</b> cambio frente al mes anterior; rojo si desfavorable, verde si favorable.</span>
                 </div>
             </div>
             <div class="filter-bar" role="group" aria-label="Filtrar indicadores por estado">
@@ -1285,7 +1334,7 @@ def build_html(results: dict) -> str:
                     <button class="chart-btn" data-range="0">Todo</button>
                 </div>
                 <div class="chart-layout">
-                    <div class="chart-container"><canvas id="scoreChart"></canvas></div>
+                    <div class="chart-container"><canvas id="scoreChart" role="img" aria-label="Gráfico de líneas del historial mensual del Índice de Vulnerabilidad Económica, escala 0 a 100, con umbral de alerta en {HIGH_STRESS_THRESHOLD}."></canvas></div>
                     <div class="chart-divider" id="chartDivider" role="separator" aria-orientation="vertical" aria-label="Ajustar ancho del gráfico" tabindex="0"><div class="chart-divider-grip"></div></div>
                     <aside class="chart-gauge-panel" aria-live="polite">
                         <div class="cg-inner">
@@ -1300,7 +1349,7 @@ def build_html(results: dict) -> str:
                         </div>
                     </aside>
                 </div>
-                <div class="chart-hint">Desplácese para hacer zoom · Arrastre para navegar · La línea roja marca el umbral de alerta ({HIGH_STRESS_THRESHOLD}) · Pase el cursor sobre un mes para ver su puntuación</div>
+                <div class="chart-hint">Desplácese para hacer zoom · Doble clic para restablecerlo · Arrastre para navegar · La línea roja marca el umbral de alerta ({HIGH_STRESS_THRESHOLD}) · Pase el cursor sobre un mes para ver su puntuación</div>
             </div>
         </div>
     </section>
@@ -1350,33 +1399,20 @@ document.addEventListener("DOMContentLoaded", function() {{
             if (!data || !data.length) return;
             new Chart(canvas.getContext('2d'), {{
                 type: 'line',
-                data: {{ labels: data.map((_, i) => i), datasets: [{{ data, borderColor: '#002D62', borderWidth: 2, tension: 0.35, pointRadius: 0, fill: false }}] }},
+                data: {{ labels: data.map((_, i) => i), datasets: [{{ data, borderColor: '#002D62', backgroundColor: 'rgba(0,45,98,0.07)', borderWidth: 2, tension: 0.35, pointRadius: data.map((_, i) => i === data.length - 1 ? 2.5 : 0), pointBackgroundColor: '#002D62', pointBorderColor: '#002D62', fill: true }}] }},
                 options: {{ responsive: true, maintainAspectRatio: false, animation: false, plugins: {{ legend: {{ display: false }}, tooltip: {{ enabled: false }} }}, scales: {{ x: {{ display: false }}, y: {{ display: false }} }}, layout: {{ padding: 2 }}, elements: {{ line: {{ borderCapStyle: 'round' }} }} }}
             }});
         }} catch(e) {{ console.error("Sparkline error", e); }}
     }});
 
     // Keyboard support for expandable cards
-    document.querySelectorAll('.interactive-card, .interactive-legend').forEach(el => {{
+    document.querySelectorAll('.interactive-card').forEach(el => {{
         el.setAttribute('role', 'button');
         el.setAttribute('tabindex', '0');
         el.setAttribute('aria-expanded', 'false');
         el.addEventListener('keydown', e => {{
             if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); el.click(); }}
         }});
-    }});
-
-    // Panel de indicadores: the 6 legend items under "Cómo interpretar cada
-    // indicador" default open on load. Indicator cards themselves stay
-    // closed by default, matching the original behavior. State is set
-    // directly rather than via toggleAccordion(), since that function's
-    // group-toggle behavior (legend items share data-group in sets of 3)
-    // would flip-flop if called repeatedly across members of the same group.
-    document.querySelectorAll('#panel-indicadores .interactive-legend').forEach(el => {{
-        el.classList.add('active');
-        el.setAttribute('aria-expanded', 'true');
-        const content = el.querySelector('.accordion-content');
-        if (content) {{ content.classList.add('open'); content.style.maxHeight = content.scrollHeight + 'px'; }}
     }});
 
     // Reveal sections on scroll
@@ -1393,6 +1429,58 @@ document.addEventListener("DOMContentLoaded", function() {{
         window.addEventListener('scroll', () => {{
             if (window.scrollY > 600) btt.classList.add('show'); else btt.classList.remove('show');
         }}, {{ passive: true }});
+    }}
+
+    // Alert items link to their indicator card: scroll there, open it, flash it.
+    // Matched by visible label text so the enhancement degrades to a plain list
+    // if a label ever drifts out of sync with the cards.
+    const FLASH_COLORS = {{ stress: 'rgba(206,17,38,.5)', watch: 'rgba(0,45,98,.45)', normal: 'rgba(153,153,153,.5)' }};
+    document.querySelectorAll('.alert-item').forEach(item => {{
+        const labelEl = item.querySelector('.alert-content strong');
+        if (!labelEl) return;
+        const target = Array.from(document.querySelectorAll('.indicator-card')).find(card => {{
+            const l = card.querySelector('.card-label');
+            return l && l.textContent.trim() === labelEl.textContent.trim();
+        }});
+        if (!target) return;
+        item.classList.add('linkable');
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', 'Ver detalle de ' + labelEl.textContent.trim());
+        const go = document.createElement('span');
+        go.className = 'alert-go'; go.setAttribute('aria-hidden', 'true'); go.textContent = '→';
+        item.appendChild(go);
+        const activate = () => {{
+            filterIndicators('all');
+            if (!target.classList.contains('active')) toggleAccordion(target);
+            target.style.setProperty('--flash', FLASH_COLORS[target.getAttribute('data-status')] || FLASH_COLORS.normal);
+            // Measure on the next frame so the filter/accordion layout changes are
+            // applied first; measuring in the same tick scrolls to a stale position.
+            requestAnimationFrame(() => {{
+                const headerH = (document.querySelector('.site-header') || {{ offsetHeight: 0 }}).offsetHeight;
+                const y = target.getBoundingClientRect().top + window.scrollY - headerH - 14;
+                window.scrollTo({{ top: y, behavior: 'smooth' }});
+            }});
+            setTimeout(() => {{
+                target.classList.remove('flash-card');
+                void target.offsetWidth;
+                target.classList.add('flash-card');
+            }}, 450);
+        }};
+        item.addEventListener('click', activate);
+        item.addEventListener('keydown', e => {{
+            if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); activate(); }}
+        }});
+    }});
+
+    // Sticky mini-score: show the pill once the hero score row leaves the viewport
+    const headerScore = document.getElementById('headerScore');
+    const scoreRow = document.querySelector('.editorial-score-row');
+    if (headerScore && scoreRow && 'IntersectionObserver' in window) {{
+        new IntersectionObserver(entries => {{
+            const e = entries[0];
+            headerScore.classList.toggle('show', !e.isIntersecting && e.boundingClientRect.top < 0);
+        }}, {{ threshold: 0 }}).observe(scoreRow);
     }}
 }});
 
@@ -1430,7 +1518,8 @@ function jumpFilter(status) {{
     filterIndicators(status);
     const panel = document.getElementById('panel-indicadores');
     if (panel) {{
-        const targetY = panel.getBoundingClientRect().top + window.scrollY - 16;
+        const headerH = (document.querySelector('.site-header') || {{ offsetHeight: 0 }}).offsetHeight;
+        const targetY = panel.getBoundingClientRect().top + window.scrollY - headerH - 14;
         window.scrollTo({{ top: targetY, behavior: 'smooth' }});
     }}
     if (status === 'stress') {{
@@ -1481,6 +1570,11 @@ let activeLabels = chartData.labels;
 // weight tracks how much of the index was actually available that month.
 const MIN_POINT_R = 1.5, MAX_POINT_R = 3;
 const estimatedRadii = chartData.pointAlpha.map(a => MIN_POINT_R + (MAX_POINT_R - MIN_POINT_R) * a);
+// Dark-theme point palette: the navy rgba points vanish on the near-black bg,
+// so swap to bright-blue/red equivalents while preserving each point's alpha.
+const darkPointColors = chartData.colors.map(c => c.replace('rgba(0,45,98', 'rgba(93,169,240').replace('rgba(206,17,38', 'rgba(255,107,107'));
+let activePointColors = chartData.colors;
+let currentRangeMonths = 36;
 
 const ctx = document.getElementById('scoreChart').getContext('2d');
 const scoreChart = new Chart(ctx, {{
@@ -1574,8 +1668,9 @@ scoreChart.draw = function() {{
     const c2 = scoreChart.ctx;
     c2.save(); c2.beginPath();
     c2.moveTo(scoreChart.scales.x.left, y); c2.lineTo(scoreChart.scales.x.right, y);
-    c2.strokeStyle = 'rgba(206,17,38,0.4)'; c2.lineWidth = 1; c2.setLineDash([5,5]); c2.stroke();
-    c2.setLineDash([]); c2.fillStyle = 'rgba(206,17,38,0.85)'; c2.font = '600 10px "IBM Plex Mono", monospace';
+    const darkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+    c2.strokeStyle = darkTheme ? 'rgba(255,107,107,0.55)' : 'rgba(206,17,38,0.4)'; c2.lineWidth = 1; c2.setLineDash([5,5]); c2.stroke();
+    c2.setLineDash([]); c2.fillStyle = darkTheme ? 'rgba(255,128,140,0.9)' : 'rgba(206,17,38,0.85)'; c2.font = '600 10px "IBM Plex Mono", monospace';
     c2.textAlign = 'right'; c2.fillText('Umbral de alerta ({HIGH_STRESS_THRESHOLD})', scoreChart.scales.x.right - 6, y - 6);
     c2.restore();
 }};
@@ -1584,12 +1679,13 @@ function applyRange(months, btn) {{
     document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
     if (scoreChart.resetZoom) scoreChart.resetZoom();
+    currentRangeMonths = months;
     const n = months || chartData.labels.length;
     const slicedLabels = chartData.labels.slice(-n);
     const slicedConfirmed = confirmedValues.slice(-n);
     const slicedProvisional = provisionalValues.slice(-n);
     const slicedEstimated = estimatedValues.slice(-n);
-    const slicedColors = chartData.colors.slice(-n);
+    const slicedColors = activePointColors.slice(-n);
     const slicedRadii = estimatedRadii.slice(-n);
     // Keep tooltip lookup arrays aligned with the visible slice
     activeEstimated = chartData.estimated.slice(-n);
@@ -1611,6 +1707,8 @@ function applyRange(months, btn) {{
 }}
 document.querySelectorAll('.chart-btn').forEach(b => b.addEventListener('click', () => applyRange(parseInt(b.dataset.range, 10), b)));
 (function() {{ const def = document.querySelector('.chart-btn[data-range="36"]'); applyRange(36, def); }})();
+// Double-click anywhere on the chart to undo wheel/pinch zoom
+scoreChart.canvas.addEventListener('dblclick', () => {{ if (scoreChart.resetZoom) scoreChart.resetZoom(); }});
 
 // ---- Month gauge docked beside the chart (updates on hover, defaults to latest) ----
 (function() {{
@@ -1891,12 +1989,18 @@ if (document.fonts && document.fonts.ready) {{
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem(LS_KEY, next);
         updateChartsDark(!isDark);
-        playActiveVideo(!isDark);
+        syncHeroVideos(!isDark);
     }});
-    function playActiveVideo(isDark) {{
-        var v = document.querySelector(isDark ? '.hero-video--dark' : '.hero-video--light');
-        if (!v) return;
-        var p = v.play();
+    // Play only the visible theme's video and pause the hidden one (it otherwise
+    // keeps downloading/decoding); pause both under prefers-reduced-motion.
+    function syncHeroVideos(isDark) {{
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var show = document.querySelector(isDark ? '.hero-video--dark' : '.hero-video--light');
+        var hide = document.querySelector(isDark ? '.hero-video--light' : '.hero-video--dark');
+        if (hide) hide.pause();
+        if (!show) return;
+        if (reduced) {{ show.pause(); return; }}
+        var p = show.play();
         if (p && p.catch) p.catch(function() {{}});
     }}
     function updateChartsDark(isDark) {{
@@ -1910,6 +2014,8 @@ if (document.fonts && document.fonts.ready) {{
             (ch.data && ch.data.datasets ? ch.data.datasets : []).forEach(function(ds) {{
                 ds.borderColor = lineColor;
                 if (ds.fill) ds.backgroundColor = fillColor;
+                // Sparkline end dots use a scalar point color; arrays (score chart) are handled below.
+                if (ds.pointBackgroundColor && !Array.isArray(ds.pointBackgroundColor)) {{ ds.pointBackgroundColor = lineColor; ds.pointBorderColor = lineColor; }}
             }});
             if (ch.options.scales) {{
                 ['x','y'].forEach(function(ax) {{
@@ -1920,8 +2026,23 @@ if (document.fonts && document.fonts.ready) {{
             }}
             ch.update('none');
         }});
+        // Score-chart per-point palette: swap the navy/red rgba arrays for their
+        // dark-bg equivalents, preserving the per-month alpha (coverage) encoding.
+        activePointColors = isDark ? darkPointColors : chartData.colors;
+        var nVis = currentRangeMonths || chartData.labels.length;
+        var slicedPts = activePointColors.slice(-nVis);
+        scoreChart.data.datasets[0].pointBackgroundColor = slicedPts;
+        scoreChart.data.datasets[0].pointBorderColor = slicedPts;
+        scoreChart.data.datasets[2].pointBackgroundColor = slicedPts;
+        scoreChart.data.datasets[2].pointBorderColor = slicedPts;
+        var provPt = isDark ? 'rgba(93,169,240,0.45)' : 'rgba(0,45,98,0.4)';
+        scoreChart.data.datasets[1].pointBackgroundColor = provPt;
+        scoreChart.data.datasets[1].pointBorderColor = provPt;
+        scoreChart.update('none');
     }}
-    if (document.documentElement.getAttribute('data-theme') === 'dark') {{ updateChartsDark(true); playActiveVideo(true); }}
+    var startDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (startDark) updateChartsDark(true);
+    syncHeroVideos(startDark);
 }})();
 </script>
 
