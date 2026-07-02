@@ -46,6 +46,46 @@ month always needs upload, an unchanged month is skipped, a provisional
 status flip (e.g. `tourism_daily_spend_usd`'s real value finally arriving)
 triggers a re-upload, and graceful handling of a missing/corrupt state file.
 
+**test_write_html.py** — locks in the fix for the dashboard-card
+classification gap: `count_indicator_statuses()` and
+`build_indicator_cards()` in `pipeline/write_html.py` now call
+`classify_indicator()` instead of hand-rolling their own is_stress/is_watch
+logic. Covers: the `LEVEL_THRESHOLDS` absolute overrides (ipc_yoy_pct,
+dop_usd, UMCSENT) and the `gas_premium_dop` MoM override are honored by
+both functions, the z-score bar width renders correctly for
+"negative"-direction indicators, and `count_indicator_statuses()`'s totals
+agree with independently calling `classify_indicator()` on every
+component.
+
+**test_current_month_estimate.py** — tests for
+`build_vulnerability.py::estimate_current_month()`, the deliberate,
+explicitly-separate relaxation of the strict full-coverage rule used only
+to give the dashboard hero an honest reading for the current in-progress
+calendar month. Covers: missing current-month components are forward-filled
+and reported in `filled_components`, an explicit override value (e.g. a
+`dop_usd` month-to-date average) counts as real data rather than a fill,
+the function returns `None` instead of fabricating a number when there's
+no row for the current month or every component would need filling, the
+input DataFrame is never mutated, and the per-component `value`/`zscore`/
+`is_filled`/`mom` breakdown used by the weekly OneDrive Excel snapshot.
+
+**test_current_month_tracker.py** — tests for
+`pipeline/current_month_tracker.py`, which persists the weekly snapshots of
+`estimate_current_month()`'s projection in
+`data/state/current_month_snapshots.json`. Covers: week-of-month math,
+append-vs-update-by-week dedup (so a manual re-run doesn't skew the
+average), reset on month rollover, and graceful handling of a
+missing/corrupt snapshot file.
+
+**test_ingest_bcrd.py** — tests for
+`pipeline/ingest_bcrd.py::load_exchange_rate_mtd()`, the one place the
+pipeline computes its own monthly average exchange rate from daily rates
+instead of using BCRD's official `PromMensual` figure, because BCRD only
+publishes that once the month closes. Uses a small synthetic `Diaria`-shaped
+workbook rather than the real cached file. Covers: averaging only rows in
+the target month, `None` when the target month has no rows, a missing
+sheet, a missing file, and skipping rows with a blank `Venta` value.
+
 ## Updating the fixture
 
 `fixtures/vulnerability_history.csv` should be regenerated whenever
@@ -67,13 +107,3 @@ inside `run_vulnerability_pipeline()` itself, where they're actually used.
 No behavior change; this is what makes `pytest` able to import
 `build_vulnerability.py` at all without faking out the entire ingestion
 layer.
-
-## Known gap
-
-`write_html.py`'s `count_indicator_statuses()` and `build_indicator_cards()`
-still duplicate `classify_indicator()`'s logic by hand rather than calling
-it directly (the gas MoM override was patched into both as a stopgap, but
-the `LEVEL_THRESHOLDS` overrides for ipc_yoy_pct/dop_usd/UMCSENT are not
-wired into either function). No test here currently exercises that gap
-since none of the real data has crossed those absolute levels yet. This is
-flagged as the next structural fix, not addressed in this test pass.
