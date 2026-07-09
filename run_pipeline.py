@@ -130,9 +130,9 @@ def build_email_html(date_str: str, dashboard_url: str) -> str:
                      style="background:{_EMAIL_BLUE_TINT}; border:1px solid {_EMAIL_HAIRLINE}; border-radius:6px;">
                 <tr>
                   <td style="padding:14px 18px; font-family:{_EMAIL_FONT_BODY}; font-size:13px; color:{_EMAIL_INK};">
-                    <span style="font-family:{_EMAIL_FONT_MONO}; font-size:11px; font-weight:bold; color:{_EMAIL_NAVY}; letter-spacing:0.04em;">ONEDRIVE &nbsp;·&nbsp;</span>
-                    Economic Intelligence / Output
-                    <div style="font-family:{_EMAIL_FONT_BODY}; font-size:12px; color:{_EMAIL_MUTED}; margin-top:4px;">El reporte en Excel está disponible en la carpeta compartida de OneDrive.</div>
+                    <span style="font-family:{_EMAIL_FONT_MONO}; font-size:11px; font-weight:bold; color:{_EMAIL_NAVY}; letter-spacing:0.04em;">SOBRE EL ÍNDICE &nbsp;·&nbsp;</span>
+                    Metodología
+                    <div style="font-family:{_EMAIL_FONT_BODY}; font-size:12px; color:{_EMAIL_MUTED}; margin-top:4px;">El puntaje agrega 12 indicadores oficiales -- tipo de cambio, inflación, remesas, reservas internacionales, morosidad bancaria y más -- en un solo índice de 0 a 100, publicado cada semana.</div>
                   </td>
                 </tr>
               </table>
