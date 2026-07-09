@@ -473,21 +473,32 @@ def build_context_cards(results: dict) -> str:
 
 # ── Indicator classification & cards ────────────────────────────────────────────
 
-def count_indicator_statuses(scored: pd.DataFrame):
+def count_indicator_statuses(scored: pd.DataFrame, score_date=None):
     """Count indicators in each status band by calling classify_indicator(),
     the project's single source of truth, so this can never disagree with the
-    cards, the alerts, or the Excel sheets."""
+    cards, the alerts, or the Excel sheets.
+
+    When score_date is given (the same date build_alerts() scores off of),
+    every indicator is read from that one row instead of each column's own
+    latest available month -- otherwise a component with fresher data than
+    the rest (e.g. UNRATE) can classify differently here than in the alerts
+    list, which is always pinned to score_date."""
     stress = watch = normal = 0
     for col in VULNERABILITY_COMPONENTS:
         zscore_col = f"{col}_zscore"
         if col not in scored.columns:
             continue
-        recent = scored[[col, zscore_col]].dropna().tail(1)
-        if recent.empty:
-            continue
-        value = recent[col].iloc[0]
-        zscore = recent[zscore_col].iloc[0]
-        mom = gas_mom_for(scored, recent.index[0]) if col == "gas_premium_dop" else None
+        if score_date is not None and score_date in scored.index:
+            row = scored.loc[score_date]
+            if col not in row or zscore_col not in row or pd.isna(row[col]) or pd.isna(row[zscore_col]):
+                continue
+            value, zscore, as_of = row[col], row[zscore_col], score_date
+        else:
+            recent = scored[[col, zscore_col]].dropna().tail(1)
+            if recent.empty:
+                continue
+            value, zscore, as_of = recent[col].iloc[0], recent[zscore_col].iloc[0], recent.index[0]
+        mom = gas_mom_for(scored, as_of) if col == "gas_premium_dop" else None
         classification = classify_indicator(col, value, zscore, mom_delta=mom)
         if classification["is_stress"]:
             stress += 1
@@ -498,17 +509,22 @@ def count_indicator_statuses(scored: pd.DataFrame):
     return stress, watch, normal
 
 
-def build_indicator_cards(scored: pd.DataFrame) -> str:
+def build_indicator_cards(scored: pd.DataFrame, score_date=None) -> str:
     cards = []
     for col, (weight, direction) in VULNERABILITY_COMPONENTS.items():
         zscore_col = f"{col}_zscore"
         if col not in scored.columns: continue
-        recent = scored[[col, zscore_col]].dropna().tail(1)
-        if recent.empty: continue
-        value  = recent[col].iloc[0]
-        zscore = recent[zscore_col].iloc[0]
+        if score_date is not None and score_date in scored.index:
+            row = scored.loc[score_date]
+            if col not in row or zscore_col not in row or pd.isna(row[col]) or pd.isna(row[zscore_col]):
+                continue
+            value, zscore, as_of = row[col], row[zscore_col], score_date
+        else:
+            recent = scored[[col, zscore_col]].dropna().tail(1)
+            if recent.empty: continue
+            value, zscore, as_of = recent[col].iloc[0], recent[zscore_col].iloc[0], recent.index[0]
         es_label, es_desc = INDICATOR_DESCRIPTIONS_ES.get(col, (INDICATOR_LABELS.get(col, col), ""))
-        mom = gas_mom_for(scored, recent.index[0]) if col == "gas_premium_dop" else None
+        mom = gas_mom_for(scored, as_of) if col == "gas_premium_dop" else None
         classification = classify_indicator(col, value, zscore, mom_delta=mom)
         is_stress, is_watch = classification["is_stress"], classification["is_watch"]
         if is_stress:   status_label, status_class, data_status = "ALERTA",    "status-stress", "stress"
@@ -521,7 +537,7 @@ def build_indicator_cards(scored: pd.DataFrame) -> str:
         else: value_str = f"{value:.2f}"
         bar_pct   = classification["contribution"] * 100
         bar_color = "var(--red)" if is_stress else ("var(--blue)" if is_watch else "var(--gray-400)")
-        col_history = scored[col].dropna().tail(3)
+        col_history = scored.loc[:as_of, col].dropna().tail(3)
         if len(col_history) >= 2:
             delta = col_history.iloc[-1] - col_history.iloc[-2]
             if direction == "positive": arrow, arrow_class = ("&#8593;","arrow-bad") if delta > 0 else ("&#8595;","arrow-good")
@@ -675,10 +691,10 @@ def build_html(results: dict) -> str:
     briefing      = generate_briefing(results, scored)
     chart_data    = build_chart_data(scored)
     context_cards = build_context_cards(results)
-    cards         = build_indicator_cards(scored)
+    cards         = build_indicator_cards(scored, score_date=confirmed_date)
     alert_html    = build_alert_items(alerts)
 
-    stress_n, watch_n, normal_n = count_indicator_statuses(scored)
+    stress_n, watch_n, normal_n = count_indicator_statuses(scored, score_date=confirmed_date)
     total_n = stress_n + watch_n + normal_n
 
     alert_count  = len(alerts) if alerts is not None and not alerts.empty else 0
