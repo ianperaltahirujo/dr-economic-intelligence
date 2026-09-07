@@ -1377,10 +1377,10 @@ def build_html(results: dict) -> str:
         <div class="section-head"><h2 class="section-label">Más de La Sociedad</h2><span class="section-rule"></span></div>
         <a href="clima-social.html" class="clima-teaser">
             <div class="clima-teaser-left">
-                <div class="clima-teaser-tag">Informe · Ola 7 · Abril 2026</div>
+                <div class="clima-teaser-tag">Informe · Ola 8 · Julio 2026</div>
                 <div class="clima-teaser-title">Clima Social Dominicano</div>
-                <div class="clima-teaser-desc">Un análisis del estado de ánimo, la economía cotidiana y la percepción ciudadana de la República Dominicana. Basado en 808 entrevistas realizadas en abril de 2026.</div>
-                <div class="clima-teaser-meta">n=808 &nbsp;·&nbsp; Levantamiento abril 2026 &nbsp;·&nbsp; LS Consulting / La Sociedad</div>
+                <div class="clima-teaser-desc">The Trust Gap: confianza institucional, economía cotidiana y percepción ciudadana de la República Dominicana. Basado en 800 entrevistas realizadas en julio de 2026.</div>
+                <div class="clima-teaser-meta">n=800 &nbsp;·&nbsp; Levantamiento julio 2026 &nbsp;·&nbsp; LS Consulting / La Sociedad</div>
             </div>
             <div class="clima-arrow"></div>
         </a>
