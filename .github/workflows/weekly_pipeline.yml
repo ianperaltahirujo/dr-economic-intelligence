@@ -45,13 +45,13 @@ jobs:
           EMAIL_RECIPIENTS:    ${{ secrets.EMAIL_RECIPIENTS }}
           ONEDRIVE_OWNER_UPN:   "work@lasociedad.com.do"
           ONEDRIVE_FOLDER_PATH: "Economic Intelligence/Output"
-          EMAIL_SENDER_UPN:     "work@lasociedad.com.do"
+          EMAIL_SENDER_UPN:     "noreply@lasociedad.com.do"
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           if [ "${{ github.event.inputs.skip_download }}" = "true" ]; then
-            python run_pipeline.py --skip-download
+            python run_pipeline.py --skip-download --skip-email
           else
-            python run_pipeline.py
+            python run_pipeline.py --skip-email
           fi
 
       - name: Commit updated dashboard
@@ -68,6 +68,15 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: weekly dashboard update [skip ci]"
           git push
 
+      - name: Send summary email
+        env:
+          AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          EMAIL_RECIPIENTS:    ${{ secrets.EMAIL_RECIPIENTS }}
+          EMAIL_SENDER_UPN:    "noreply@lasociedad.com.do"
+        run: python -m pipeline.send_weekly_email
+
       - name: Upload Excel workbook as artifact
         if: always()
         uses: actions/upload-artifact@v4.6.2
@@ -82,7 +91,6 @@ jobs:
           AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          EMAIL_RECIPIENTS:    ${{ secrets.EMAIL_RECIPIENTS }}
-          EMAIL_SENDER_UPN:    "work@lasociedad.com.do"
+          EMAIL_SENDER_UPN:    "noreply@lasociedad.com.do"
           GH_RUN_URL:          "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         run: python -m pipeline.notify_failure

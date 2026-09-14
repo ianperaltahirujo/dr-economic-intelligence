@@ -363,7 +363,7 @@ def step_send_email(results: dict, filepath: Path) -> bool:
         print("  EMAIL_RECIPIENTS not set -- skipping summary email.")
         return False
 
-    sender_upn = os.getenv("EMAIL_SENDER_UPN", "work@lasociedad.com.do")
+    sender_upn = os.getenv("EMAIL_SENDER_UPN", "noreply@lasociedad.com.do")
     estimate = results.get("current_month_estimate")
     score_date = estimate["date"] if estimate is not None else results.get("score_date")
     date_str = (
@@ -411,6 +411,16 @@ def main() -> int:
         action="store_true",
         help="Run scoring only -- skip Excel output and upload"
     )
+    parser.add_argument(
+        "--skip-email",
+        action="store_true",
+        help=(
+            "Skip sending the summary email inline (OneDrive upload still runs). "
+            "Used by the GitHub Actions workflow, which sends the email as its "
+            "own later step -- via pipeline/send_weekly_email.py -- so a Graph "
+            "failure there can't block the dashboard commit that happens first."
+        )
+    )
     args = parser.parse_args()
 
     run_start = datetime.now()
@@ -419,10 +429,13 @@ def main() -> int:
         total_steps = 2
     else:
         # score, context, excel, html (always) + download (unless skipped)
-        # + onedrive & email (unless --local)
+        # + onedrive (unless --local) + email (unless --local or --skip-email)
         total_steps = 4
         total_steps += 0 if args.skip_download else 1
-        total_steps += 0 if args.local else 2
+        if not args.local:
+            total_steps += 1
+            if not args.skip_email:
+                total_steps += 1
 
     _section("DR Economic Intelligence Pipeline")
     print(f"  Started: {run_start.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -430,6 +443,8 @@ def main() -> int:
         print("  Mode: skip BCRD download")
     if args.local:
         print("  Mode: local only (no OneDrive upload or email)")
+    if args.skip_email and not args.local:
+        print("  Mode: skip summary email (sent as a separate step)")
     if args.dry_run:
         print("  Mode: dry run (no Excel output)")
 
@@ -517,12 +532,14 @@ def main() -> int:
         except Exception as e:
             print(f"\n  ERROR writing/uploading monthly report: {e}")
 
-        # -- Step 7: Send summary email
-        _step(step_n, total_steps, "Sending summary email")
-        try:
-            step_send_email(results, weekly_path or output_path)
-        except Exception as e:
-            print(f"\n  ERROR sending summary email: {e}")
+        if not args.skip_email:
+            # -- Step 7: Send summary email
+            _step(step_n, total_steps, "Sending summary email")
+            step_n += 1
+            try:
+                step_send_email(results, weekly_path or output_path)
+            except Exception as e:
+                print(f"\n  ERROR sending summary email: {e}")
 
     # -- Summary
     _print_summary(results, run_start, output_path=output_path)
