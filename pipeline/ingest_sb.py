@@ -235,10 +235,13 @@ def load_principales_indicadores(
     # are missing values misencoded as 0 by the API, not real readings.
     # We replace them with NaN so the short-fill logic in build_vulnerability
     # can carry the last valid value forward instead of scoring a false alert.
+    # Use .mask() rather than .replace(0.0, pd.NA): replace() upcasts a
+    # float64 column to object dtype the moment it matches, and an
+    # object-dtype column blows up compute_zscores()'s rolling().mean().
     ZERO_IMPOSSIBLE_COLS = ["sb_solvencia_pct", "sb_tasa_activa_pct"]
     for col in ZERO_IMPOSSIBLE_COLS:
         if col in raw.columns:
-            raw[col] = raw[col].replace(0.0, pd.NA)
+            raw[col] = raw[col].mask(raw[col] == 0.0)
 
     print(f"  Loaded: {len(raw)} rows "
           f"({raw.index.min().date()} to {raw.index.max().date()})")
