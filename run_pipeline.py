@@ -338,7 +338,7 @@ def step_upload_onedrive(filepath: Path, subfolder: str) -> bool:
     """
     from pipeline.ms_graph import upload_to_onedrive
 
-    owner_upn = os.getenv("ONEDRIVE_OWNER_UPN", "work@lasociedad.com.do")
+    owner_upn = os.getenv("ONEDRIVE_OWNER_UPN")
     base_folder = os.getenv("ONEDRIVE_FOLDER_PATH", "Economic Intelligence/Output")
     folder_path = f"{base_folder}/{subfolder}"
     return upload_to_onedrive(filepath, owner_upn=owner_upn, folder_path=folder_path)
@@ -363,7 +363,7 @@ def step_send_email(results: dict, filepath: Path) -> bool:
         print("  EMAIL_RECIPIENTS not set -- skipping summary email.")
         return False
 
-    sender_upn = os.getenv("EMAIL_SENDER_UPN", "noreply@lasociedad.com.do")
+    sender_upn = os.getenv("EMAIL_SENDER_UPN")
     estimate = results.get("current_month_estimate")
     score_date = estimate["date"] if estimate is not None else results.get("score_date")
     date_str = (

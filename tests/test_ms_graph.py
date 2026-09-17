@@ -67,7 +67,7 @@ class TestUploadToOnedrive:
             mock_req.return_value = _fake_response(201)
             result = ms_graph.upload_to_onedrive(
                 filepath,
-                owner_upn="work@lasociedad.com.do",
+                owner_upn="owner@example.com",
                 folder_path="Economic Intelligence/Output",
                 token="tok",
             )
@@ -76,7 +76,7 @@ class TestUploadToOnedrive:
         method, url = mock_req.call_args[0][0], mock_req.call_args[0][1]
         assert method == "PUT"
         assert url == (
-            "https://graph.microsoft.com/v1.0/users/work@lasociedad.com.do/"
+            "https://graph.microsoft.com/v1.0/users/owner@example.com/"
             "drive/root:/Economic Intelligence/Output/"
             "vulnerability_report.xlsx:/content"
         )
@@ -90,7 +90,7 @@ class TestUploadToOnedrive:
             mock_req.return_value = _fake_response(403, text="access denied")
             result = ms_graph.upload_to_onedrive(
                 filepath,
-                owner_upn="work@lasociedad.com.do",
+                owner_upn="owner@example.com",
                 folder_path="Economic Intelligence/Output",
                 token="tok",
             )
@@ -101,7 +101,7 @@ class TestUploadToOnedrive:
         filepath = tmp_path / "does_not_exist.xlsx"
         with patch("pipeline.ms_graph._graph_request") as mock_req:
             result = ms_graph.upload_to_onedrive(
-                filepath, owner_upn="work@lasociedad.com.do", folder_path="Output",
+                filepath, owner_upn="owner@example.com", folder_path="Output",
                 token="tok",
             )
         assert result is False
@@ -112,7 +112,7 @@ class TestSendSummaryEmail:
     def test_no_recipients_skips_without_request(self):
         with patch("pipeline.ms_graph._graph_request") as mock_req:
             result = ms_graph.send_summary_email(
-                sender_upn="work@lasociedad.com.do",
+                sender_upn="sender@example.com",
                 recipients=[],
                 subject="subj",
                 body_text="body",
@@ -128,7 +128,7 @@ class TestSendSummaryEmail:
         with patch("pipeline.ms_graph._graph_request") as mock_req:
             mock_req.return_value = _fake_response(202)
             result = ms_graph.send_summary_email(
-                sender_upn="work@lasociedad.com.do",
+                sender_upn="sender@example.com",
                 recipients=["a@example.com", "b@example.com"],
                 subject="Weekly Summary",
                 body_text="Score: 42.0 / 100",
@@ -142,7 +142,7 @@ class TestSendSummaryEmail:
         message = payload["message"]
 
         assert method == "POST"
-        assert url == "https://graph.microsoft.com/v1.0/users/work@lasociedad.com.do/sendMail"
+        assert url == "https://graph.microsoft.com/v1.0/users/sender@example.com/sendMail"
         assert [r["emailAddress"]["address"] for r in message["toRecipients"]] == [
             "a@example.com", "b@example.com",
         ]
@@ -156,7 +156,7 @@ class TestSendSummaryEmail:
         with patch("pipeline.ms_graph._graph_request") as mock_req:
             mock_req.return_value = _fake_response(202)
             ms_graph.send_summary_email(
-                sender_upn="work@lasociedad.com.do",
+                sender_upn="sender@example.com",
                 recipients=["a@example.com"],
                 subject="subj",
                 body_text="body",

@@ -136,7 +136,7 @@ All delivery steps - OneDrive uploads and email - are best-effort: failures are 
 
 `.github/workflows/weekly_pipeline.yml` runs every Monday at 13:00 UTC (9:00 AM Santo Domingo time). It downloads fresh source files, scores, writes the Excel and HTML outputs, commits the regenerated `docs/index.html` back to the repo, uploads to OneDrive, and sends the summary email. `workflow_dispatch` is available for manual runs with an optional `skip_download` input. Each run also uploads the Excel workbook as a GitHub Actions artifact retained for 90 days, independent of OneDrive delivery.
 
-Required secrets: `FRED_API_KEY`, `SB_API_KEY`, `BCRD_API_KEY`, `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `EMAIL_RECIPIENTS`.
+Required secrets: `FRED_API_KEY`, `SB_API_KEY`, `BCRD_API_KEY`, `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `EMAIL_RECIPIENTS`, `EMAIL_SENDER_UPN`, `ONEDRIVE_OWNER_UPN`.
 
 ---
 

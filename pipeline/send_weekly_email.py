@@ -71,7 +71,7 @@ def main() -> None:
     body_html = build_email_html(date_str=date_str, dashboard_url=DASHBOARD_URL)
 
     ok = send_summary_email(
-        sender_upn=os.getenv("EMAIL_SENDER_UPN", "noreply@lasociedad.com.do"),
+        sender_upn=os.getenv("EMAIL_SENDER_UPN"),
         recipients=recipients,
         subject=subject,
         body_text=body_html,
