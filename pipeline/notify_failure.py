@@ -21,7 +21,7 @@ def main() -> None:
         "https://github.com/ianperaltahirujo/dr-economic-intelligence/actions",
     )
     ok = send_summary_email(
-        sender_upn=os.getenv("EMAIL_SENDER_UPN", "work@lasociedad.com.do"),
+        sender_upn=os.getenv("EMAIL_SENDER_UPN", "noreply@lasociedad.com.do"),
         recipients=recipients,
         subject="[ALERTA] Pipeline DR Economic Intelligence falló",
         body_text=(

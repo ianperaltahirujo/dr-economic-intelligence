@@ -363,7 +363,7 @@ def step_send_email(results: dict, filepath: Path) -> bool:
         print("  EMAIL_RECIPIENTS not set -- skipping summary email.")
         return False
 
-    sender_upn = os.getenv("EMAIL_SENDER_UPN", "work@lasociedad.com.do")
+    sender_upn = os.getenv("EMAIL_SENDER_UPN", "noreply@lasociedad.com.do")
     estimate = results.get("current_month_estimate")
     score_date = estimate["date"] if estimate is not None else results.get("score_date")
     date_str = (
