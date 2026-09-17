@@ -1,12 +1,5 @@
-<h1 align="center">
-  <a href="https://economic-intelligence.lasociedad.com.do/"><img src="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png" width="48" height="48" valign="middle" alt="DR Economic Intelligence logo"></a>
-  DR Economic Intelligence
-</h1>
-
 <p align="center">
-  <i>A single 0-100 score, recomputed every Monday from twelve official indicators, that gives<br>
-  non-technical leadership one traceable number to anchor the week's conversation -- and refuses<br>
-  to publish it at all when the underlying data can't be trusted.</i>
+  <a href="https://economic-intelligence.lasociedad.com.do/"><img src="docs/assets/logo-wordmark.png" width="420" alt="La Sociedad -- DR Economic Intelligence"></a>
 </p>
 
 <p align="center">
