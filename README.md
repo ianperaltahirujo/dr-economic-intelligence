@@ -1,12 +1,31 @@
-# DR Economic Intelligence
+<h1 align="center">
+  <a href="https://economic-intelligence.lasociedad.com.do/"><img src="https://cdn.prod.website-files.com/66019da45405261eac2c08e8/660d5e71b70a59f15069d753_Favicon-berlinblue.png" width="48" height="48" valign="middle" alt="DR Economic Intelligence logo"></a>
+  DR Economic Intelligence
+</h1>
 
-[![CI](https://github.com/ianperaltahirujo/dr-economic-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/ianperaltahirujo/dr-economic-intelligence/actions/workflows/ci.yml)
+<p align="center">
+  <i>A single 0-100 score, recomputed every Monday from twelve official indicators, that gives<br>
+  non-technical leadership one traceable number to anchor the week's conversation -- and refuses<br>
+  to publish it at all when the underlying data can't be trusted.</i>
+</p>
 
-Weekly economic intelligence system for the Dominican Republic, built for La Sociedad's upper management. A GitHub Actions workflow runs every Monday and publishes an updated vulnerability score, interactive dashboard, and Excel briefing to OneDrive and GitHub Pages.
+<p align="center">
+  <a href="https://github.com/ianperaltahirujo/dr-economic-intelligence/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ianperaltahirujo/dr-economic-intelligence/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: Proprietary" src="https://img.shields.io/badge/license-Proprietary-lightgrey.svg"></a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-blue.svg">
+  <img alt="Scoring: no network required" src="https://img.shields.io/badge/scoring-no%20network%20required-informational.svg">
+</p>
 
-**[View Live Dashboard →](https://economic-intelligence.lasociedad.com.do/)**
+<p align="center">
+  Weekly-automated vulnerability scoring for the Dominican Republic -- a GitHub Actions pipeline
+  that publishes an interactive dashboard, a 6-sheet Excel workbook, and OneDrive delivery every Monday.
+</p>
 
-[![DR Economic Intelligence dashboard](docs/assets/dashboard-preview-hero.png)](https://economic-intelligence.lasociedad.com.do/)
+<p align="center">
+  <a href="https://economic-intelligence.lasociedad.com.do/">
+    <img src="docs/assets/dashboard-preview-hero.png" width="820" alt="DR Economic Intelligence dashboard preview">
+  </a>
+</p>
 
 ---
 
