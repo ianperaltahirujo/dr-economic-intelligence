@@ -289,6 +289,48 @@
         .quadrant-legend-title{font-weight:600;color:var(--black);margin-bottom:2px}
         .quadrant-legend-desc{color:var(--gray-600)}
 
+        /* Cierre: an editorial essay layout, not a repeated card component -- each
+           of the five reflections gets a distinct typographic or structural
+           treatment (lede, offset paragraph, two-column pair, image-paired
+           statement) so the section reads as a flowing close rather than a stack
+           of identical boxes. Separate from .tesis-grid/.tesis-card (the top
+           Tesis section keeps its own density). */
+        .reflexion-flow{max-width:760px}
+        .reflexion-lede{font-family:var(--font-display);font-size:clamp(16px,1.8vw,18px);font-weight:700;line-height:1.35;color:var(--black);letter-spacing:-.005em;margin-bottom:10px}
+        .reflexion-body{font-size:16px;line-height:1.75;color:var(--gray-600)}
+        .reflexion-pair{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(20px,3.5vw,40px);align-items:stretch}
+        .reflexion-pair-divider{width:1px;background:var(--gray-200)}
+        .reflexion-rule{max-width:480px;margin:40px auto;height:1px;background:var(--gray-200)}
+
+        .reflexion-pause{max-width:640px;margin:8px auto 44px;text-align:center;padding:0 20px}
+        .reflexion-pause-text{font-family:var(--font-display);font-style:italic;font-size:clamp(20px,3.2vw,27px);line-height:1.4;color:var(--black)}
+        .reflexion-pause-meta{font-family:var(--font-mono);font-size:10.5px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.08em;margin-top:12px}
+
+        .reflexion-columns{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:44px}
+        .reflexion-col-kicker{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--cs-a);margin-bottom:10px}
+        .reflexion-col p{font-size:15px;line-height:1.75;color:var(--gray-600)}
+
+        .reflexion-banner{position:relative;border-radius:var(--radius);overflow:hidden;margin-bottom:44px;height:clamp(240px,32vw,340px);background:linear-gradient(180deg,#eaf2ff 0%,#cfe3fd 46%,#0373fc 100%)}
+        .reflexion-banner svg{position:absolute;inset:0;width:100%;height:100%}
+        .reflexion-banner-caption{position:absolute;left:clamp(20px,3vw,40px);right:clamp(20px,3vw,40px);bottom:24px;color:#fff}
+        .reflexion-banner-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-bottom:8px}
+        .reflexion-banner-quote{font-family:var(--font-display);font-style:italic;font-size:clamp(18px,2.6vw,24px);line-height:1.42;text-shadow:0 2px 14px rgba(0,55,120,.3);max-width:760px}
+        .reflexion-banner-sub{font-size:14px;line-height:1.6;color:rgba(255,255,255,.85);margin-top:10px;max-width:640px}
+
+        @media(max-width:820px){
+            .reflexion-columns,.reflexion-pair{grid-template-columns:1fr}
+            .reflexion-pair-divider{display:none}
+        }
+
+        /* Card-embedded motifs: a subtle full-bleed SVG watermark sitting behind a
+           bloque-card's own content, not a separate block -- for cards that are pure
+           text/data and would otherwise carry zero visual weight in their grid. Kept
+           to a single low-opacity blue linework layer so text stays fully legible. */
+        .bloque-card{position:relative}
+        .bloque-motif{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:var(--radius)}
+        .bloque-motif svg{position:absolute;width:100%;height:100%}
+        .bloque-card>*:not(.bloque-motif){position:relative}
+
         /* Footer */
         .site-footer{padding:44px 0;background:var(--blue-tint);border-top:var(--border)}
         .footer-inner{max-width:var(--maxw);margin:0 auto;padding:0 clamp(16px,5vw,40px);display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
@@ -417,16 +459,14 @@
             <div class="nav-labels">
                 <nav class="header-nav" id="mainNav" aria-label="Secciones del informe">
                     <a href="#tesis" class="nav-link">Tesis</a>
+                    <a href="#contexto" class="nav-link">Contexto</a>
                     <a href="#animo" class="nav-link">Ánimo</a>
                     <a href="#pais" class="nav-link">País</a>
                     <a href="#economia" class="nav-link">Economía</a>
-                    <a href="#digital" class="nav-link">Digital</a>
                     <a href="#confianza" class="nav-link">Confianza</a>
-                    <a href="#congreso" class="nav-link">Congreso</a>
                     <a href="#industrias" class="nav-link">Industrias</a>
-                    <a href="#partidos" class="nav-link">Partidos</a>
+                    <a href="#oposicion" class="nav-link">Oposición</a>
                     <a href="#migrar" class="nav-link">Migrar</a>
-                    <a href="#religion" class="nav-link">Religión</a>
                 </nav>
             </div>
             <svg class="nav-metro" id="navMetro" aria-hidden="true">
@@ -484,6 +524,26 @@
         </div>
     </section>
 
+    <!-- CONTEXTO -->
+    <section id="contexto" class="fade-in">
+        <div class="container">
+            <div class="chapter-kicker">Contexto</div>
+            <div class="section-head"><h2 class="section-label">El país rompió récords en casi todo lo que el Gobierno comunica</h2><span class="section-rule"></span></div>
+            <p class="section-intro">Empleo, turismo, remesas, exportaciones e inversión extranjera muestran resultados fuertes y, en varios casos, máximos históricos: la narrativa de avances tiene datos reales sobre los cuales sostenerse.</p>
+
+            <div class="stat-grid" style="margin-bottom:24px">
+                <div class="stat-card"><div class="stat-number">US$11.9B</div><div class="stat-label">remesas 2025</div><div class="stat-delta">Récord histórico, +10.3% interanual · BCRD</div></div>
+                <div class="stat-card"><div class="stat-number">11.6M</div><div class="stat-label">visitantes en 2025</div><div class="stat-delta">El mejor año del turismo dominicano · MITUR</div></div>
+                <div class="stat-card"><div class="stat-number">+133,915</div><div class="stat-label">nuevos empleos netos en 2025</div><div class="stat-delta">Empleo y participación en máximos históricos · BCRD/ENCFT</div></div>
+                <div class="stat-card"><div class="stat-number">US$16B</div><div class="stat-label">exportaciones 2025</div><div class="stat-delta">+14.4% · rendición de cuentas presidencial</div></div>
+                <div class="stat-card"><div class="stat-number">US$5B</div><div class="stat-label">inversión extranjera directa</div><div class="stat-delta">Primera vez que supera esa marca</div></div>
+                <div class="stat-card"><div class="stat-number">54.1%</div><div class="stat-label">informalidad laboral</div><div class="stat-delta">Bajó 1.4 puntos frente a 2024 · BCRD</div></div>
+            </div>
+
+            <p style="font-size:14px;color:var(--gray-600);line-height:1.7;max-width:760px">Pero un récord no alcanza si la experiencia cotidiana cuenta una historia distinta. El PIB pasó de crecer 5.0% a 2.1% en un año, y aunque el ingreso nominal del hogar subió 10.3%, lo hizo con una inflación cercana al 5% pisándole los talones: el avance agregado tuvo mucha menos capacidad de sentirse como progreso en la vida cotidiana. Cómo se traduce esa tensión en el ánimo de la gente es el punto de partida de este informe.</p>
+        </div>
+    </section>
+
     <!-- ESTADO DE ÁNIMO -->
     <section id="animo" class="fade-in">
         <div class="container">
@@ -534,6 +594,24 @@
 
             <div class="bloque-grid" style="margin-bottom:24px">
                 <div class="bloque-card">
+                    <div class="bloque-motif" aria-hidden="true">
+                        <svg viewBox="0 0 400 260" preserveAspectRatio="none">
+                            <g fill="#0373fc" opacity=".14">
+                                <circle cx="330" cy="40" r="3.5"/><circle cx="360" cy="70" r="3"/><circle cx="300" cy="75" r="2.5"/>
+                                <circle cx="375" cy="110" r="3"/><circle cx="340" cy="130" r="3.5"/><circle cx="310" cy="150" r="2.5"/>
+                                <circle cx="370" cy="165" r="3"/><circle cx="345" cy="195" r="3"/><circle cx="380" cy="210" r="2.5"/>
+                                <circle cx="315" cy="220" r="3.5"/><circle cx="290" cy="105" r="2.5"/><circle cx="355" cy="240" r="3"/>
+                            </g>
+                            <g stroke="#0373fc" stroke-width=".75" opacity=".1">
+                                <line x1="330" y1="40" x2="360" y2="70"/><line x1="360" y1="70" x2="300" y2="75"/>
+                                <line x1="360" y1="70" x2="375" y2="110"/><line x1="375" y1="110" x2="340" y2="130"/>
+                                <line x1="340" y1="130" x2="310" y2="150"/><line x1="340" y1="130" x2="370" y2="165"/>
+                                <line x1="370" y1="165" x2="345" y2="195"/><line x1="345" y1="195" x2="380" y2="210"/>
+                                <line x1="345" y1="195" x2="315" y2="220"/><line x1="300" y1="75" x2="290" y2="105"/>
+                                <line x1="315" y1="220" x2="355" y2="240"/>
+                            </g>
+                        </svg>
+                    </div>
                     <div class="bloque-card-header"><div><div class="bloque-card-label">Orgullo e identidad</div><div class="bloque-card-title">El arquetipo admirado</div></div></div>
                     <div class="bloque-insight">"Cuando ninguna figura encarna el orgullo, la identidad se sostiene desde abajo: en el mérito cotidiano de la gente."</div>
                     <div class="bloque-data-row"><span class="bloque-pct-label"><strong>Trabajador</strong> — se valora el esfuerzo diario como identidad.</span></div>
@@ -671,59 +749,6 @@
         </div>
     </section>
 
-    <!-- VIDA DIGITAL -->
-    <section id="digital" class="fade-in">
-        <div class="container">
-            <div class="chapter-kicker">Anexo · Hábitos digitales: online y offline</div>
-            <div class="section-head"><h2 class="section-label">Vida digital</h2><span class="section-rule"></span></div>
-            <p class="section-intro">La presión cotidiana no se queda en el bolsillo. La vida digital ocupa una parte creciente del día a día y, aunque la gente reconoce efectos sobre el descanso y el bienestar, reducir ese uso sigue siendo más una intención que un cambio consolidado de comportamiento.</p>
-
-            <div class="chart-grid-2" style="margin-bottom:24px">
-                <div class="chart-card">
-                    <div class="chart-title">Frecuencia de uso de redes / teléfono</div>
-                    <div class="chart-subtitle">n=800</div>
-                    <div class="chart-wrap"><canvas id="chartFrecuencia"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Efectos negativos percibidos</div>
-                    <div class="chart-subtitle">¿En cuáles aspectos ha tenido un efecto negativo? · n=800</div>
-                    <div class="chart-wrap"><canvas id="chartEfectos"></canvas></div>
-                </div>
-            </div>
-            <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:24px;max-width:760px">El uso intensivo (85% varias veces al día) atraviesa edad, región y nivel: dejó de ser variable de segmentación y pasó a ser el piso común. El efecto se reconoce primero en el sueño (34%) y la concentración (24%); un 34% dice no sentir ningún efecto negativo.</p>
-
-            <div class="chart-card" style="margin-bottom:24px">
-                <div class="typology-grid">
-                    <div class="typology-cell" style="border-left:4px solid #f7534e"><div class="typology-pct" style="color:#f7534e">57%</div><div class="typology-label">Enganchados en conflicto</div><div class="typology-sub">Uso intensivo + desean reducirlo (n=456)</div></div>
-                    <div class="typology-cell" style="border-left:4px solid #ff9f40"><div class="typology-pct" style="color:#ff9f40">28%</div><div class="typology-label">Enganchados cómodos</div><div class="typology-sub">Uso intensivo, sin intención de reducir (n=229)</div></div>
-                    <div class="typology-cell" style="border-left:4px solid #0373fc"><div class="typology-pct">7%</div><div class="typology-label">Moderados en alerta</div><div class="typology-sub">Uso medio/bajo + desean reducirlo (n=57)</div></div>
-                    <div class="typology-cell" style="border-left:4px solid #22c55e"><div class="typology-pct" style="color:#22c55e">8%</div><div class="typology-label">Equilibrados</div><div class="typology-sub">Uso medio/bajo, sin intención de reducir (n=64)</div></div>
-                </div>
-                <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:18px">La gente se percibe más equilibrada de lo que realmente actúa: 21% de los <em>enganchados en conflicto</em> dice "mantener equilibrio digital", frente a 58% entre los <em>enganchados cómodos</em>. La intención y la autoimagen van por delante del comportamiento.</p>
-            </div>
-
-            <div class="chart-grid-2" style="margin-bottom:24px">
-                <div class="chart-card">
-                    <div class="chart-title">Deseo de reducir el tiempo en pantallas</div>
-                    <div class="chart-subtitle">n=800</div>
-                    <div class="chart-wrap"><canvas id="chartDeseoReducir"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Acciones tomadas para reducir el uso</div>
-                    <div class="chart-subtitle">Últimos 12 meses · n=800</div>
-                    <div class="chart-wrap"><canvas id="chartAcciones"></canvas></div>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">¿A quién afecta principalmente el uso excesivo?</div>
-                <div class="chart-subtitle">63% cree que "afecta a todo el mundo por igual" · n=800</div>
-                <div class="chart-wrap"><canvas id="chartAtribucionPantalla"></canvas></div>
-                <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px">El riesgo se proyecta sobre los hijos: 47% cree que el uso excesivo afecta principalmente a los <strong>niños</strong>. Cuando se percibe como algo que nos pasa a todos, resulta más difícil sentir que el cambio depende de uno mismo.</p>
-            </div>
-        </div>
-    </section>
-
     <!-- THE TRUST GAP -->
     <section id="confianza" class="fade-in">
         <div class="container">
@@ -752,6 +777,16 @@
 
             <div class="bloque-grid" style="margin-bottom:24px">
                 <div class="bloque-card">
+                    <div class="bloque-motif" aria-hidden="true">
+                        <svg viewBox="0 0 400 260" preserveAspectRatio="none">
+                            <g fill="none" stroke="#0373fc">
+                                <circle cx="340" cy="60" r="24" opacity=".16" stroke-width="1"/>
+                                <circle cx="340" cy="60" r="46" opacity=".11" stroke-width="1"/>
+                                <circle cx="340" cy="60" r="70" opacity=".07" stroke-width="1"/>
+                            </g>
+                            <circle cx="340" cy="60" r="3" fill="#0373fc" opacity=".2"/>
+                        </svg>
+                    </div>
                     <div class="bloque-card-header"><div><div class="bloque-card-label">Iglesia</div><div class="bloque-card-title">Confianza alta, práctica más personal</div></div></div>
                     <div class="bloque-insight">"La confianza en la Iglesia puede estar recogiendo tradición, valores e identidad, más allá de la asistencia."</div>
                     <div class="bloque-data-row"><span class="bloque-pct">62%</span><span class="bloque-pct-label">confía en la Iglesia / líderes religiosos</span></div>
@@ -759,6 +794,16 @@
                     <div class="bloque-detail">Católicos: 65% cree pero no asiste. Pentecostales: 42% muy practicante, la principal excepción.</div>
                 </div>
                 <div class="bloque-card">
+                    <div class="bloque-motif" aria-hidden="true">
+                        <svg viewBox="0 0 400 260" preserveAspectRatio="none">
+                            <g fill="none" stroke="#0373fc" stroke-dasharray="5 7">
+                                <circle cx="340" cy="60" r="24" opacity=".16" stroke-width="1"/>
+                                <circle cx="340" cy="60" r="46" opacity=".11" stroke-width="1"/>
+                                <circle cx="340" cy="60" r="70" opacity=".07" stroke-width="1"/>
+                            </g>
+                            <circle cx="340" cy="60" r="3" fill="#0373fc" opacity=".14"/>
+                        </svg>
+                    </div>
                     <div class="bloque-card-header"><div><div class="bloque-card-label">Segmentos extremos</div><div class="bloque-card-title">Dónde se concentra el rechazo</div></div></div>
                     <div class="bloque-data-row"><span class="bloque-pct">54.3%</span><span class="bloque-pct-label">no tiene "ninguna confianza" en los partidos políticos</span></div>
                     <div class="bloque-data-row"><span class="bloque-pct">68.5%</span><span class="bloque-pct-label">desconfianza en partidos entre 36-45 años</span></div>
@@ -770,70 +815,10 @@
         </div>
     </section>
 
-    <!-- CONGRESO -->
-    <section id="congreso" class="fade-in">
-        <div class="container">
-            <div class="chapter-kicker">05 · Ciudadanía, Congreso y agenda legislativa</div>
-            <div class="section-head"><h2 class="section-label">Estar más pendiente no significa sentirse más representado</h2><span class="section-rule"></span></div>
-            <p class="section-intro">El 76% de los dominicanos declara mantenerse, al menos parcialmente, pendiente de lo que ocurre en el Congreso. Pero esa mayor exposición no se traduce en una relación más positiva con la institución: quienes siguen más de cerca la agenda pública tienden a evaluar con mayor dureza al Gobierno y a los partidos.</p>
-
-            <div class="chart-grid-2" style="margin-bottom:24px">
-                <div class="chart-card">
-                    <div class="chart-title">Atención a la agenda del Congreso</div>
-                    <div class="chart-subtitle">Base n=809 · Informados 76% (n=613) · Desconectados 24% (n=196)</div>
-                    <div class="chart-wrap"><canvas id="chartAtencion"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">Informados vs. Desconectados</div>
-                    <div class="chart-subtitle">Comparación de indicadores clave</div>
-                    <div class="comparator">
-                        <div class="comp-row"><div class="comp-row-label">Evaluación de gobierno (1&ndash;10)</div><div class="comp-bars"><div class="comp-seg"><div class="comp-seg-val">3.63</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:79%;background:#f7534e"></div></div><div class="comp-seg-name">Informados</div></div><div class="comp-seg"><div class="comp-seg-val">4.11</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:89%"></div></div><div class="comp-seg-name">Desconectados</div></div></div></div>
-                        <div class="comp-row"><div class="comp-row-label">Ha oído sobre una ley o debate</div><div class="comp-bars"><div class="comp-seg"><div class="comp-seg-val">92%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:92%"></div></div><div class="comp-seg-name">Informados</div></div><div class="comp-seg"><div class="comp-seg-val">57%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:57%;background:#9CA3AF"></div></div><div class="comp-seg-name">Desconectados</div></div></div></div>
-                        <div class="comp-row"><div class="comp-row-label">Ve corrupción en los partidos</div><div class="comp-bars"><div class="comp-seg"><div class="comp-seg-val">42.7%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:42.7%"></div></div><div class="comp-seg-name">Informados</div></div><div class="comp-seg"><div class="comp-seg-val">27.8%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:27.8%;background:#9CA3AF"></div></div><div class="comp-seg-name">Desconectados</div></div></div></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chart-grid-2" style="margin-bottom:24px">
-                <div class="chart-card">
-                    <div class="chart-title">"Las leyes del Congreso resuelven los problemas del país"</div>
-                    <div class="chart-subtitle">Grado de acuerdo, escala 5 puntos</div>
-                    <div class="chart-wrap"><canvas id="chartLeyesResuelven"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">"El Congreso toma en cuenta las opiniones afectadas"</div>
-                    <div class="chart-subtitle">Grado de acuerdo, escala 5 puntos</div>
-                    <div class="chart-wrap"><canvas id="chartCongresoEscucha"></canvas></div>
-                </div>
-            </div>
-            <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:24px;max-width:760px">Los informados están más en desacuerdo que los desconectados (B2B 55.6% vs. 41.3% en "las leyes resuelven"). Estar más pendiente del Congreso corre a la gente hacia el desacuerdo, no hacia el punto medio.</p>
-
-            <div class="chart-grid-2" style="margin-bottom:24px">
-                <div class="chart-card">
-                    <div class="chart-title">Prioridad legislativa próximos 6 meses</div>
-                    <div class="chart-subtitle">Informados vs. Desconectados</div>
-                    <div class="chart-wrap-tall"><canvas id="chartPrioridad"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">¿En qué debería mejorar el Congreso?</div>
-                    <div class="chart-subtitle">Informados vs. Desconectados</div>
-                    <div class="chart-wrap-tall"><canvas id="chartMejorar"></canvas></div>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">Qué pesa más al votar por un legislador</div>
-                <div class="chart-subtitle">Informados vs. Desconectados</div>
-                <div class="chart-wrap"><canvas id="chartVotoInfo"></canvas></div>
-                <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px">Al elegir un legislador, la integridad y la trayectoria pesan mucho más que el partido político: solo 6-8% prioriza el partido sobre el historial personal.</p>
-            </div>
-        </div>
-    </section>
-
     <!-- SECTOR PRIVADO E INDUSTRIAS -->
     <section id="industrias" class="fade-in">
         <div class="container">
-            <div class="chapter-kicker">06 · Sector privado e industrias</div>
+            <div class="chapter-kicker">05 · Sector privado e industrias</div>
             <div class="section-head"><h2 class="section-label">La desconfianza trasciende al Estado, pero no golpea a todos por igual</h2><span class="section-rule"></span></div>
             <p class="section-intro">El sector privado le saca 21 puntos de confianza al Estado y a las instituciones públicas. Pero ese promedio esconde diferencias importantes: la confianza cae a medida que aumenta la cercanía percibida de un sector con el Estado.</p>
 
@@ -857,7 +842,7 @@
 
             <div class="chart-card" style="margin-bottom:24px">
                 <div class="chart-title">Confianza y regulación por industria</div>
-                <div class="chart-subtitle">23 sectores · Ola 8 vs. Ola 3 vs. promedio histórico</div>
+                <div class="chart-subtitle">23 sectores · Ola 8 vs. promedio histórico 2021&ndash;2025</div>
                 <div class="table-tabbar">
                     <button class="table-tab active" data-target="tableConfianzaWrap">Confianza (T2B)</button>
                     <button class="table-tab" data-target="tableRegulacionWrap">"El Estado controla poco"</button>
@@ -865,68 +850,68 @@
                 <div>
                     <div class="data-table-view active data-table-wrap" id="tableConfianzaWrap">
                         <table class="data-table" id="tableConfianza">
-                            <thead><tr><th data-key="industria">Industria</th><th data-key="ola8">Ola 8</th><th data-key="ola3">Ola 3</th><th data-key="historico">Histórico</th><th data-key="gap">Gap</th></tr></thead>
+                            <thead><tr><th data-key="industria">Industria</th><th data-key="ola8">Ola 8</th><th data-key="historico">Histórico</th><th data-key="gap">Gap</th></tr></thead>
                             <tbody>
-                                <tr><td data-industria="Laboratorios">Laboratorios</td><td data-ola8="69">69%</td><td data-ola3="56">56%</td><td data-historico="69">69%</td><td data-gap="13" class="num-pos">+13pp</td></tr>
-                                <tr><td data-industria="Telecomunicaciones">Telecomunicaciones</td><td data-ola8="68">68%</td><td data-ola3="49">49%</td><td data-historico="62">62%</td><td data-gap="19" class="num-pos">+19pp</td></tr>
-                                <tr><td data-industria="Apps">Apps (delivery, transporte)</td><td data-ola8="66">66%</td><td data-ola3="45">45%</td><td data-historico="63">63%</td><td data-gap="21" class="num-pos">+21pp</td></tr>
-                                <tr><td data-industria="Líneas aéreas">Líneas aéreas</td><td data-ola8="64">64%</td><td data-ola3="53">53%</td><td data-historico="65">65%</td><td data-gap="11" class="num-pos">+11pp</td></tr>
-                                <tr><td data-industria="Turismo">Turismo</td><td data-ola8="63">63%</td><td data-ola3="72">72%</td><td data-historico="75">75%</td><td data-gap="-9" class="num-neg">-9pp</td></tr>
-                                <tr><td data-industria="Supermercados">Supermercados</td><td data-ola8="62">62%</td><td data-ola3="56">56%</td><td data-historico="66">66%</td><td data-gap="6" class="num-pos">+6pp</td></tr>
-                                <tr><td data-industria="Agropecuario">Agropecuario</td><td data-ola8="58">58%</td><td data-ola3="45">45%</td><td data-historico="62">62%</td><td data-gap="13" class="num-pos">+13pp</td></tr>
-                                <tr><td data-industria="Industria textil">Industria textil</td><td data-ola8="58">58%</td><td data-ola3="43">43%</td><td data-historico="61">61%</td><td data-gap="15" class="num-pos">+15pp</td></tr>
-                                <tr><td data-industria="Bebidas sin alcohol">Bebidas sin alcohol</td><td data-ola8="58">58%</td><td data-ola3="51">51%</td><td data-historico="63">63%</td><td data-gap="7" class="num-pos">+7pp</td></tr>
-                                <tr><td data-industria="Bodegas / fab. de vino">Bodegas / fab. de vino</td><td data-ola8="57">57%</td><td data-ola3="38">38%</td><td data-historico="57">57%</td><td data-gap="19" class="num-pos">+19pp</td></tr>
-                                <tr><td data-industria="Energías renovables">Energías renovables</td><td data-ola8="57">57%</td><td data-ola3="39">39%</td><td data-historico="55">55%</td><td data-gap="18" class="num-pos">+18pp</td></tr>
-                                <tr><td data-industria="Automotrices">Automotrices</td><td data-ola8="55">55%</td><td data-ola3="46">46%</td><td data-historico="58">58%</td><td data-gap="9" class="num-pos">+9pp</td></tr>
-                                <tr><td data-industria="Industria láctea">Industria láctea</td><td data-ola8="51">51%</td><td data-ola3="41">41%</td><td data-historico="59">59%</td><td data-gap="10" class="num-pos">+10pp</td></tr>
-                                <tr><td data-industria="E-commerce">E-commerce</td><td data-ola8="51">51%</td><td data-ola3="43">43%</td><td data-historico="51">51%</td><td data-gap="8" class="num-pos">+8pp</td></tr>
-                                <tr><td data-industria="Bebidas gaseosas">Bebidas gaseosas</td><td data-ola8="50">50%</td><td data-ola3="33">33%</td><td data-historico="50">50%</td><td data-gap="17" class="num-pos">+17pp</td></tr>
-                                <tr><td data-industria="Bancos">Bancos</td><td data-ola8="50">50%</td><td data-ola3="43">43%</td><td data-historico="51">51%</td><td data-gap="7" class="num-pos">+7pp</td></tr>
-                                <tr><td data-industria="Medios de comunicación">Medios de comunicación</td><td data-ola8="49">49%</td><td data-ola3="35">35%</td><td data-historico="48">48%</td><td data-gap="14" class="num-pos">+14pp</td></tr>
-                                <tr><td data-industria="Fab. de cerveza">Fab. de cerveza</td><td data-ola8="48">48%</td><td data-ola3="42">42%</td><td data-historico="54">54%</td><td data-gap="6" class="num-pos">+6pp</td></tr>
-                                <tr><td data-industria="Aseguradoras">Aseguradoras</td><td data-ola8="47">47%</td><td data-ola3="28">28%</td><td data-historico="42">42%</td><td data-gap="19" class="num-pos">+19pp</td></tr>
-                                <tr><td data-industria="Servicios públicos">Servicios públicos</td><td data-ola8="38">38%</td><td data-ola3="25">25%</td><td data-historico="38">38%</td><td data-gap="13" class="num-pos">+13pp</td></tr>
-                                <tr><td data-industria="Energía y combustibles">Energía y combustibles</td><td data-ola8="36">36%</td><td data-ola3="31">31%</td><td data-historico="38">38%</td><td data-gap="5" class="num-pos">+5pp</td></tr>
-                                <tr><td data-industria="AFP">AFP</td><td data-ola8="35">35%</td><td data-ola3="20">20%</td><td data-historico="26">26%</td><td data-gap="15" class="num-pos">+15pp</td></tr>
-                                <tr><td data-industria="Minería">Minería</td><td data-ola8="31">31%</td><td data-ola3="28">28%</td><td data-historico="36">36%</td><td data-gap="3" class="num-pos">+3pp</td></tr>
+                                <tr><td data-industria="Laboratorios">Laboratorios</td><td data-ola8="69">69%</td><td data-historico="69">69%</td><td data-gap="0">0pp</td></tr>
+                                <tr><td data-industria="Telecomunicaciones">Telecomunicaciones</td><td data-ola8="68">68%</td><td data-historico="62">62%</td><td data-gap="6" class="num-pos">+6pp</td></tr>
+                                <tr><td data-industria="Apps">Apps (delivery, transporte)</td><td data-ola8="66">66%</td><td data-historico="63">63%</td><td data-gap="3" class="num-pos">+3pp</td></tr>
+                                <tr><td data-industria="Líneas aéreas">Líneas aéreas</td><td data-ola8="64">64%</td><td data-historico="65">65%</td><td data-gap="-1" class="num-neg">-1pp</td></tr>
+                                <tr><td data-industria="Turismo">Turismo</td><td data-ola8="63">63%</td><td data-historico="75">75%</td><td data-gap="-12" class="num-neg">-12pp</td></tr>
+                                <tr><td data-industria="Supermercados">Supermercados</td><td data-ola8="62">62%</td><td data-historico="66">66%</td><td data-gap="-4" class="num-neg">-4pp</td></tr>
+                                <tr><td data-industria="Agropecuario">Agropecuario</td><td data-ola8="58">58%</td><td data-historico="62">62%</td><td data-gap="-4" class="num-neg">-4pp</td></tr>
+                                <tr><td data-industria="Industria textil">Industria textil</td><td data-ola8="58">58%</td><td data-historico="61">61%</td><td data-gap="-3" class="num-neg">-3pp</td></tr>
+                                <tr><td data-industria="Bebidas sin alcohol">Bebidas sin alcohol</td><td data-ola8="58">58%</td><td data-historico="63">63%</td><td data-gap="-5" class="num-neg">-5pp</td></tr>
+                                <tr><td data-industria="Bodegas / fab. de vino">Bodegas / fab. de vino</td><td data-ola8="57">57%</td><td data-historico="57">57%</td><td data-gap="0">0pp</td></tr>
+                                <tr><td data-industria="Energías renovables">Energías renovables</td><td data-ola8="57">57%</td><td data-historico="55">55%</td><td data-gap="2" class="num-pos">+2pp</td></tr>
+                                <tr><td data-industria="Automotrices">Automotrices</td><td data-ola8="55">55%</td><td data-historico="58">58%</td><td data-gap="-3" class="num-neg">-3pp</td></tr>
+                                <tr><td data-industria="Industria láctea">Industria láctea</td><td data-ola8="51">51%</td><td data-historico="59">59%</td><td data-gap="-8" class="num-neg">-8pp</td></tr>
+                                <tr><td data-industria="E-commerce">E-commerce</td><td data-ola8="51">51%</td><td data-historico="51">51%</td><td data-gap="0">0pp</td></tr>
+                                <tr><td data-industria="Bebidas gaseosas">Bebidas gaseosas</td><td data-ola8="50">50%</td><td data-historico="50">50%</td><td data-gap="0">0pp</td></tr>
+                                <tr><td data-industria="Bancos">Bancos</td><td data-ola8="50">50%</td><td data-historico="51">51%</td><td data-gap="-1" class="num-neg">-1pp</td></tr>
+                                <tr><td data-industria="Medios de comunicación">Medios de comunicación</td><td data-ola8="49">49%</td><td data-historico="48">48%</td><td data-gap="1" class="num-pos">+1pp</td></tr>
+                                <tr><td data-industria="Fab. de cerveza">Fab. de cerveza</td><td data-ola8="48">48%</td><td data-historico="54">54%</td><td data-gap="-6" class="num-neg">-6pp</td></tr>
+                                <tr><td data-industria="Aseguradoras">Aseguradoras</td><td data-ola8="47">47%</td><td data-historico="42">42%</td><td data-gap="5" class="num-pos">+5pp</td></tr>
+                                <tr><td data-industria="Servicios públicos">Servicios públicos</td><td data-ola8="38">38%</td><td data-historico="38">38%</td><td data-gap="0">0pp</td></tr>
+                                <tr><td data-industria="Energía y combustibles">Energía y combustibles</td><td data-ola8="36">36%</td><td data-historico="38">38%</td><td data-gap="-2" class="num-neg">-2pp</td></tr>
+                                <tr><td data-industria="AFP">AFP</td><td data-ola8="35">35%</td><td data-historico="26">26%</td><td data-gap="9" class="num-pos">+9pp</td></tr>
+                                <tr><td data-industria="Minería">Minería</td><td data-ola8="31">31%</td><td data-historico="36">36%</td><td data-gap="-5" class="num-neg">-5pp</td></tr>
                             </tbody>
                         </table>
                         <div class="table-hint">Desliza la tabla &#8594; &middot; clic en el encabezado para ordenar</div>
                     </div>
                     <div class="data-table-view data-table-wrap" id="tableRegulacionWrap">
                         <table class="data-table" id="tableRegulacion">
-                            <thead><tr><th data-key="industria">Industria</th><th data-key="ola8">Ola 8</th><th data-key="ola3">Ola 3</th><th data-key="historico">Histórico</th><th data-key="gap">Gap</th></tr></thead>
+                            <thead><tr><th data-key="industria">Industria</th><th data-key="ola8">Ola 8</th><th data-key="historico">Histórico</th><th data-key="gap">Gap</th></tr></thead>
                             <tbody>
-                                <tr><td data-industria="Aseguradoras">Aseguradoras</td><td data-ola8="42">42%</td><td data-ola3="51">51%</td><td data-historico="44">44%</td><td data-gap="-9" class="num-neg">-9pp</td></tr>
-                                <tr><td data-industria="AFP">AFP</td><td data-ola8="41">41%</td><td data-ola3="61">61%</td><td data-historico="53">53%</td><td data-gap="-20" class="num-neg">-20pp</td></tr>
-                                <tr><td data-industria="Servicios públicos">Servicios públicos</td><td data-ola8="40">40%</td><td data-ola3="58">58%</td><td data-historico="51">51%</td><td data-gap="-18" class="num-neg">-18pp</td></tr>
-                                <tr><td data-industria="Minería">Minería</td><td data-ola8="38">38%</td><td data-ola3="48">48%</td><td data-historico="41">41%</td><td data-gap="-10" class="num-neg">-10pp</td></tr>
-                                <tr><td data-industria="Bebidas sin alcohol">Bebidas sin alcohol</td><td data-ola8="37">37%</td><td data-ola3="37">37%</td><td data-historico="32">32%</td><td data-gap="0">0pp</td></tr>
-                                <tr><td data-industria="Bancos">Bancos</td><td data-ola8="36">36%</td><td data-ola3="33">33%</td><td data-historico="33">33%</td><td data-gap="3" class="num-pos">+3pp</td></tr>
-                                <tr><td data-industria="Supermercados">Supermercados</td><td data-ola8="36">36%</td><td data-ola3="32">32%</td><td data-historico="31">31%</td><td data-gap="4" class="num-pos">+4pp</td></tr>
-                                <tr><td data-industria="Fab. de cerveza">Fab. de cerveza</td><td data-ola8="35">35%</td><td data-ola3="36">36%</td><td data-historico="29">29%</td><td data-gap="-1" class="num-neg">-1pp</td></tr>
-                                <tr><td data-industria="Bebidas gaseosas">Bebidas gaseosas</td><td data-ola8="34">34%</td><td data-ola3="47">47%</td><td data-historico="35">35%</td><td data-gap="-13" class="num-neg">-13pp</td></tr>
-                                <tr><td data-industria="Fab. de vino">Fab. de vino</td><td data-ola8="33">33%</td><td data-ola3="34">34%</td><td data-historico="28">28%</td><td data-gap="-1" class="num-neg">-1pp</td></tr>
-                                <tr><td data-industria="Energía y combustibles">Energía y combustibles</td><td data-ola8="32">32%</td><td data-ola3="44">44%</td><td data-historico="38">38%</td><td data-gap="-12" class="num-neg">-12pp</td></tr>
-                                <tr><td data-industria="Energías renovables">Energías renovables</td><td data-ola8="32">32%</td><td data-ola3="28">28%</td><td data-historico="30">30%</td><td data-gap="4" class="num-pos">+4pp</td></tr>
-                                <tr><td data-industria="E-commerce">E-commerce</td><td data-ola8="31">31%</td><td data-ola3="43">43%</td><td data-historico="36">36%</td><td data-gap="-12" class="num-neg">-12pp</td></tr>
-                                <tr><td data-industria="Apps">Apps</td><td data-ola8="31">31%</td><td data-ola3="22">22%</td><td data-historico="28">28%</td><td data-gap="9" class="num-pos">+9pp</td></tr>
-                                <tr><td data-industria="Industria textil">Industria textil</td><td data-ola8="31">31%</td><td data-ola3="39">39%</td><td data-historico="31">31%</td><td data-gap="-8" class="num-neg">-8pp</td></tr>
-                                <tr><td data-industria="Medios de comunicación">Medios de comunicación</td><td data-ola8="29">29%</td><td data-ola3="50">50%</td><td data-historico="39">39%</td><td data-gap="-21" class="num-neg">-21pp</td></tr>
-                                <tr><td data-industria="Automotrices">Automotrices</td><td data-ola8="29">29%</td><td data-ola3="34">34%</td><td data-historico="29">29%</td><td data-gap="-5" class="num-neg">-5pp</td></tr>
-                                <tr><td data-industria="Líneas aéreas">Líneas aéreas</td><td data-ola8="28">28%</td><td data-ola3="29">29%</td><td data-historico="24">24%</td><td data-gap="-1" class="num-neg">-1pp</td></tr>
-                                <tr><td data-industria="Telecomunicaciones">Telecomunicaciones</td><td data-ola8="27">27%</td><td data-ola3="38">38%</td><td data-historico="32">32%</td><td data-gap="-11" class="num-neg">-11pp</td></tr>
-                                <tr><td data-industria="Laboratorios">Laboratorios</td><td data-ola8="27">27%</td><td data-ola3="31">31%</td><td data-historico="25">25%</td><td data-gap="-4" class="num-neg">-4pp</td></tr>
-                                <tr><td data-industria="Industria láctea">Industria láctea</td><td data-ola8="27">27%</td><td data-ola3="35">35%</td><td data-historico="26">26%</td><td data-gap="-8" class="num-neg">-8pp</td></tr>
-                                <tr><td data-industria="Turismo">Turismo</td><td data-ola8="26">26%</td><td data-ola3="20">20%</td><td data-historico="22">22%</td><td data-gap="6" class="num-pos">+6pp</td></tr>
-                                <tr><td data-industria="Agropecuario">Agropecuario</td><td data-ola8="25">25%</td><td data-ola3="38">38%</td><td data-historico="28">28%</td><td data-gap="-13" class="num-neg">-13pp</td></tr>
+                                <tr><td data-industria="Aseguradoras">Aseguradoras</td><td data-ola8="42">42%</td><td data-historico="44">44%</td><td data-gap="-2" class="num-neg">-2pp</td></tr>
+                                <tr><td data-industria="AFP">AFP</td><td data-ola8="41">41%</td><td data-historico="53">53%</td><td data-gap="-12" class="num-neg">-12pp</td></tr>
+                                <tr><td data-industria="Servicios públicos">Servicios públicos</td><td data-ola8="40">40%</td><td data-historico="51">51%</td><td data-gap="-11" class="num-neg">-11pp</td></tr>
+                                <tr><td data-industria="Minería">Minería</td><td data-ola8="38">38%</td><td data-historico="41">41%</td><td data-gap="-3" class="num-neg">-3pp</td></tr>
+                                <tr><td data-industria="Bebidas sin alcohol">Bebidas sin alcohol</td><td data-ola8="37">37%</td><td data-historico="32">32%</td><td data-gap="5" class="num-pos">+5pp</td></tr>
+                                <tr><td data-industria="Bancos">Bancos</td><td data-ola8="36">36%</td><td data-historico="33">33%</td><td data-gap="3" class="num-pos">+3pp</td></tr>
+                                <tr><td data-industria="Supermercados">Supermercados</td><td data-ola8="36">36%</td><td data-historico="31">31%</td><td data-gap="5" class="num-pos">+5pp</td></tr>
+                                <tr><td data-industria="Fab. de cerveza">Fab. de cerveza</td><td data-ola8="35">35%</td><td data-historico="29">29%</td><td data-gap="6" class="num-pos">+6pp</td></tr>
+                                <tr><td data-industria="Bebidas gaseosas">Bebidas gaseosas</td><td data-ola8="34">34%</td><td data-historico="35">35%</td><td data-gap="-1" class="num-neg">-1pp</td></tr>
+                                <tr><td data-industria="Fab. de vino">Fab. de vino</td><td data-ola8="33">33%</td><td data-historico="28">28%</td><td data-gap="5" class="num-pos">+5pp</td></tr>
+                                <tr><td data-industria="Energía y combustibles">Energía y combustibles</td><td data-ola8="32">32%</td><td data-historico="38">38%</td><td data-gap="-6" class="num-neg">-6pp</td></tr>
+                                <tr><td data-industria="Energías renovables">Energías renovables</td><td data-ola8="32">32%</td><td data-historico="30">30%</td><td data-gap="2" class="num-pos">+2pp</td></tr>
+                                <tr><td data-industria="E-commerce">E-commerce</td><td data-ola8="31">31%</td><td data-historico="36">36%</td><td data-gap="-5" class="num-neg">-5pp</td></tr>
+                                <tr><td data-industria="Apps">Apps</td><td data-ola8="31">31%</td><td data-historico="28">28%</td><td data-gap="3" class="num-pos">+3pp</td></tr>
+                                <tr><td data-industria="Industria textil">Industria textil</td><td data-ola8="31">31%</td><td data-historico="31">31%</td><td data-gap="0">0pp</td></tr>
+                                <tr><td data-industria="Medios de comunicación">Medios de comunicación</td><td data-ola8="29">29%</td><td data-historico="39">39%</td><td data-gap="-10" class="num-neg">-10pp</td></tr>
+                                <tr><td data-industria="Automotrices">Automotrices</td><td data-ola8="29">29%</td><td data-historico="29">29%</td><td data-gap="0">0pp</td></tr>
+                                <tr><td data-industria="Líneas aéreas">Líneas aéreas</td><td data-ola8="28">28%</td><td data-historico="24">24%</td><td data-gap="4" class="num-pos">+4pp</td></tr>
+                                <tr><td data-industria="Telecomunicaciones">Telecomunicaciones</td><td data-ola8="27">27%</td><td data-historico="32">32%</td><td data-gap="-5" class="num-neg">-5pp</td></tr>
+                                <tr><td data-industria="Laboratorios">Laboratorios</td><td data-ola8="27">27%</td><td data-historico="25">25%</td><td data-gap="2" class="num-pos">+2pp</td></tr>
+                                <tr><td data-industria="Industria láctea">Industria láctea</td><td data-ola8="27">27%</td><td data-historico="26">26%</td><td data-gap="1" class="num-pos">+1pp</td></tr>
+                                <tr><td data-industria="Turismo">Turismo</td><td data-ola8="26">26%</td><td data-historico="22">22%</td><td data-gap="4" class="num-pos">+4pp</td></tr>
+                                <tr><td data-industria="Agropecuario">Agropecuario</td><td data-ola8="25">25%</td><td data-historico="28">28%</td><td data-gap="-3" class="num-neg">-3pp</td></tr>
                             </tbody>
                         </table>
                         <div class="table-hint">Desliza la tabla &#8594; &middot; clic en el encabezado para ordenar</div>
                     </div>
                 </div>
-                <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px">Casi todas las industrias mejoran su confianza frente a Ola 3, pero <strong>turismo</strong> es la única con caída notable frente a su promedio histórico (-9pp). La percepción de sub-regulación cae en la mayoría de sectores, con excepciones activas en bancos, supermercados, energías renovables, apps y turismo.</p>
+                <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px">Frente a su promedio histórico, la mayoría de las industrias se mantiene relativamente estable. Los mayores retrocesos en confianza aparecen en <strong>turismo</strong> (-12pp), <strong>industria láctea</strong> (-8pp) y <strong>fabricantes de cerveza</strong> (-6pp); las mejoras más claras están en <strong>AFP</strong> (+9pp), <strong>telecomunicaciones</strong> (+6pp) y <strong>aseguradoras</strong> (+5pp). La percepción de sub-regulación se ubica hoy por debajo de su promedio histórico en la mayoría de sectores, con excepciones activas en fabricantes de cerveza, supermercados, bebidas sin alcohol, bancos y fabricantes de vino.</p>
             </div>
 
             <div class="chart-card" style="margin-bottom:24px">
@@ -962,10 +947,10 @@
 
             <div class="bloque-card" style="margin-bottom:24px">
                 <div class="bloque-card-header"><div><div class="bloque-card-label">Espontánea</div><div class="bloque-card-title">Empresas dominicanas responsables</div></div></div>
-                <div class="bloque-insight">"24% no identificó ninguna empresa responsable."</div>
+                <div class="bloque-insight">"En varios sectores, una o dos marcas concentran buena parte de la asociación con responsabilidad: CND en cerveza y licores, Grupo Telemicro en medios, Grupo Rica en alimentos y Banco Popular en banca."</div>
                 <div class="demo-grid">
-                    <div class="demo-card"><div class="demo-label">Top categorías</div><div class="demo-row"><span class="demo-row-label">Supermercados / Retail</span><span class="demo-row-val">30%</span></div><div class="demo-row"><span class="demo-row-label">Banca</span><span class="demo-row-val">21%</span></div><div class="demo-row"><span class="demo-row-label">Alimentos y bebidas</span><span class="demo-row-val">16%</span></div><div class="demo-row"><span class="demo-row-label">Cerveza y licores</span><span class="demo-row-val">15%</span></div></div>
-                    <div class="demo-card"><div class="demo-label">Marcas más citadas</div><div class="demo-row"><span class="demo-row-label">Grupo Ramos / La Sirena</span><span class="demo-row-val">7%</span></div><div class="demo-row"><span class="demo-row-label">Cervecería Nacional</span><span class="demo-row-val">13%</span></div><div class="demo-row"><span class="demo-row-label">Grupo Rica</span><span class="demo-row-val">8%</span></div><div class="demo-row"><span class="demo-row-label">Banco Popular</span><span class="demo-row-val">6%</span></div></div>
+                    <div class="demo-card"><div class="demo-label">Top categorías (% de la base que la menciona)</div><div class="demo-row"><span class="demo-row-label">Cerveza y licores</span><span class="demo-row-val">87%</span></div><div class="demo-row"><span class="demo-row-label">Medios de comunicación</span><span class="demo-row-val">75%</span></div><div class="demo-row"><span class="demo-row-label">Alimentos y bebidas</span><span class="demo-row-val">53%</span></div><div class="demo-row"><span class="demo-row-label">Banca</span><span class="demo-row-val">46%</span></div><div class="demo-row"><span class="demo-row-label">Supermercados / Retail</span><span class="demo-row-val">37%</span></div></div>
+                    <div class="demo-card"><div class="demo-label">Marca más citada por categoría</div><div class="demo-row"><span class="demo-row-label">Cervecería Nacional (CND)</span><span class="demo-row-val">87%</span></div><div class="demo-row"><span class="demo-row-label">Grupo Telemicro</span><span class="demo-row-val">75%</span></div><div class="demo-row"><span class="demo-row-label">Grupo Rica</span><span class="demo-row-val">53%</span></div><div class="demo-row"><span class="demo-row-label">Banco Popular</span><span class="demo-row-val">46%</span></div><div class="demo-row"><span class="demo-row-label">Grupo Ramos / La Sirena</span><span class="demo-row-val">37%</span></div></div>
                 </div>
             </div>
 
@@ -997,12 +982,39 @@
         </div>
     </section>
 
-    <!-- PARTIDOS POLÍTICOS -->
-    <section id="partidos" class="fade-in">
+    <!-- LA OPOSICIÓN -->
+    <section id="oposicion" class="fade-in">
         <div class="container">
-            <div class="chapter-kicker">07 · Partidos políticos</div>
-            <div class="section-head"><h2 class="section-label">El descontento existe, pero la política no logra cerrar el gap</h2><span class="section-rule"></span></div>
-            <p class="section-intro">Ningún partido consigue construir una imagen ampliamente positiva ni diferenciarse con claridad. El PLD conserva ventaja en experiencia, cercanía y capacidad de gobierno; Fuerza del Pueblo destaca más por propuestas y liderazgo; el PRM queda afectado por la percepción de incumplimiento y debilidad de sus líderes; el PRD mantiene una imagen débil y poco diferenciada. En promedio, <strong>42% no identifica ningún atributo favorable</strong> que diferencie a los partidos.</p>
+            <div class="chapter-kicker">06 · La oposición</div>
+            <div class="section-head"><h2 class="section-label">¿Está la oposición preparada para convertirse en una alternativa real?</h2><span class="section-rule"></span></div>
+            <p class="section-intro">El PLD aparece más asociado a experiencia, capacidad para gobernar y cercanía. Fuerza del Pueblo, en cambio, gana terreno desde ideas, liderazgo y una menor carga de algunos atributos negativos. Pero ninguno consigue todavía apropiarse por completo de la idea de renovación: ambos siguen cargando con la percepción de ser parte de "los mismos de siempre". Es precisamente ahí donde empieza a ganar fuerza la posibilidad de un liderazgo construido fuera de las estructuras partidarias tradicionales.</p>
+
+            <div class="chart-card" style="margin-bottom:24px">
+                <div class="chart-title">¿Qué representa hoy cada partido de oposición?</div>
+                <div class="chart-subtitle">% que asocia cada atributo · n=800 &middot; PLD vs. Fuerza del Pueblo</div>
+                <div class="matrix-table-wrap">
+                    <table class="matrix-table">
+                        <thead><tr><th style="text-align:left">Atributo</th><th>Prom.</th><th>PLD</th><th>Fuerza del Pueblo</th></tr></thead>
+                        <tbody>
+                            <tr><td style="text-align:left">Sabe gobernar / tiene experiencia</td><td>13%</td><td><span class="matrix-cell" style="background:#d7f2e0;color:#15803d">28%</span></td><td>17%</td></tr>
+                            <tr><td style="text-align:left">Tiene buenas ideas y propuestas</td><td>17%</td><td>21%</td><td><span class="matrix-cell" style="background:#d7f2e0;color:#15803d">22%</span></td></tr>
+                            <tr><td style="text-align:left">Está cerca de la gente común</td><td>12%</td><td><span class="matrix-cell" style="background:#d7f2e0;color:#15803d">19%</span></td><td>11%</td></tr>
+                            <tr><td style="text-align:left">Tiene buenos líderes</td><td>11%</td><td>14%</td><td><span class="matrix-cell" style="background:#d7f2e0;color:#15803d">18%</span></td></tr>
+                            <tr><td style="text-align:left">Representa el cambio</td><td>9%</td><td><span class="matrix-cell" style="background:#d7f2e0;color:#15803d">13%</span></td><td><span class="matrix-cell" style="background:#d7f2e0;color:#15803d">13%</span></td></tr>
+                            <tr><td style="text-align:left">Defiende a gente como yo</td><td>5.8%</td><td><span class="matrix-cell" style="background:#d7f2e0;color:#15803d">10%</span></td><td>9%</td></tr>
+                            <tr><td style="text-align:left">Es honesto / transparente</td><td>4%</td><td>5%</td><td>5%</td></tr>
+                            <tr><td style="text-align:left">Promete y no cumple</td><td>37%</td><td>23%</td><td>23%</td></tr>
+                            <tr><td style="text-align:left">Es corrupto</td><td>38%</td><td>41%</td><td>24%</td></tr>
+                            <tr><td style="text-align:left">Son los mismos de siempre</td><td>45%</td><td>47%</td><td>45%</td></tr>
+                            <tr><td style="text-align:left">No tiene buenos líderes</td><td>28%</td><td>22%</td><td>14%</td></tr>
+                            <tr><td style="text-align:left">Solo busca el poder</td><td>37%</td><td>36%</td><td>35%</td></tr>
+                            <tr><td style="text-align:left">No representa a gente como yo</td><td>24%</td><td>15%</td><td>17%</td></tr>
+                            <tr><td style="text-align:left">Divide a los dominicanos</td><td>15%</td><td>9%</td><td>10%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="font-size:12.5px;color:var(--gray-600);line-height:1.6;margin-top:14px">El PLD puede pensarse desde la capacidad de gestión; Fuerza del Pueblo, desde una promesa de renovación y liderazgo. El espacio de oportunidad está en lograr que esas fortalezas dejen de ser atributos aislados y se conviertan en una propuesta clara de qué cambiaría y por qué sería diferente. En promedio, <strong>42% no identifica ningún atributo favorable</strong> que diferencie a los partidos.</p>
+            </div>
 
             <div class="chart-grid-2" style="margin-bottom:24px">
                 <div class="chart-card">
@@ -1012,6 +1024,7 @@
                         <div class="stat-card"><div class="stat-number">39.1k</div><div class="stat-label">menciones PRM</div><div class="stat-delta">1.3M interacciones</div></div>
                         <div class="stat-card"><div class="stat-number">29.4k</div><div class="stat-label">menciones PLD</div><div class="stat-delta">836.5k interacciones</div></div>
                         <div class="stat-card"><div class="stat-number">16.3k</div><div class="stat-label">menciones FP</div><div class="stat-delta">641.6k interacciones</div></div>
+                        <div class="stat-card"><div class="stat-number">&lt;5k</div><div class="stat-label">menciones PRD</div><div class="stat-delta">Volumen marginal frente al resto</div></div>
                     </div>
                     <p style="font-size:12.5px;color:var(--gray-600);line-height:1.6;margin-top:14px">Aunque el PRM domina el volumen, el enojo predomina en la conversación sin importar el partido: la conversación pública es más severa con quien gobierna (o ha gobernado) que con quienes aspiran a hacerlo.</p>
                 </div>
@@ -1022,26 +1035,65 @@
                 </div>
             </div>
 
-            <div class="chart-grid-2">
+            <div class="chart-card" style="margin-bottom:24px">
+                <div class="chart-title">Alofoke aparece en un espacio que la oferta política tradicional ha dejado abierto</div>
+                <div class="chart-subtitle">Su entrada a la política cambió el tono emocional de la conversación a su alrededor</div>
+                <div class="diverging-legend">
+                    <div class="diverging-legend-item"><span class="diverging-legend-dot" style="background:#c9d9f7"></span>Antes (21 jul 2025 &ndash; 22 jul 2026)</div>
+                    <div class="diverging-legend-item"><span class="diverging-legend-dot" style="background:#22c55e"></span>Después de anunciar su candidatura</div>
+                </div>
+                <div class="chart-grid-2">
+                    <div class="demo-card"><div class="demo-label">Antes</div><div class="demo-row"><span class="demo-row-label">Agrado</span><span class="demo-row-val">35%</span></div><div class="demo-row"><span class="demo-row-label">Tristeza</span><span class="demo-row-val">30%</span></div><div class="demo-row"><span class="demo-row-label">Alegría</span><span class="demo-row-val">19%</span></div><div class="demo-row"><span class="demo-row-label">Miedo</span><span class="demo-row-val">16%</span></div></div>
+                    <div class="demo-card"><div class="demo-label">Después de anunciar su candidatura</div><div class="demo-row"><span class="demo-row-label">Agrado</span><span class="demo-row-val" style="color:#15803d">63%</span></div><div class="demo-row"><span class="demo-row-label">Tristeza</span><span class="demo-row-val">15%</span></div><div class="demo-row"><span class="demo-row-label">Alegría</span><span class="demo-row-val">12%</span></div><div class="demo-row"><span class="demo-row-label">Miedo</span><span class="demo-row-val">10%</span></div></div>
+                </div>
+                <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px">Santiago Matías es una figura considerada controversial y mediática, lo que explica el sentimiento dominante de rechazo hacia él. Sin embargo, su entrada a la política hizo que una parte de la conversación en redes sociales comenzara a construir una narrativa a su favor: el crecimiento de "agrado", ahora la emoción dominante, muestra una conversación que incluso comienza a verlo como una posible alternativa.</p>
+            </div>
+
+            <div class="chart-grid-2" style="margin-bottom:24px">
                 <div class="chart-card">
                     <div class="chart-title">Con qué se asocia a Alofoke</div>
-                    <div class="chart-subtitle">Respuesta múltiple</div>
+                    <div class="chart-subtitle">Respuesta múltiple · n=800</div>
                     <div class="chart-wrap-tall"><canvas id="chartAlofokeAssoc"></canvas></div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-title">¿Qué aportaría Alofoke en la política?</div>
-                    <div class="chart-subtitle">Respuesta múltiple</div>
+                    <div class="chart-subtitle">Respuesta múltiple · n=800</div>
                     <div class="chart-wrap-tall"><canvas id="chartAlofokeAporte"></canvas></div>
                 </div>
             </div>
-            <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px;max-width:760px">Se le percibe primero como un caso de éxito personal, no desde un posicionamiento político tradicional. Su capital nace de atributos construidos fuera de la política: éxito, autenticidad, cercanía y comunicación directa. El riesgo percibido es bajo: todavía no se le atribuye con fuerza capacidad de gestión para gobernar &mdash; ahí está la principal barrera para convertir conexión en una opción política más completa. Su apoyo tiene fuerte sesgo de NSE: en la mención espontánea alcanza 46% en NSE bajo frente a apenas 19% en NSE alto.</p>
+
+            <div class="bloque-card">
+                <div class="bloque-motif" aria-hidden="true">
+                    <svg viewBox="0 0 800 220" preserveAspectRatio="none">
+                        <circle cx="740" cy="45" r="4" fill="#0373fc" opacity=".22"/>
+                        <g fill="none" stroke="#0373fc">
+                            <path d="M 740 45 m -28,0 a 28,28 0 1,1 56,0 a 28,28 0 1,1 -56,0" opacity=".18" stroke-width="1"/>
+                            <path d="M 740 45 m -55,0 a 55,55 0 1,1 110,0 a 55,55 0 1,1 -110,0" opacity=".12" stroke-width="1"/>
+                            <path d="M 740 45 m -85,0 a 85,85 0 1,1 170,0 a 85,85 0 1,1 -170,0" opacity=".07" stroke-width="1"/>
+                        </g>
+                        <g fill="#0373fc" opacity=".1">
+                            <circle cx="600" cy="90" r="2.5"/><circle cx="560" cy="130" r="2"/><circle cx="630" cy="150" r="2.5"/>
+                            <circle cx="510" cy="165" r="2"/><circle cx="670" cy="180" r="2"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="bloque-card-header"><div><div class="bloque-card-label">"Hablamos en el 28"</div><div class="bloque-card-title">Una plataforma que venía preparando el terreno</div></div></div>
+                <div class="bloque-insight">"Desde 2024 Alofoke viene construyendo, desde su plataforma 'Hablamos en el 28', una base para ir acercando su influencia mediática y de viralización hacia el terreno político."</div>
+                <div class="demo-grid">
+                    <div class="demo-card"><div class="demo-label">Canal en sus inicios &middot; dic. 2024</div><div class="demo-row"><span class="demo-row-label">Vistas</span><span class="demo-row-val">3.2M</span></div><div class="demo-row"><span class="demo-row-label">Suscriptores</span><span class="demo-row-val">113K</span></div></div>
+                    <div class="demo-card"><div class="demo-label">Canal en 2026</div><div class="demo-row"><span class="demo-row-label">Vistas</span><span class="demo-row-val">9M</span></div><div class="demo-row"><span class="demo-row-label">Suscriptores</span><span class="demo-row-val">180K</span></div></div>
+                </div>
+                <div class="bloque-detail">Aunque el canal está inactivo desde diciembre de 2024, al anunciar su candidatura la gente empezó a buscarlo y a revisar videos antiguos como forma de conocer más su visión política. Durante el trimestre, Santiago Matías acumuló 16,000 menciones a nivel digital; el post de Instagram donde anunció su candidatura logró 156k likes y 15k comentarios, y ese día sus canales registraron aproximadamente 456 mil interacciones. Alofoke ya contaba con una plataforma, una audiencia y una capacidad de generar interacción que comenzó a trasladarse hacia la política.</div>
+            </div>
+
+            <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px;max-width:760px">Se le percibe primero como un caso de éxito personal, no desde un posicionamiento político tradicional. Su capital nace de atributos construidos fuera de la política: éxito, autenticidad, cercanía y comunicación directa. El riesgo percibido es bajo: todavía no se le atribuye con fuerza capacidad de gestión para gobernar &mdash; ahí está la principal barrera para convertir conexión en una opción política más completa. Su apoyo tiene fuerte sesgo de NSE: en la mención espontánea alcanza 46% en NSE bajo frente a apenas 19% en NSE alto. La demanda de representación sigue ahí; lo que se debilita es la capacidad de los partidos para encarnarla.</p>
         </div>
     </section>
 
     <!-- MIGRACIÓN -->
     <section id="migrar" class="fade-in">
         <div class="container">
-            <div class="chapter-kicker">08 · Intención de migrar y expectativas de futuro</div>
+            <div class="chapter-kicker">07 · Intención de migrar y expectativas de futuro</div>
             <div class="section-head"><h2 class="section-label">Cuando el futuro se imagina fuera del país</h2><span class="section-rule"></span></div>
             <p class="section-intro">Más de la mitad de los dominicanos dice que, si tuviera la oportunidad, preferiría vivir de forma permanente en otro país. El deseo es especialmente alto entre los jóvenes, pero atraviesa edades, regiones y niveles socioeconómicos. Sin embargo, querer irse no significa estar preparado para hacerlo: solo 14% ya visualiza una salida en los próximos tres años.</p>
 
@@ -1089,71 +1141,89 @@
                 </div>
                 <p style="font-size:12.5px;color:var(--gray-600);line-height:1.6;margin-top:16px">La evaluación de gobierno se muestra en escala de 1 a 10 (media), no en porcentaje. La intención de migrar aparece acompañada de una visión más negativa del país, del Gobierno, de las instituciones y de las industrias: no parece ser solo una respuesta al bolsillo, sino también a la sensación de que el sistema ya no ofrece suficiente confianza ni futuro.</p>
             </div>
-        </div>
-    </section>
 
-    <!-- RELIGIÓN -->
-    <section id="religion" class="fade-in">
-        <div class="container">
-            <div class="chapter-kicker">Anexo · Religión</div>
-            <div class="section-head"><h2 class="section-label">Fe personal, institución que resiste</h2><span class="section-rule"></span></div>
-            <p class="section-intro">La Iglesia conserva una mayoría clara de confianza (ver capítulo 04), aun cuando la religiosidad se vuelve más personal y menos dependiente de la práctica institucional.</p>
-
-            <div class="chart-grid-2" style="margin-bottom:24px">
-                <div class="chart-card">
-                    <div class="chart-title">Identidad religiosa</div>
-                    <div class="chart-subtitle">¿Con cuál religión o creencia se identifica? · n=800</div>
-                    <div class="chart-wrap-tall"><canvas id="chartIdentidadReligion"></canvas></div>
+            <div class="chart-card">
+                <div class="chart-title">Cuando la intención de migrar ya tiene fecha</div>
+                <div class="chart-subtitle">Urgente, con fecha (n=116) vs. sin fecha definida (n=277) &middot; principal motivo</div>
+                <div class="comparator">
+                    <div class="comp-row"><div class="comp-row-label">Mejores oportunidades económicas / trabajo</div><div class="comp-bars"><div class="comp-seg"><div class="comp-seg-val">36.2%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:36.2%;background:#f7534e"></div></div><div class="comp-seg-name">Con fecha</div></div><div class="comp-seg"><div class="comp-seg-val">50%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:50%"></div></div><div class="comp-seg-name">Sin fecha</div></div></div></div>
+                    <div class="comp-row"><div class="comp-row-label">No le veo futuro al país</div><div class="comp-bars"><div class="comp-seg"><div class="comp-seg-val">22%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:22%;background:#f7534e"></div></div><div class="comp-seg-name">Con fecha</div></div><div class="comp-seg"><div class="comp-seg-val">22%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:22%"></div></div><div class="comp-seg-name">Sin fecha</div></div></div></div>
+                    <div class="comp-row"><div class="comp-row-label">Un mejor futuro para mis hijos</div><div class="comp-bars"><div class="comp-seg"><div class="comp-seg-val">22%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:22%;background:#f7534e"></div></div><div class="comp-seg-name">Con fecha</div></div><div class="comp-seg"><div class="comp-seg-val">18%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:18%"></div></div><div class="comp-seg-name">Sin fecha</div></div></div></div>
+                    <div class="comp-row"><div class="comp-row-label">Inseguridad / delincuencia</div><div class="comp-bars"><div class="comp-seg"><div class="comp-seg-val">12%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:12%;background:#f7534e"></div></div><div class="comp-seg-name">Con fecha</div></div><div class="comp-seg"><div class="comp-seg-val">9%</div><div class="comp-seg-bar-wrap"><div class="comp-seg-fill" style="width:9%"></div></div><div class="comp-seg-name">Sin fecha</div></div></div></div>
                 </div>
-                <div class="chart-card">
-                    <div class="chart-title">Nivel de práctica</div>
-                    <div class="chart-subtitle">Base: solo religiosos, n=687</div>
-                    <div class="chart-wrap"><canvas id="chartPractica"></canvas></div>
-                </div>
+                <p style="font-size:12.5px;color:var(--gray-600);line-height:1.6;margin-top:16px">Entre quienes todavía no tienen fecha definida, las oportunidades económicas pesan más (50% vs. 36.2%). Cuando la salida ya está planificada, aumenta ligeramente el peso de buscar un mejor futuro para los hijos y de la inseguridad. Tener o no una fecha cambia algunos detonantes, pero no cambia una percepción de fondo: cerca de 22% en ambos grupos dice no verle futuro al país.</p>
             </div>
-            <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:24px;max-width:760px">El catolicismo mantiene la primera posición (36%) pero convive cada vez más de cerca con iglesias evangélicas y pentecostales; el peso del catolicismo es mucho mayor entre adultos (46% en 56-65) que entre jóvenes (22% en 18-25). 6 de cada 10 religiosos creen pero no practican con regularidad: los pentecostales son la principal excepción, con 42% muy practicante frente a 22% entre católicos.</p>
-
-            <div class="chart-grid-2">
-                <div class="chart-card">
-                    <div class="chart-title">Dónde influye más la religión</div>
-                    <div class="chart-subtitle">% "influye mucho" · base solo religiosos, n=687</div>
-                    <div class="chart-wrap-tall"><canvas id="chartInfluencia"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-title">¿Más o menos religioso que hace 5 años?</div>
-                    <div class="chart-subtitle">n=800</div>
-                    <div class="chart-wrap"><canvas id="chartCambioReligion"></canvas></div>
-                </div>
-            </div>
-            <p style="font-size:13px;color:var(--gray-600);line-height:1.6;margin-top:16px;max-width:760px">La religión pesa mucho más sobre la crianza (77%) y el matrimonio (69%) que sobre el voto (36%) o la diversión (36%). "Menos religioso ahora" alcanza su punto más alto entre los jóvenes de 18-25 años (31%), apuntando a un cambio generacional en la forma de vivir la fe.</p>
         </div>
     </section>
 
     <!-- CIERRE -->
     <section id="cierre" class="fade-in">
         <div class="container">
-            <div class="chapter-kicker">09 · Reflexiones finales</div>
-            <div class="section-head"><h2 class="section-label">El vínculo con el país sigue ahí</h2><span class="section-rule"></span></div>
-            <div class="tesis-grid" style="margin-bottom:32px">
-                <div class="tesis-card"><div class="tesis-text">La presión cotidiana deja cada vez menos margen. Sostener el día a día exige administrar cada vez más aquello que se siente que ya no alcanza.</div></div>
-                <div class="tesis-card"><div class="tesis-text">El malestar no borra el vínculo con lo dominicano, pero sí cambia la forma de leer al país. La distancia aparece entre el país que valoran y el país que sienten que están viviendo.</div></div>
-                <div class="tesis-card"><div class="tesis-text">The Trust Gap se convierte en una confianza cada vez más selectiva. La confianza sigue existiendo; lo que dejó de otorgarse automáticamente es el beneficio de la duda.</div></div>
-                <div class="tesis-card"><div class="tesis-text">La brecha se hace más profunda donde existen mayores expectativas de respuesta y representación: la gente exige evidencia para confiar en quien promete ofrecer respuestas.</div></div>
-                <div class="tesis-card"><div class="tesis-text">La confianza que se retira de la política no desaparece: busca otros lugares donde depositarse &mdash; el sector privado, o figuras construidas fuera de los códigos partidarios tradicionales.</div></div>
-                <div class="tesis-card"><div class="tesis-text">La consecuencia más profunda es que parte de la población empieza a imaginar su futuro fuera del país, sin que eso contradiga el orgullo por su identidad dominicana.</div></div>
+            <div class="chapter-kicker">08 · Reflexiones finales</div>
+            <div class="section-head"><h2 class="section-label">La brecha más profunda aparece cuando pertenecer al país ya no significa querer construir el futuro en él</h2><span class="section-rule"></span></div>
+            <div class="reflexion-pair">
+                <div class="reflexion-flow">
+                    <p class="reflexion-lede">El avance macro no corrige el deterioro.</p>
+                    <p class="reflexion-body">El país cerró 2025 con récords en empleo, turismo, remesas e inversión, pero el crecimiento perdió velocidad y una parte importante de la población tuvo que recortar gastos, endeudarse o ajustar incluso necesidades básicas.</p>
+                </div>
+                <div class="reflexion-pair-divider"></div>
+                <div class="reflexion-flow">
+                    <p class="reflexion-lede">El orgullo ya no compensa el deterioro.</p>
+                    <p class="reflexion-body">Los dominicanos siguen valorando su cultura y su gente, aunque ese vínculo convive con un clima emocional cada vez más cargado de preocupación e impotencia.</p>
+                </div>
             </div>
+
+            <div class="reflexion-rule"></div>
+
+            <div class="reflexion-pause">
+                <div class="reflexion-pause-text">"68% cree que el país quedará peor de lo que lo recibió."</div>
+                <div class="reflexion-pause-meta">Legado percibido del Gobierno &middot; Ola 8</div>
+            </div>
+
+            <div class="reflexion-columns">
+                <div class="reflexion-col">
+                    <span class="reflexion-col-kicker">Confianza institucional</span>
+                    <p>The Trust Gap se vuelve más profundo precisamente donde existe mayor responsabilidad de responder. Gobierno, Congreso y partidos no solo se evalúan por lo que hacen, sino por la capacidad que se les atribuye para resolver, escuchar y representar.</p>
+                </div>
+                <div class="reflexion-col">
+                    <span class="reflexion-col-kicker">Dónde se reubica</span>
+                    <p>La confianza que se retira de la política no desaparece: busca otros lugares donde depositarse. El sector privado conserva ventaja frente a las instituciones públicas, y figuras construidas fuera de los códigos partidarios &mdash; como Alofoke &mdash; empiezan a ocupar el espacio que los partidos pierden.</p>
+                </div>
+            </div>
+
+            <div class="reflexion-banner">
+                <svg viewBox="0 0 800 300" preserveAspectRatio="none" aria-hidden="true">
+                    <circle cx="620" cy="168" r="3" fill="#fff"/>
+                    <circle cx="620" cy="168" r="10" fill="#fff" opacity=".18"/>
+                    <g fill="none" stroke="#fff">
+                        <path d="M 620 168 m -40,0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0" opacity=".22" stroke-width="1"/>
+                        <path d="M 620 168 m -75,0 a 75,75 0 1,1 150,0 a 75,75 0 1,1 -150,0" opacity=".14" stroke-width="1"/>
+                        <path d="M 620 168 m -115,0 a 115,115 0 1,1 230,0 a 115,115 0 1,1 -230,0" opacity=".08" stroke-width="1"/>
+                    </g>
+                    <line x1="0" y1="168" x2="800" y2="168" stroke="#fff" stroke-width="1" opacity=".35"/>
+                    <path d="M 0 190 Q 100 182, 200 190 T 400 190 T 600 190 T 800 190" fill="none" stroke="#fff" stroke-width="1" opacity=".25"/>
+                    <path d="M 0 215 Q 120 205, 240 215 T 480 215 T 720 215 T 800 215" fill="none" stroke="#fff" stroke-width="1" opacity=".18"/>
+                    <path d="M 0 245 Q 140 233, 280 245 T 560 245 T 800 245" fill="none" stroke="#fff" stroke-width="1" opacity=".12"/>
+                </svg>
+                <div class="reflexion-banner-caption">
+                    <div class="reflexion-banner-kicker">Ola 8 &middot; Reflexiones finales</div>
+                    <div class="reflexion-banner-quote">"La consecuencia más profunda de The Trust Gap es que parte de la población empieza a imaginar su futuro fuera del país."</div>
+                    <div class="reflexion-banner-sub">53% quisiera vivir permanentemente en otro país, aunque solo 14% ya visualiza una salida en los próximos tres años.</div>
+                </div>
+            </div>
+
             <div class="protagonist-box">
                 <div class="protagonist-profile">
                     <div class="protagonist-label">El reto</div>
-                    <div class="protagonist-title">El vínculo con el país sigue ahí.</div>
+                    <div class="protagonist-title">Pertenecer al país y confiar en construir aquí el futuro son, cada vez más, dos cosas distintas.</div>
                     <div class="protagonist-traits">
-                        <div class="protagonist-trait">57% dice estar peor que hace un año, pero el orgullo por la cultura, la gente y los paisajes se mantiene intacto.</div>
-                        <div class="protagonist-trait">La confianza no desapareció: se reordenó hacia lo cercano &mdash; la Iglesia, el sector privado, figuras individuales.</div>
-                        <div class="protagonist-trait">53% quisiera irse del país, pero solo 14% ya tiene un plan concreto: la tensión entre pertenencia y futuro sigue abierta.</div>
+                        <div class="protagonist-trait">El 53% quisiera vivir permanentemente fuera de República Dominicana, aunque solo 14% ya lo convierte en un plan concreto a 3 años: la distancia entre deseo y posibilidad importa.</div>
+                        <div class="protagonist-trait">La economía sigue siendo el principal motor de esa intención, pero también está asociada a algo más estructural: quien quiere irse confía menos en las instituciones y las empresas, y evalúa peor al Gobierno.</div>
+                        <div class="protagonist-trait">Eso no contradice el orgullo por la identidad dominicana: es posible conservar un fuerte sentido de pertenencia y, al mismo tiempo, perder confianza en que las oportunidades y el progreso puedan encontrarse aquí.</div>
                     </div>
                 </div>
                 <div class="protagonist-contract">
-                    <div class="protagonist-quote">"El reto es volver a hacer creíble que el país puede estar a la altura de ese vínculo."</div>
+                    <div class="protagonist-quote">"La tensión final de la gente se encuentra entre el sentido de pertenencia a República Dominicana y confiar en poder construir aquí la vida que se desea."</div>
                     <div class="protagonist-quote-meta">Clima Social Dominicano &middot; Ola 8 &middot; Julio 2026</div>
                 </div>
             </div>
@@ -1475,73 +1545,6 @@ new Chart(document.getElementById('chartRecortes'), {
     }
 });
 
-// ── FRECUENCIA DE USO ──
-new Chart(document.getElementById('chartFrecuencia'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Varias veces al día','Una vez al día aprox.','Algunas veces por semana','Rara vez'],
-        datasets: [{ data: [85,8,4,3], backgroundColor: [CS_B, '#ff9f40', '#ffcd56', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, cutout: '60%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
-    }
-});
-
-// ── EFECTOS NEGATIVOS ──
-new Chart(document.getElementById('chartEfectos'), {
-    type: 'bar',
-    data: {
-        labels: ['Mi calidad de sueño','Mi concentración','Mis niveles de ansiedad/estrés','Mi productividad','Mi estado de ánimo','Mis relaciones personales','Ninguno de los anteriores'],
-        datasets: [{ data: [34,24,19,19,18,17,34], backgroundColor: function(ctx){ return ctx.dataIndex === 6 ? '#9CA3AF' : CS_A; }, borderRadius: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
-        scales: { x: { min: 0, max: 40, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── DESEO DE REDUCIR ──
-new Chart(document.getElementById('chartDeseoReducir'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Sí, bastante','Sí, un poco','No','Ya lo hago / controlado'],
-        datasets: [{ data: [26,38,13,23], backgroundColor: [CS_B, '#ff9f40', '#E5E7EB', GREEN], borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, cutout: '60%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
-    }
-});
-
-// ── ACCIONES TOMADAS ──
-new Chart(document.getElementById('chartAcciones'), {
-    type: 'bar',
-    data: {
-        labels: ['Dejo el teléfono fuera de alcance','Empecé actividad presencial','Desactivé/eliminé una red','Activé límites de tiempo','Ninguna de las anteriores'],
-        datasets: [{ data: [48,26,18,18,24], backgroundColor: function(ctx){ return ctx.dataIndex === 4 ? '#9CA3AF' : CS_A; }, borderRadius: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
-        scales: { x: { min: 0, max: 55, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── A QUIÉN AFECTA (PANTALLAS) ──
-new Chart(document.getElementById('chartAtribucionPantalla'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Niños','Personas de todas las edades','Adolescentes','Jóvenes adultos','Adultos'],
-        datasets: [{ data: [47,30,16,5,2], backgroundColor: [CS_B, '#E5E7EB', '#ff9f40', '#ffcd56', CS_A], borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, cutout: '60%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
-    }
-});
-
 // ── CONFIANZA POR INSTITUCIÓN (11, stacked horizontal) ──
 new Chart(document.getElementById('chartInstituciones'), {
     type: 'bar',
@@ -1559,110 +1562,6 @@ new Chart(document.getElementById('chartInstituciones'), {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
         plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, padding: 10, font: { size: 9.5 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.x + '%' } } },
         scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── ATENCIÓN AL CONGRESO ──
-new Chart(document.getElementById('chartAtencion'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Algo pendiente','Muy pendiente','Poco pendiente','Casi no me entero'],
-        datasets: [{ data: [40.5,35.2,13.8,10.4], backgroundColor: [CS_A, '#8fbdff', '#ffcd56', '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, cutout: '60%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
-    }
-});
-
-// ── LEYES RESUELVEN (stacked horizontal, 3 segmentos) ──
-new Chart(document.getElementById('chartLeyesResuelven'), {
-    type: 'bar',
-    data: {
-        labels: ['Total (n=809)','Informados (n=613)','Desconectados (n=196)'],
-        datasets: [
-            { label: 'Totalmente de acuerdo', data: [8,8,10], backgroundColor: GREEN, stack: 's' },
-            { label: 'De acuerdo', data: [11,11,10], backgroundColor: '#a3e0b8', stack: 's' },
-            { label: 'Ni acuerdo ni desacuerdo', data: [29,25,39], backgroundColor: '#E5E7EB', stack: 's' },
-            { label: 'En desacuerdo', data: [33,36,23], backgroundColor: '#ffb4b1', stack: 's' },
-            { label: 'Totalmente en desacuerdo', data: [20,20,18], backgroundColor: CS_B, stack: 's' }
-        ]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 9 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.x + '%' } } },
-        scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { stacked: true, grid: { display: false } } }
-    }
-});
-
-// ── CONGRESO ESCUCHA (stacked horizontal) ──
-new Chart(document.getElementById('chartCongresoEscucha'), {
-    type: 'bar',
-    data: {
-        labels: ['Total (n=809)','Informados (n=613)','Desconectados (n=196)'],
-        datasets: [
-            { label: 'Totalmente de acuerdo', data: [8,8,9], backgroundColor: GREEN, stack: 's' },
-            { label: 'De acuerdo', data: [12,12,10], backgroundColor: '#a3e0b8', stack: 's' },
-            { label: 'Ni acuerdo ni desacuerdo', data: [19,16,29], backgroundColor: '#E5E7EB', stack: 's' },
-            { label: 'En desacuerdo', data: [35,37,29], backgroundColor: '#ffb4b1', stack: 's' },
-            { label: 'Totalmente en desacuerdo', data: [26,27,23], backgroundColor: CS_B, stack: 's' }
-        ]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 9 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.x + '%' } } },
-        scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { stacked: true, grid: { display: false } } }
-    }
-});
-
-// ── PRIORIDAD LEGISLATIVA ──
-new Chart(document.getElementById('chartPrioridad'), {
-    type: 'bar',
-    data: {
-        labels: ['Economía y empleo','Transparencia / anticorrupción','Seguridad ciudadana','Justicia / código penal','Salud','Educación','Medio ambiente','Transformación digital'],
-        datasets: [
-            { label: 'Informados', data: [26,23,20,14,6,6,2,1], backgroundColor: CS_A, borderRadius: 5 },
-            { label: 'Desconectados', data: [30,21,16,9,11,6,4,2], backgroundColor: '#9CA3AF', borderRadius: 5 }
-        ]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, padding: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.x + '%' } } },
-        scales: { x: { min: 0, max: 35, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── EN QUÉ DEBERÍA MEJORAR ──
-new Chart(document.getElementById('chartMejorar'), {
-    type: 'bar',
-    data: {
-        labels: ['Mayor transparencia','Mayor participación ciudadana','Mejor comunicación','Mejor calidad técnica de leyes','Mayor fiscalización al Ejecutivo','Mayor rapidez para aprobar leyes'],
-        datasets: [
-            { label: 'Informados', data: [42.1,42.1,39.8,19.9,12.6,8], backgroundColor: CS_A, borderRadius: 5 },
-            { label: 'Desconectados', data: [46,32,33,14,13,8], backgroundColor: '#9CA3AF', borderRadius: 5 }
-        ]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, padding: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.x + '%' } } },
-        scales: { x: { min: 0, max: 55, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── QUÉ PESA AL VOTAR ──
-new Chart(document.getElementById('chartVotoInfo'), {
-    type: 'bar',
-    data: {
-        labels: ['Vínculo con corrupción / origen del dinero','Experiencia profesional y trayectoria','Cómo ha votado y qué leyes presentó','Su partido político','Lo que digan personas de confianza'],
-        datasets: [
-            { label: 'Informados', data: [39,35,14,6,4], backgroundColor: CS_A, borderRadius: 5 },
-            { label: 'Desconectados', data: [33,36,11,8,9], backgroundColor: '#9CA3AF', borderRadius: 5 }
-        ]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, padding: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.x + '%' } } },
-        scales: { x: { min: 0, max: 45, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
     }
 });
 
@@ -1883,61 +1782,6 @@ new Chart(document.getElementById('chartMotivo'), {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
         scales: { x: { min: 0, max: 45, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── IDENTIDAD RELIGIOSA ──
-new Chart(document.getElementById('chartIdentidadReligion'), {
-    type: 'bar',
-    data: {
-        labels: ['Católico','Evangélico','Ninguna / no religioso','Pentecostal','Otra religión cristiana','Ateo o agnóstico','Adventista','Testigo de Jehová','Otra (no cristiana)'],
-        datasets: [{ data: [36,21,15,12,8,3,3,2,1], backgroundColor: CS_A, borderRadius: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
-        scales: { x: { min: 0, max: 40, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── PRÁCTICA RELIGIOSA ──
-new Chart(document.getElementById('chartPractica'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Cree y sigue la fe, no asiste con regularidad','Muy practicante: asiste y sigue enseñanzas','Cree, pero poco practicante'],
-        datasets: [{ data: [58,29,13], backgroundColor: [CS_A, GREEN, '#E5E7EB'], borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, cutout: '60%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } } }
-    }
-});
-
-// ── INFLUENCIA RELIGIOSA ──
-new Chart(document.getElementById('chartInfluencia'), {
-    type: 'bar',
-    data: {
-        labels: ['Cómo cría/educa a sus hijos','Su visión del matrimonio y familia','Su opinión sobre el aborto','Consumo de bebidas alcohólicas','Su opinión sobre comunidad LGBTQ+','Lugares a los que va a divertirse','Por quién vota / posturas políticas','La forma de vestir','Lo que ve en TV, música o redes'],
-        datasets: [{ data: [77,69,49,38,37,36,36,33,32], backgroundColor: '#9966ff', borderRadius: 6 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '%' } } },
-        scales: { x: { min: 0, max: 85, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
-    }
-});
-
-// ── CAMBIO RELIGIOSO ──
-new Chart(document.getElementById('chartCambioReligion'), {
-    type: 'bar',
-    data: {
-        labels: ['Igual','Más religioso ahora','Menos religioso ahora','Nunca he sido religioso'],
-        datasets: [{ data: [39,29,21,11], backgroundColor: [CS_A, GREEN, CS_B, '#9CA3AF'], borderRadius: 8 }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '%' } } },
-        scales: { y: { min: 0, max: 45, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
     }
 });
 
