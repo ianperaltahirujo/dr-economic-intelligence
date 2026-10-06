@@ -2,8 +2,8 @@ name: DR Economic Intelligence Pipeline
 
 on:
   schedule:
-    # Every Monday at 13:00 UTC (9:00 AM Santo Domingo time)
-    - cron: '0 13 * * 1'
+    # Every Monday at 11:17 UTC (7:17 AM Santo Domingo time); off the hour and early, since GitHub delays scheduled runs by hours
+    - cron: '17 11 * * 1'
   workflow_dispatch:
     # Allow manual trigger from GitHub Actions tab
     inputs:
