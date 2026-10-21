@@ -69,6 +69,7 @@ jobs:
           git push
 
       - name: Send summary email
+        if: vars.SEND_SUMMARY_EMAIL != 'false'
         env:
           AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
